@@ -1,0 +1,174 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Absence Record</string>
+
+    <!-- Common -->
+    <string name="action_close">Close</string>
+    <string name="action_cancel">Cancel</string>
+    <string name="action_save">Save</string>
+    <string name="action_add">Add</string>
+    <string name="action_delete">Delete</string>
+    <string name="error_display">Error: %1$s</string>
+
+    <!-- Students Screen -->
+    <string name="new_student_label">Enter new student name</string>
+    <string name="students_title">Students: %d</string>
+    <string name="no_students_message">No students added yet.</string>
+    <string name="edit_student">Edit Student</string>
+    <string name="student_name_label">Student name</string>
+    <string name="import_students_action">Import Students</string>
+    <string name="select_students_import_title">Select Students to Import</string>
+    <string name="select_all_students">Select All</string>
+    <string name="no_items_available">No items available.</string>
+    <string name="import_selected">Import Selected</string>
+    <string name="students_deleted_successfully">Selected students deleted successfully.</string>
+    <string name="data_exported_and_deleted_successfully">Data exported and selected students deleted successfully.</string>
+    <string name="bulk_delete_confirmation_title">Delete Selected Students?</string>
+
+    <plurals name="bulk_delete_confirmation_message">
+        <item quantity="one">Are you sure you want to delete %1$d student?</item>
+        <item quantity="other">Are you sure you want to delete %1$d students? This action cannot be undone.</item>
+    </plurals>
+
+    <string name="action_export_delete">Export &amp; Delete</string>
+    <string name="action_export">Export</string>
+
+    <plurals name="import_preview_message">
+        <item quantity="zero">No students found in file.</item>
+        <item quantity="one">Found %1$d student. Existing students with the same name will have dates merged:</item>
+        <item quantity="other">Found %1$d students. Existing students with the same name will have dates merged:</item>
+    </plurals>
+
+    <!-- Calendar Screen -->
+
+    <string name="mark_attendance_title">Mark Attendance for %1$s</string>
+    <string name="attendance_count">%1$d | %2$d</string>
+    <string name="no_students_for_attendance">No students available to mark attendance.</string>
+    <string name="content_description_present">Present</string>
+    <string name="content_description_absent">Absent</string>
+    <string name="previous_month">Previous month</string>
+    <string name="next_month">Next month</string>
+
+    <!-- Report Screen -->
+    <string name="students_sort_title">Students sorted by (%1$s)</string>
+    <string name="sort_by_name">Name</string>
+    <string name="sort_by_attendance">Attendance</string>
+    <string name="filter_by_month">Filter by Month</string>
+    <string name="all_months">All Months</string>
+    <string name="no_data_for_months">No data for months</string>
+    <string name="sort_action_rate">Sort: Rate</string>
+    <string name="sort_action_name">Sort: Name</string>
+    <string name="no_students_found">No students found for the current filter.</string>
+    <string name="student_history_title">History for: %1$s</string>
+    <string name="no_attendance_records">No attendance records for this student.</string>
+
+    <string name="action_share_image">Share Image</string>
+    <string name="share_calendar_image">Share Calendar Image for this month</string>
+
+    <string name="absencerecord_export_json">absencerecord_export_%1$s.json</string>
+    <string name="imported_dates_count">(%1$s dates)</string>
+    <string name="view_picture">View Picture</string>
+    <string name="sharing_app_not_found">Sharing app not found: %1$s</string>
+    <string name="clear_month_filter">Clear month filter</string>
+
+    <string name="error_deleting_student">Error deleting student: %1$s</string>
+    <string name="student_name_cannot_be_empty">Student name cannot be empty.</string>
+    <string name="student_added">Student \"%1$s\" added.</string>
+    <string name="error_adding_student">Error adding student: %1$s</string>
+
+    <string name="student_updated">Student \"%1$s\" updated.</string>
+    <string name="error_updating_student">Error updating student: %1$s</string>
+
+    <string name="file_selection_cancelled">File selection cancelled.</string>
+
+    <string name="error_creating_export_data">Error creating export data: %1$s</string>
+
+    <string name="data_exported_successfully">Data exported successfully.</string>
+
+    <string name="error_reading_or_parsing_file">Error reading or parsing file: %1$s</string>
+
+    <string name="error_during_import">Error during import: %1$s</string>
+
+    <plurals name="import_complete_new_students_added">
+        <item quantity="zero">Import complete. No students imported.</item>
+        <item quantity="one">Import complete. %1$d new student added.</item>
+        <item quantity="other">Import complete. %1$d new students added.</item>
+    </plurals>
+
+    <plurals name="existing_students_had_dates_merged">
+        <item quantity="zero">"No existing students\' dates to merge."</item>
+        <item quantity="one">" %1$d existing student had dates merged."</item>
+        <item quantity="other">" %1$d existing students had dates merged."</item>
+    </plurals>
+
+    <plurals name="dates_skipped_due_to_errors">
+        <item quantity="zero">"No skipped dates due to errors."</item>
+        <item quantity="one">" %1$d date skipped due to errors."</item>
+        <item quantity="other">" %1$d dates skipped due to errors."</item>
+    </plurals>
+
+    <string name="error_student_not_selected_history">Error: Student not selected for history.</string>
+    <string name="error_preparing_image">Error preparing image: %1$s</string>
+    <string name="error_fetching_history">Error fetching history: %1$s</string>
+    <string name="error_loading_students">Error loading students: %1$s</string>
+    <string name="error_loading_available_months">Error loading available months: %1$s</string>
+    <string name="error_loading_attendance">Error loading attendance: %1$s</string>
+    <string name="error_marking_attendance">Error marking attendance: %1$s</string>
+    <string name="error_deleting_attendance">Error deleting attendance: %1$s</string>
+    <string name="error_loading_student_history">Error loading student history: %1$s</string>
+    <string name="no_students_found_in_file">No students found in file.</string>
+
+    <!--    ComposeCalendar -->
+    <string name="content_description_today">Current day.</string>
+
+    <plurals name="days_count">
+        <item quantity="one">%d day</item>
+        <item quantity="other">%d days</item>
+    </plurals>
+
+    <!-- Date Formatting -->
+    <string name="month_january">January</string>
+    <string name="month_february">February</string>
+    <string name="month_march">March</string>
+    <string name="month_april">April</string>
+    <string name="month_may">May</string>
+    <string name="month_june">June</string>
+    <string name="month_july">July</string>
+    <string name="month_august">August</string>
+    <string name="month_september">September</string>
+    <string name="month_october">October</string>
+    <string name="month_november">November</string>
+    <string name="month_december">December</string>
+
+    <string name="month_short_january">Jan</string>
+    <string name="month_short_february">Feb</string>
+    <string name="month_short_march">Mar</string>
+    <string name="month_short_april">Apr</string>
+    <string name="month_short_may">May</string>
+    <string name="month_short_june">Jun</string>
+    <string name="month_short_july">Jul</string>
+    <string name="month_short_august">Aug</string>
+    <string name="month_short_september">Sep</string>
+    <string name="month_short_october">Oct</string>
+    <string name="month_short_november">Nov</string>
+    <string name="month_short_december">Dec</string>
+
+    <string name="date_format_month_year">%1$s %2$d</string>
+
+    <string name="day_monday">Monday</string>\
+    <string name="day_tuesday">Tuesday</string>
+    <string name="day_wednesday">Wednesday</string>
+    <string name="day_thursday">Thursday</string>
+    <string name="day_friday">Friday</string>
+    <string name="day_saturday">Saturday</string>
+    <string name="day_sunday">Sunday</string>
+
+    <string name="day_short_monday">Mon</string>
+    <string name="day_short_tuesday">Tue</string>
+    <string name="day_short_wednesday">Wed</string>
+    <string name="day_short_thursday">Thu</string>
+    <string name="day_short_friday">Fri</string>
+    <string name="day_short_saturday">Sat</string>
+    <string name="day_short_sunday">Sun</string>
+</resources>
+

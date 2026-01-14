@@ -1,0 +1,186 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">سجل الغياب</string>
+
+    <!-- Common -->
+    <string name="action_add">أضف</string>
+    <string name="action_close">إغلاق</string>
+    <string name="action_cancel">إلغاء</string>
+    <string name="action_save">حفظ</string>
+    <string name="action_delete">حذف</string>
+    <string name="error_display">خطأ: %1$s</string>
+
+    <!-- Students Screen -->
+    <string name="new_student_label">أدخل اسم الطالب الجديد</string>
+    <string name="no_students_message">لم يتم إضافة طلاب بعد.</string>
+    <string name="students_title">الطلاب: %d</string>
+    <string name="edit_student">تعديل الطالب</string>
+    <string name="student_name_label">اسم الطالب</string>
+    <string name="import_students_action">استيراد الطلاب</string>
+    <string name="select_students_import_title">اختر الطلاب للاستيراد</string>
+    <string name="select_all_students">تحديد الكل</string>
+    <string name="no_items_available">لا توجد عناصر متاحة.</string>
+    <string name="import_selected">استيراد المحدد</string>
+    <string name="students_deleted_successfully">تم حذف الطلاب المحددين بنجاح</string>
+    <string name="data_exported_and_deleted_successfully">تم تصدير البيانات وحذف الطلاب المحددين بنجاح</string>
+    <string name="bulk_delete_confirmation_title">حذف الطلاب المحددين؟</string>
+    <plurals name="bulk_delete_confirmation_message">
+        <item quantity="zero">.</item>
+        <item quantity="one">هل أنت متأكد من أنك تود حذف طالب واحد لا يمكن التراجع عن هذه الخطوة</item>
+        <item quantity="two">هل أنت متأكد من أنك تود حذف طالبين لا يمكن التراجع عن هذه الخطوة</item>
+        <item quantity="few">هل أنت متأكد من أنك تود حذف %1$d طلاب لا يمكن التراجع عن هذه الخطوة</item>
+        <item quantity="many">هل أنت متأكد من أنك تود حذف %1$d طالب لا يمكن التراجع عن هذه الخطوة</item>
+    </plurals>
+    <string name="action_export_delete">تصدير ثم حذف</string>
+    <string name="action_export">تصدير</string>
+
+    <plurals name="import_preview_message">
+        <item quantity="zero">لا يوجد طلاب في الملف.</item>
+        <item quantity="one">تم العثور على طالب واحد. سيتم دمج التواريخ للطلاب الموجودين بنفس الاسم</item>
+        <item quantity="two">تم العثور على طالبين واحد. سيتم دمج التواريخ للطلاب الموجودين بنفس الاسم</item>
+        <item quantity="few">تم العثور على %1$d طلاب. سيتم دمج التواريخ للطلاب الموجودين بنفس الاسم:</item>
+        <item quantity="many">تم العثور على %1$d طالب. سيتم دمج التواريخ للطلاب الموجودين بنفس الاسم:</item>
+    </plurals>
+
+    <!-- Calendar Screen -->
+
+    <string name="mark_attendance_title">تسجيل الحضور ليوم %1$s</string>
+    <string name="attendance_count">%1$d | %2$d</string>
+    <string name="no_students_for_attendance">لا يوجد طلاب لتسجيل الحضور.</string>
+    <string name="content_description_present">حاضر</string>
+    <string name="content_description_absent">غائب</string>
+    <string name="previous_month">الشهر السابق</string>
+    <string name="next_month">الشهر التالي</string>
+
+    <!-- Report Screen -->
+    <string name="students_sort_title">الطلاب مرتبون بحسب (%1$s)</string>
+    <string name="sort_by_name">الإسم</string>
+    <string name="sort_by_attendance">الحضور</string>
+    <string name="filter_by_month">تصفية حسب الشهر</string>
+    <string name="all_months">جميع الشهور</string>
+    <string name="no_data_for_months">لا توجد بيانات للشهور</string>
+    <string name="sort_action_rate">ترتيب: الحضور</string>
+    <string name="sort_action_name">ترتيب: الاسم</string>
+    <string name="no_students_found">لم يتم العثور على طلاب للتصفية الحالية.</string>
+    <string name="student_history_title">سجل حضور: %1$s</string>
+    <string name="no_attendance_records">لا توجد سجلات حضور لهذا الطالب.</string>
+
+    <string name="action_share_image">مشاركة الصورة</string>
+    <string name="share_calendar_image">مشاركة صورة التقويم لهذا الشهر</string>
+
+    <string name="absencerecord_export_json">تصدير_الغياب_%1$s.json</string>
+    <string name="imported_dates_count">(%1$s تواريخ)</string>
+    <string name="view_picture">عرض الصورة</string>
+    <string name="sharing_app_not_found">لا يوجد تطبيق للمشاركة عن طريقه: %1$s</string>
+    <string name="clear_month_filter">إلغاء التصنيف بالشهر</string>
+
+    <string name="error_deleting_student">خطأ في حذف الطالب: %1$s</string>
+    <string name="student_name_cannot_be_empty">لا يمكن أن يكون اسم الطالب فارغاً.</string>
+    <string name="student_added">تمت إضافة الطالب \"%1$s\".</string>
+    <string name="error_adding_student">خطأ في إضافة الطالب: %1$s</string>
+
+    <string name="student_updated">تم تحديث بيانات الطالب \"%1$s\".</string>
+    <string name="error_updating_student">خطأ في تحديث بيانات الطالب: %1$s</string>
+
+    <string name="file_selection_cancelled">تم إلغاء اختيار الملف.</string>
+
+    <string name="error_creating_export_data">خطأ في إنشاء بيانات التصدير: %1$s</string>
+
+    <string name="data_exported_successfully">تم تصدير البيانات بنجاح.</string>
+
+    <string name="error_reading_or_parsing_file">خطأ في قراءة أو تحليل الملف: %1$s</string>
+
+    <string name="error_during_import">خطأ أثناء الاستيراد: %1$s</string>
+
+    <plurals name="import_complete_new_students_added">
+        <item quantity="zero">اكتمل الاستيراد. لم تتم إضافة أي طالب جديد.</item>
+        <item quantity="one">اكتمل الاستيراد. تمت إضافة طالب واحد جديد.</item>
+        <item quantity="two">اكتمل الاستيراد. تمت إضافة طالبين جديدين.</item>
+        <item quantity="few">اكتمل الاستيراد. تمت إضافة %1$d طلاب جدد.</item>
+        <item quantity="many">اكتمل الاستيراد. تمت إضافة %1$d طالبًا جديدًا.</item>
+    </plurals>
+
+    <plurals name="existing_students_had_dates_merged">
+        <item quantity="zero">لم يتم دمج تواريخ أي من الطلاب الموجودين.</item>
+        <item quantity="one">تم دمج تواريخ طالب واحد من الطلاب الموجودين.</item>
+        <item quantity="two">تم دمج تواريخ طالبين من الطلاب الموجودين.</item>
+        <item quantity="few">تم دمج تواريخ %1$d من الطلاب الموجودين.</item>
+        <item quantity="many">تم دمج تواريخ %1$d من الطلاب الموجودين.</item>
+    </plurals>
+
+    <plurals name="dates_skipped_due_to_errors">
+        <item quantity="zero">لم يتم تخطي أي تواريخ بسبب الأخطاء.</item>
+        <item quantity="one">تم تخطي تاريخ واحد بسبب الأخطاء.</item>
+        <item quantity="two">تم تخطي تاريخين بسبب الأخطاء.</item>
+        <item quantity="few">تم تخطي %1$d تواريخ بسبب الأخطاء.</item>
+        <item quantity="many">تم تخطي %1$d تاريخًا بسبب الأخطاء.</item>
+    </plurals>
+
+    <string name="error_student_not_selected_history">خطأ: لم يتم اختيار طالب للسجل.</string>
+    <string name="error_preparing_image">خطأ في تجهيز الصورة: %1$s</string>
+    <string name="error_fetching_history">خطأ في جلب السجل: %1$s</string>
+    <string name="error_loading_students">خطأ في تحميل الطلاب: %1$s</string>
+    <string name="error_loading_available_months">خطأ في تحميل الشهور المتاحة: %1$s</string>
+    <string name="error_loading_attendance">خطأ في تحميل مواعيد الحضور: %1$s</string>
+    <string name="error_marking_attendance">خطأ في إضافة موعد حضور: %1$s</string>
+    <string name="error_deleting_attendance">خطأ في إزالة موعد حضور: %1$s</string>
+    <string name="error_loading_student_history">خطأ في تحميل تاريخ الطالب: %1$s</string>
+    <string name="no_students_found_in_file">لم يتم العثور على طلاب في الملف.</string>
+
+    <!--    ComposeCalendar -->
+    <string name="content_description_today">اليوم الحالي</string>
+
+    <plurals name="days_count">
+        <item quantity="zero">لا يوجد أيام</item>
+        <item quantity="one">يوم واحد</item>
+        <item quantity="two">يومان</item>
+        <item quantity="few">%d أيام</item>
+        <item quantity="many">%d يوماً</item>
+    </plurals>
+
+    <!-- Date Formatting -->
+    <string name="month_january">يناير</string>
+    <string name="month_february">فبراير</string>
+    <string name="month_march">مارس</string>
+    <string name="month_april">أبريل</string>
+    <string name="month_may">مايو</string>
+    <string name="month_june">يونيو</string>
+    <string name="month_july">يوليو</string>
+    <string name="month_august">أغسطس</string>
+    <string name="month_september">سبتمبر</string>
+    <string name="month_october">أكتوبر</string>
+    <string name="month_november">نوفمبر</string>
+    <string name="month_december">ديسمبر</string>
+
+    <string name="month_short_january">يناير</string>
+    <string name="month_short_february">فبراير</string>
+    <string name="month_short_march">مارس</string>
+    <string name="month_short_april">أبريل</string>
+    <string name="month_short_may">مايو</string>
+    <string name="month_short_june">يونيو</string>
+    <string name="month_short_july">يوليو</string>
+    <string name="month_short_august">أغسطس</string>
+    <string name="month_short_september">سبتمبر</string>
+    <string name="month_short_october">أكتوبر</string>
+    <string name="month_short_november">نوفمبر</string>
+    <string name="month_short_december">ديسمبر</string>
+
+    <string name="date_format_month_year">%1$s %2$d</string>
+
+    <string name="day_monday">الإثنين</string>\
+    <string name="day_tuesday">الثلاثاء</string>
+    <string name="day_wednesday">الأربعاء</string>
+    <string name="day_thursday">الخميس</string>
+    <string name="day_friday">الجمعة</string>
+    <string name="day_saturday">السبت</string>
+    <string name="day_sunday">الأحد</string>
+
+    <string name="day_short_monday">ن</string>
+    <string name="day_short_tuesday">ث</string>
+    <string name="day_short_wednesday">ر</string>
+    <string name="day_short_thursday">خ</string>
+    <string name="day_short_friday">ج</string>
+    <string name="day_short_saturday">س</string>
+    <string name="day_short_sunday">ح</string>
+</resources>
+
