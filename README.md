@@ -44,7 +44,7 @@ To get this project up and running on your local machine:
 
 2.  **Clone the repository**:
     ```bash
-    git clone https://github.com/nenoeldeeb/Absencerecord.git
+    git clone https://github.com/Nenoeldeeb/Absence-Record.git
     ```
     **Create Your own copy of `signing.properties` file in the root directory** Put the following properties in the file:
     ```properties
