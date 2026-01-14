@@ -68,6 +68,7 @@ fun CalendarScreen(viewModel: CalendarViewModel) {
                         CalendarScreenEvent.MarkStudentAttendance(student.id, date)
                     }
                 viewModel.onEvent(event)
+                viewModel.onEvent(CalendarScreenEvent.GetStudentsForDate(date))
             }
         )
     }
