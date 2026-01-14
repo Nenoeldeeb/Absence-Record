@@ -8,6 +8,7 @@ import dev.nenoeldeeb.education.absencerecord.domain.repositories.StudentReposit
 import dev.nenoeldeeb.education.absencerecord.domain.services.SerializationService
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import kotlinx.serialization.builtins.ListSerializer
@@ -69,7 +70,7 @@ class ExportStudentsUseCase(
                     .encodeToString(exportList, ListSerializer(StudentExportData.serializer()))
                     .fold(
                         onSuccess = { jsonString ->
-                            storageRepository.writeTextToUri(uriString, jsonString).collect {
+                            storageRepository.writeTextToUri(uriString, jsonString).collectLatest {
                                 emit(it)
                             }
                         },

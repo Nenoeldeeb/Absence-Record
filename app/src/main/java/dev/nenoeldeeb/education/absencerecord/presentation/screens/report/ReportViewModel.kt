@@ -15,6 +15,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
@@ -51,7 +52,7 @@ class ReportViewModel(
                 .flatMapLatest { (currentSortType, currentSelectedMonth) ->
                     studentManagementUseCases.getAllStudentsUseCase(currentSortType, currentSelectedMonth)
                 }
-                .collect { result ->
+                .collectLatest { result ->
                     result.onSuccess { students ->
                         _uiState.update { it.copy(allStudents = students) }
                     }.onFailure { e ->
@@ -72,7 +73,7 @@ class ReportViewModel(
     private fun initializeAvailableMonths() {
         viewModelScope.launch {
             attendanceUseCases.getAvailableMonthsUseCase()
-                .collect { result ->
+                .collectLatest { result ->
                     result.onSuccess { months ->
                         _uiState.update { it.copy(availableMonths = months) }
                     }.onFailure { e ->
@@ -97,7 +98,7 @@ class ReportViewModel(
                 .flatMapLatest { student ->
                     attendanceUseCases.getStudentAttendanceDatesUseCase(student.id)
                 }
-                .collect { result ->
+                .collectLatest { result ->
                     result.onSuccess { historyDates ->
                         val history =
                             historyDates
@@ -202,7 +203,7 @@ class ReportViewModel(
                     studentId,
                     startOfMonth,
                     endOfMonth
-                ).collect { result ->
+                ).collectLatest { result ->
                     result.onSuccess { studentHistoryItems ->
                         val attendanceDates = studentHistoryItems.map { it.date }
 
