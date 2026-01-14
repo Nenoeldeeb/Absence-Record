@@ -11,6 +11,7 @@ import dev.nenoeldeeb.education.absencerecord.presentation.util.UiText
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.datetime.LocalDate
@@ -31,7 +32,7 @@ class CalendarViewModel(
     private fun initializeAvailableMonths() {
         viewModelScope.launch {
             attendanceUseCases.getAvailableMonthsUseCase()
-                .collect { result ->
+                .collectLatest { result ->
                     result.onSuccess { months ->
                         _uiState.update { it.copy(availableMonths = months) }
                     }.onFailure { e ->
@@ -52,7 +53,7 @@ class CalendarViewModel(
     private fun initializeStudents() {
         viewModelScope.launch {
             studentManagementUseCases.getAllStudentsUseCase()
-                .collect { result ->
+                .collectLatest { result ->
                     result.onSuccess { students ->
                         _uiState.update { it.copy(allStudents = students) }
                     }.onFailure { e ->
@@ -99,7 +100,7 @@ class CalendarViewModel(
     private fun getStudentsForDate(date: LocalDate) {
         viewModelScope.launch {
             attendanceUseCases.getAttendanceForDateUseCase(date)
-                .collect { result ->
+                .collectLatest { result ->
                     result.onSuccess { selectedStudentsForDate ->
                         _uiState.update {
                             it.copy(studentsForSelectedDate = selectedStudentsForDate)
