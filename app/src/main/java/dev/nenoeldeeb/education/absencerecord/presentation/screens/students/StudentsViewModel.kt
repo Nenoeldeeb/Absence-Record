@@ -35,6 +35,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
@@ -64,7 +65,7 @@ open class StudentsViewModel(
                 .flatMapLatest { (sortType, selectedMonth) ->
                     studentManagementUseCases.getAllStudentsUseCase(sortType, selectedMonth)
                 }
-                .collect { result ->
+                .collectLatest { result ->
                     result
                         .onSuccess { students ->
                             _uiState.update { it.copy(allStudents = students) }
@@ -244,7 +245,7 @@ open class StudentsViewModel(
             return
         }
         viewModelScope.launch {
-            studentManagementUseCases.importStudentsUseCase.parseFile(uri.toString()).collect {
+            studentManagementUseCases.importStudentsUseCase.parseFile(uri.toString()).collectLatest {
                     result ->
                 result
                     .onSuccess { parsedData ->
@@ -296,7 +297,7 @@ open class StudentsViewModel(
                 parsedStudents,
                 selectionMap
             )
-                .collect { result ->
+                .collectLatest { result ->
                     result
                         .onSuccess { importResult ->
                             val message =
@@ -372,7 +373,7 @@ open class StudentsViewModel(
                 selectedIds,
                 allStudents
             )
-                .collect { result ->
+                .collectLatest { result ->
                     result
                         .onSuccess {
                             _uiState.update {
@@ -413,7 +414,7 @@ open class StudentsViewModel(
                 selectedIds,
                 allStudents
             )
-                .collect { result ->
+                .collectLatest { result ->
                     result
                         .onSuccess {
                             studentManagementUseCases

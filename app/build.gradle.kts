@@ -1,3 +1,4 @@
+import com.android.build.gradle.internal.api.BaseVariantOutputImpl
 import java.io.FileInputStream
 import java.util.Properties
 
@@ -65,6 +66,11 @@ android {
             )
             isDefault = true
             signingConfig = signingConfigs.getByName("release")
+        }
+    }
+    applicationVariants.configureEach {
+        outputs.mapNotNull { it as? BaseVariantOutputImpl }.forEach {
+            it.outputFileName = "Absence-Record-v$versionName.apk"
         }
     }
     compileOptions { isCoreLibraryDesugaringEnabled = true }
