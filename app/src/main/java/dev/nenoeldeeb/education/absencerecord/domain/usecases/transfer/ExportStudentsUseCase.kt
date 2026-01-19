@@ -4,36 +4,25 @@ import dev.nenoeldeeb.education.absencerecord.domain.models.Student
 import dev.nenoeldeeb.education.absencerecord.domain.models.StudentExportData
 import dev.nenoeldeeb.education.absencerecord.domain.repositories.AttendanceRepository
 import dev.nenoeldeeb.education.absencerecord.domain.repositories.StorageRepository
-import dev.nenoeldeeb.education.absencerecord.domain.repositories.StudentRepository
 import dev.nenoeldeeb.education.absencerecord.domain.services.SerializationService
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import kotlinx.serialization.builtins.ListSerializer
-import kotlinx.serialization.json.Json
 
 /**
  * Use case for exporting selected students and their attendance data to JSON format.
  *
- * @property studentRepository Repository for accessing student data
  * @property attendanceRepository Repository for accessing attendance records
  * @property storageRepository Repository for writing data to storage
  * @property serializationService Service for JSON serialization
  */
 class ExportStudentsUseCase(
-    private val studentRepository: StudentRepository,
     private val attendanceRepository: AttendanceRepository,
     private val storageRepository: StorageRepository,
     private val serializationService: SerializationService
 ) {
-    private val json =
-        Json {
-            prettyPrint = true
-            ignoreUnknownKeys = true
-            isLenient = true
-        }
 
     /**
      * Exports selected students with their attendance history to a JSON file.
@@ -70,7 +59,7 @@ class ExportStudentsUseCase(
                     .encodeToString(exportList, ListSerializer(StudentExportData.serializer()))
                     .fold(
                         onSuccess = { jsonString ->
-                            storageRepository.writeTextToUri(uriString, jsonString).collectLatest {
+                            storageRepository.writeTextToUri(uriString, jsonString).collect {
                                 emit(it)
                             }
                         },

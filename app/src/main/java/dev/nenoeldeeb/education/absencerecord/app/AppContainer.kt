@@ -77,7 +77,6 @@ class DefaultAppContainer(private val context: Context) : AppContainer {
                 ),
             exportStudentsUseCase =
                 ExportStudentsUseCase(
-                    studentRepository,
                     attendanceRepository,
                     storageRepository,
                     serializationService

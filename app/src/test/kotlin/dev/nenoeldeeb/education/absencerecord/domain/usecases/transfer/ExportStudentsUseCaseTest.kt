@@ -37,7 +37,6 @@ class ExportStudentsUseCaseTest {
         serializationService = mockk()
         useCase =
             ExportStudentsUseCase(
-                studentRepository,
                 attendanceRepository,
                 storageRepository,
                 serializationService

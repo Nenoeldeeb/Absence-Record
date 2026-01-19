@@ -10,7 +10,6 @@ import dev.nenoeldeeb.education.absencerecord.domain.repositories.StorageReposit
 import dev.nenoeldeeb.education.absencerecord.domain.repositories.StudentRepository
 import dev.nenoeldeeb.education.absencerecord.domain.services.SerializationService
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import kotlinx.datetime.LocalDate
@@ -25,7 +24,7 @@ class ImportStudentsUseCase(
 ) {
     fun parseFile(uriString: String): Flow<Result<List<ParsedStudentImportData>>> =
         flow {
-            storageRepository.readTextFromUri(uriString).collectLatest { result ->
+            storageRepository.readTextFromUri(uriString).collect { result ->
                 if (result.isSuccess) {
                     val jsonString = result.getOrThrow()
                     if (jsonString.isBlank()) {
