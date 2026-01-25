@@ -567,7 +567,10 @@ internal fun ImportSelectionDialog(
         },
         confirmButton = {
             Button(
-                onClick = { viewModel.onEvent(StudentsScreenEvent.PerformImport) },
+                onClick = {
+                    viewModel.onEvent(StudentsScreenEvent.PerformImport)
+                    viewModel.onEvent(StudentsScreenEvent.ShowStudentDialog(null, false))
+                          },
                 enabled = !noneSelected
             ) { Text(stringResource(R.string.import_selected)) }
         },
