@@ -53,7 +53,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDirection
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
 import dev.nenoeldeeb.education.absencerecord.R
+import dev.nenoeldeeb.education.absencerecord.app.AppViewModelProvider
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.number
 import kotlinx.datetime.toLocalDateTime
@@ -61,7 +63,7 @@ import kotlin.time.Clock
 import kotlin.time.ExperimentalTime
 
 @Composable
-fun StudentsScreen(viewModel: StudentsViewModel) {
+fun StudentsScreen(viewModel: StudentsViewModel = viewModel(factory = AppViewModelProvider.factory)) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
 

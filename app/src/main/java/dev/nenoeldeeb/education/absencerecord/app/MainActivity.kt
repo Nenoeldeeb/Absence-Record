@@ -24,11 +24,7 @@ class MainActivity : ComponentActivity() {
         setContent {
             AbsenceRecordTheme {
                 Surface {
-                    MainScreen(
-                        studentsViewModel = viewModel(factory = AppViewModelProvider.factory),
-                        calendarViewModel = viewModel(factory = AppViewModelProvider.factory),
-                        reportViewModel = viewModel(factory = AppViewModelProvider.factory)
-                    )
+                    MainScreen()
                 }
             }
         }
@@ -37,11 +33,7 @@ class MainActivity : ComponentActivity() {
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun MainScreen(
-    studentsViewModel: StudentsViewModel,
-    calendarViewModel: CalendarViewModel,
-    reportViewModel: ReportViewModel
-) {
+fun MainScreen() {
     // 0: Students, 1: Calendar, 2: Report
     val pagerState =
         rememberPagerState(
@@ -54,9 +46,9 @@ fun MainScreen(
         modifier = Modifier
     ) { page ->
         when (page) {
-            0 -> StudentsScreen(viewModel = studentsViewModel)
-            1 -> CalendarScreen(viewModel = calendarViewModel)
-            2 -> ReportScreen(viewModel = reportViewModel)
+            0 -> StudentsScreen()
+            1 -> CalendarScreen()
+            2 -> ReportScreen()
         }
     }
 }

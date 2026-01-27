@@ -45,7 +45,9 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
 import dev.nenoeldeeb.education.absencerecord.R
+import dev.nenoeldeeb.education.absencerecord.app.AppViewModelProvider
 import dev.nenoeldeeb.education.absencerecord.domain.models.SortType
 import dev.nenoeldeeb.education.absencerecord.domain.models.Student
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.components.ComposeCalendar
@@ -55,7 +57,7 @@ import kotlinx.datetime.LocalDate
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ReportScreen(viewModel: ReportViewModel) {
+fun ReportScreen(viewModel: ReportViewModel = viewModel(factory = AppViewModelProvider.factory)) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
 

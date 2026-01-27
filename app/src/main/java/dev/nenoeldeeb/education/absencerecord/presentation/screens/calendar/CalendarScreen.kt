@@ -27,7 +27,9 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
 import dev.nenoeldeeb.education.absencerecord.R
+import dev.nenoeldeeb.education.absencerecord.app.AppViewModelProvider
 import dev.nenoeldeeb.education.absencerecord.domain.models.Student
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.components.ComposeCalendar
 import dev.nenoeldeeb.education.absencerecord.presentation.theme.green30
@@ -36,7 +38,7 @@ import dev.nenoeldeeb.education.absencerecord.presentation.util.SoundPlayer
 import kotlinx.datetime.LocalDate
 
 @Composable
-fun CalendarScreen(viewModel: CalendarViewModel) {
+fun CalendarScreen(viewModel: CalendarViewModel = viewModel(factory = AppViewModelProvider.factory)) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
     Column(modifier = Modifier.fillMaxSize().padding(8.dp)) {
