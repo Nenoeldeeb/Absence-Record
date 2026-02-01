@@ -11,17 +11,12 @@ import kotlinx.datetime.LocalDate
 data class StudentsScreenState(
     // Core data
     val allStudents: List<Student> = emptyList(),
-    val sortType: SortType = SortType.ByName,
-    val selectedMonth: LocalDate? = null,
     val newStudentName: String = "",
     // Selection state
     val isMultiSelectionMode: Boolean = false,
     val selectedStudentIds: Set<Int> = emptySet(),
     // UI state - Dialogs
-    val showDataManagementDialog: Boolean = false,
-    val showExportSelectionDialog: Boolean = false,
     val showImportSelectionDialog: Boolean = false,
-    val showDeleteDialog: Student? = null,
     val showBulkDeleteDialog: Boolean = false,
     val showEditDialog: Student? = null,
     val showAddStudentDialog: Boolean = false,

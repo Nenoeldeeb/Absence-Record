@@ -18,7 +18,7 @@
     <string name="student_name_label">اسم الطالب</string>
     <string name="import_students_action">استيراد الطلاب</string>
     <string name="select_students_import_title">اختر الطلاب للاستيراد</string>
-    <string name="select_all_students">تحديد الكل</string>
+    <string name="toggle_students_selection">تحديد الكل / إلغاء تحديد الكل</string>
     <string name="no_items_available">لا توجد عناصر متاحة.</string>
     <string name="import_selected">استيراد المحدد</string>
     <string name="students_deleted_successfully">تم حذف الطلاب المحددين بنجاح</string>

@@ -8,8 +8,6 @@ import dev.nenoeldeeb.education.absencerecord.R
 import dev.nenoeldeeb.education.absencerecord.domain.models.Student
 import dev.nenoeldeeb.education.absencerecord.domain.usecases.StudentManagementUseCases
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.StudentsScreenEvent.AddStudent
-import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.StudentsScreenEvent.ClearMonthFilter
-import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.StudentsScreenEvent.ClearSelection
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.StudentsScreenEvent.CloseImportSelectionDialog
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.StudentsScreenEvent.ConsumeToastMessage
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.StudentsScreenEvent.DeleteSelectedStudents
@@ -18,15 +16,13 @@ import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.Stud
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.StudentsScreenEvent.ExportSelectedStudents
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.StudentsScreenEvent.PerformImport
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.StudentsScreenEvent.PrepareImportSelectionDialog
-import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.StudentsScreenEvent.SelectAllStudents
+import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.StudentsScreenEvent.ToggleStudentsSelection
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.StudentsScreenEvent.ShowBulkDeleteDialog
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.StudentsScreenEvent.ShowStudentDialog
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.StudentsScreenEvent.ToggleImportSelection
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.StudentsScreenEvent.ToggleSelectionMode
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.StudentsScreenEvent.ToggleStudentSelection
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.StudentsScreenEvent.UpdateNewStudentName
-import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.StudentsScreenEvent.UpdateSelectedMonth
-import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.StudentsScreenEvent.UpdateSortType
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.StudentsScreenEvent.UpdateStudent
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.delegates.ImportExportDelegate
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.delegates.SelectionStateDelegate
@@ -36,9 +32,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
@@ -58,13 +51,7 @@ open class StudentsViewModel(
 
     private fun initializeStudents() {
         viewModelScope.launch {
-            combine(_uiState.map { it.sortType }, _uiState.map { it.selectedMonth }) { type, month
-                ->
-                Pair(type, month)
-            }
-                .flatMapLatest { (sortType, selectedMonth) ->
-                    studentManagementUseCases.getAllStudentsUseCase(sortType, selectedMonth)
-                }
+            studentManagementUseCases.getAllStudentsUseCase()
                 .collectLatest { result ->
                     result
                         .onSuccess { students ->
@@ -90,9 +77,6 @@ open class StudentsViewModel(
             is UpdateNewStudentName -> _uiState.update { it.copy(newStudentName = event.name) }
             is AddStudent -> addStudent(event.name)
             is UpdateStudent -> updateStudent(event.student, event.newName)
-            is UpdateSortType -> _uiState.update { it.copy(sortType = event.sortType) }
-            is UpdateSelectedMonth -> _uiState.update { it.copy(selectedMonth = event.month) }
-            is ClearMonthFilter -> _uiState.update { it.copy(selectedMonth = null) }
             is PrepareImportSelectionDialog -> prepareImportSelectionDialog(event.uri)
             is CloseImportSelectionDialog ->
                 _uiState.update {
@@ -102,6 +86,7 @@ open class StudentsViewModel(
                         importSelectionMap = emptyMap()
                     )
                 }
+
             is ToggleImportSelection ->
                 _uiState.update {
                     it.copy(
@@ -112,6 +97,7 @@ open class StudentsViewModel(
                             )
                     )
                 }
+
             is PerformImport -> performImport()
             is ConsumeToastMessage -> _uiState.update { it.copy(toastMessage = null) }
             is ShowStudentDialog ->
@@ -122,6 +108,7 @@ open class StudentsViewModel(
                         newStudentName = event.student?.name ?: ""
                     )
                 }
+
             is ToggleStudentSelection ->
                 _uiState.update { state ->
                     state.copy(
@@ -132,6 +119,7 @@ open class StudentsViewModel(
                             )
                     )
                 }
+
             is ToggleSelectionMode ->
                 _uiState.update { state ->
                     val (newMode, newSelection) =
@@ -144,17 +132,13 @@ open class StudentsViewModel(
                         selectedStudentIds = newSelection
                     )
                 }
-            is SelectAllStudents ->
+
+            is ToggleStudentsSelection ->
                 _uiState.update { state ->
                     state.copy(
-                        selectedStudentIds = selectionDelegate.selectAll(state.allStudents)
-                    )
-                }
-            is ClearSelection ->
-                _uiState.update { state ->
-                    state.copy(
-                        selectedStudentIds = selectionDelegate.clearSelection(),
-                        isMultiSelectionMode = false
+                        selectedStudentIds = if (state.selectedStudentIds.size < state.allStudents.size)
+                            selectionDelegate.selectAll(state.allStudents)
+                        else selectionDelegate.clearSelection(),
                     )
                 }
             is DeleteSelectedStudents -> deleteSelectedStudents()
@@ -245,8 +229,7 @@ open class StudentsViewModel(
             return
         }
         viewModelScope.launch {
-            studentManagementUseCases.importStudentsUseCase.parseFile(uri.toString()).collectLatest {
-                    result ->
+            studentManagementUseCases.importStudentsUseCase.parseFile(uri.toString()).collectLatest { result ->
                 result
                     .onSuccess { parsedData ->
                         val (data, selectionMap, showDialog) =
@@ -267,7 +250,6 @@ open class StudentsViewModel(
                                     parsedStudentsFromFile = data,
                                     importSelectionMap = selectionMap,
                                     showImportSelectionDialog = showDialog,
-                                    showDataManagementDialog = false
                                 )
                             }
                         }
@@ -441,7 +423,7 @@ open class StudentsViewModel(
                                                     R.string
                                                         .error_deleting_student,
                                                     e.message
-                                                        ?: "Unknown error"
+                                                    ?: "Unknown error"
                                                 )
                                         )
                                     }

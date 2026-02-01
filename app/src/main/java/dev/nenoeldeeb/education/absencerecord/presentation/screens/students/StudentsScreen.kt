@@ -75,7 +75,7 @@ fun StudentsScreen(viewModel: StudentsViewModel = viewModel(factory = AppViewMod
     }
 
     BackHandler(uiState.isMultiSelectionMode) {
-        viewModel.onEvent(StudentsScreenEvent.ClearSelection)
+        viewModel.onEvent(StudentsScreenEvent.ToggleSelectionMode)
     }
 
     val exportLauncher =
@@ -183,7 +183,7 @@ internal fun MultiSelectionHeader(
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            IconButton(onClick = { viewModel.onEvent(StudentsScreenEvent.ClearSelection) }) {
+            IconButton(onClick = { viewModel.onEvent(StudentsScreenEvent.ToggleSelectionMode) }) {
                 Icon(
                     painter = painterResource(id = R.drawable.outline_close_24),
                     contentDescription = stringResource(R.string.action_close)
@@ -196,10 +196,10 @@ internal fun MultiSelectionHeader(
             )
         }
         Row {
-            IconButton(onClick = { viewModel.onEvent(StudentsScreenEvent.SelectAllStudents) }) {
+            IconButton(onClick = { viewModel.onEvent(StudentsScreenEvent.ToggleStudentsSelection) }) {
                 Icon(
                     painter = painterResource(id = R.drawable.outline_select_all_24),
-                    contentDescription = stringResource(R.string.select_all_students)
+                    contentDescription = stringResource(R.string.toggle_students_selection)
                 )
             }
             IconButton(
@@ -323,20 +323,6 @@ internal fun StudentList(
                                 .fillMaxWidth()
                                 .wrapContentWidth()
                     )
-                },
-                leadingContent = {
-                    if (uiState.isMultiSelectionMode) {
-                        Checkbox(
-                            checked = isSelected,
-                            onCheckedChange = {
-                                viewModel.onEvent(
-                                    StudentsScreenEvent.ToggleStudentSelection(
-                                        student.id
-                                    )
-                                )
-                            }
-                        )
-                    }
                 },
                 colors =
                     ListItemDefaults.colors(
@@ -506,7 +492,7 @@ internal fun ImportSelectionDialog(
                         enabled = items.isNotEmpty()
                     )
                     Text(
-                        stringResource(R.string.select_all_students),
+                        stringResource(R.string.toggle_students_selection),
                         style = MaterialTheme.typography.labelLarge
                     )
                 }
@@ -572,7 +558,7 @@ internal fun ImportSelectionDialog(
                 onClick = {
                     viewModel.onEvent(StudentsScreenEvent.PerformImport)
                     viewModel.onEvent(StudentsScreenEvent.ShowStudentDialog(null, false))
-                          },
+                },
                 enabled = !noneSelected
             ) { Text(stringResource(R.string.import_selected)) }
         },
