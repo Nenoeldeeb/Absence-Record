@@ -25,8 +25,8 @@ import kotlinx.datetime.LocalDate
 import kotlinx.datetime.Month
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.RegisterExtension
-import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
 
@@ -50,20 +50,14 @@ class ReportViewModelTest {
         getStudentAttendanceDatesUseCase = mockk(relaxed = true)
         getAttendanceHistoryForDateRangeUseCase = mockk(relaxed = true)
 
-        attendanceUseCases =
-            AttendanceUseCases(
-                getStudentAttendanceDatesUseCase = getStudentAttendanceDatesUseCase,
-                getAttendanceHistoryForDateRangeUseCase =
-                getAttendanceHistoryForDateRangeUseCase,
-                // Relaxed for others
-                recordStudentAttendanceUseCase = mockk(relaxed = true),
-                deleteStudentAttendanceUseCase = mockk(relaxed = true),
-                getAttendanceForDateUseCase = mockk(relaxed = true),
-                getAvailableMonthsUseCase = mockk(relaxed = true)
-            )
+        attendanceUseCases = mockk(relaxed = true)
+        every { attendanceUseCases.getStudentAttendanceDatesUseCase } returns getStudentAttendanceDatesUseCase
+        every { attendanceUseCases.getAttendanceHistoryForDateRangeUseCase } returns getAttendanceHistoryForDateRangeUseCase
+        every { attendanceUseCases.getAvailableMonthsUseCase } returns mockk(relaxed = true)
 
         shareReportUseCase = mockk(relaxed = true)
-        reportUseCases = ReportUseCases(shareReportUseCase)
+        reportUseCases = mockk(relaxed = true)
+        every { reportUseCases.shareReportUseCase } returns shareReportUseCase
 
         // Mock Uri.parse for Android dependence
         mockkStatic(Uri::class)

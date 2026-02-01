@@ -26,8 +26,8 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.RegisterExtension
-import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
@@ -60,15 +60,13 @@ class StudentsViewModelTest {
         importStudentsUseCase = mockk(relaxed = true)
         exportStudentsUseCase = mockk(relaxed = true)
 
-        studentManagementUseCases =
-            StudentManagementUseCases(
-                addStudentUseCase,
-                updateStudentUseCase,
-                deleteStudentsUseCase,
-                getAllStudentsUseCase,
-                importStudentsUseCase,
-                exportStudentsUseCase
-            )
+        studentManagementUseCases = mockk(relaxed = true)
+        every { studentManagementUseCases.addStudentUseCase } returns addStudentUseCase
+        every { studentManagementUseCases.updateStudentUseCase } returns updateStudentUseCase
+        every { studentManagementUseCases.deleteStudentsUseCase } returns deleteStudentsUseCase
+        every { studentManagementUseCases.getAllStudentsUseCase } returns getAllStudentsUseCase
+        every { studentManagementUseCases.importStudentsUseCase } returns importStudentsUseCase
+        every { studentManagementUseCases.exportStudentsUseCase } returns exportStudentsUseCase
 
         selectionDelegate = SelectionStateDelegate()
         importExportDelegate = ImportExportDelegate()
