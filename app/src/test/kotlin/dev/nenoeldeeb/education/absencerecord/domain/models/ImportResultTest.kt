@@ -1,7 +1,7 @@
 package dev.nenoeldeeb.education.absencerecord.domain.models
 
 import org.junit.jupiter.api.DisplayName
-import kotlin.test.Test
+import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotEquals
 
