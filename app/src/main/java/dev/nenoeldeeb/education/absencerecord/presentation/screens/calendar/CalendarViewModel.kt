@@ -7,7 +7,7 @@ import dev.nenoeldeeb.education.absencerecord.R
 import dev.nenoeldeeb.education.absencerecord.domain.models.StudentAttendance
 import dev.nenoeldeeb.education.absencerecord.domain.usecases.AttendanceUseCases
 import dev.nenoeldeeb.education.absencerecord.domain.usecases.StudentManagementUseCases
-import dev.nenoeldeeb.education.absencerecord.presentation.util.UiText
+import dev.nenoeldeeb.education.absencerecord.presentation.utils.UiText
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -25,29 +25,7 @@ class CalendarViewModel(
     val uiState: StateFlow<CalendarScreenState> = _uiState.asStateFlow()
 
     init {
-        initializeAvailableMonths()
         initializeStudents()
-    }
-
-    private fun initializeAvailableMonths() {
-        viewModelScope.launch {
-            attendanceUseCases.getAvailableMonthsUseCase()
-                .collectLatest { result ->
-                    result.onSuccess { months ->
-                        _uiState.update { it.copy(availableMonths = months) }
-                    }.onFailure { e ->
-                        _uiState.update {
-                            it.copy(
-                                error =
-                                    UiText.StringResource(
-                                        R.string.error_loading_available_months,
-                                        e.message ?: "Unknown error"
-                                    )
-                            )
-                        }
-                    }
-                }
-        }
     }
 
     private fun initializeStudents() {
@@ -73,8 +51,6 @@ class CalendarViewModel(
 
     fun onEvent(event: CalendarScreenEvent) {
         when (event) {
-            is CalendarScreenEvent.UpdateSelectedMonth -> _uiState.update { it.copy(selectedMonth = event.month) }
-            is CalendarScreenEvent.ClearMonthFilter -> _uiState.update { it.copy(selectedMonth = null) }
             is CalendarScreenEvent.GetStudentsForDate -> getStudentsForDate(event.date)
             is CalendarScreenEvent.MarkStudentAttendance ->
                 markStudentAttendance(

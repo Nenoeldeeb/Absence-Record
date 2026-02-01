@@ -1,6 +1,6 @@
 @file:Suppress("unused")
 
-package dev.nenoeldeeb.education.absencerecord.presentation.util
+package dev.nenoeldeeb.education.absencerecord.presentation.utils
 
 import android.content.Context
 import androidx.annotation.PluralsRes

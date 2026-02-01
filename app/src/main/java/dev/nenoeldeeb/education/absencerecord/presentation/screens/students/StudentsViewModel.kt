@@ -26,7 +26,7 @@ import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.Stud
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.StudentsScreenEvent.UpdateStudent
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.delegates.ImportExportDelegate
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.delegates.SelectionStateDelegate
-import dev.nenoeldeeb.education.absencerecord.presentation.util.UiText
+import dev.nenoeldeeb.education.absencerecord.presentation.utils.UiText
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow

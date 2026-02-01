@@ -16,7 +16,7 @@ import dev.nenoeldeeb.education.absencerecord.domain.usecases.transfer.ExportStu
 import dev.nenoeldeeb.education.absencerecord.domain.usecases.transfer.ImportStudentsUseCase
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.delegates.ImportExportDelegate
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.delegates.SelectionStateDelegate
-import dev.nenoeldeeb.education.absencerecord.presentation.util.UiText
+import dev.nenoeldeeb.education.absencerecord.presentation.utils.UiText
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every

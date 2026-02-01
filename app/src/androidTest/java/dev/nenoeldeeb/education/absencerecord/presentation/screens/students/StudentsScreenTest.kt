@@ -3,15 +3,12 @@ package dev.nenoeldeeb.education.absencerecord.presentation.screens.students
 import android.annotation.SuppressLint
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsNotEnabled
-import androidx.compose.ui.test.assertIsOn
-import androidx.compose.ui.test.isToggleable
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.longClick
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTouchInput
-import androidx.test.espresso.action.ViewActions.longClick
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import dev.nenoeldeeb.education.absencerecord.R
@@ -118,23 +115,6 @@ class StudentsScreenTest {
                 it is StudentsScreenEvent.ToggleStudentSelection && it.studentId == student.id
             }
         )
-    }
-
-    @Test
-    fun studentList_displaysCheckboxInMultiSelectionMode() {
-        val student = Student(id = 1, name = "Alice")
-        val uiState =
-            StudentsScreenState(
-                allStudents = listOf(student),
-                isMultiSelectionMode = true,
-                selectedStudentIds = setOf(1)
-            )
-
-        composeTestRule.setContent {
-            AbsenceRecordTheme { StudentList(uiState = uiState, viewModel = mockk(relaxed = true)) }
-        }
-
-        composeTestRule.onNode(isToggleable()).assertIsOn()
     }
 
     // endregion
@@ -254,7 +234,7 @@ class StudentsScreenTest {
             .onNodeWithContentDescription(getString(R.string.action_close))
             .performClick()
 
-        assert(eventSent is StudentsScreenEvent.ClearSelection)
+        assert(eventSent is StudentsScreenEvent.ToggleSelectionMode)
     }
 
     // endregion

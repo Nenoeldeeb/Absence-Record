@@ -3,7 +3,7 @@ package dev.nenoeldeeb.education.absencerecord.presentation.screens.students.del
 import dev.nenoeldeeb.education.absencerecord.R
 import dev.nenoeldeeb.education.absencerecord.domain.models.ImportResult
 import dev.nenoeldeeb.education.absencerecord.domain.models.ParsedStudentImportData
-import dev.nenoeldeeb.education.absencerecord.presentation.util.UiText
+import dev.nenoeldeeb.education.absencerecord.presentation.utils.UiText
 
 /**
  * Delegate class responsible for import/export state transformations.

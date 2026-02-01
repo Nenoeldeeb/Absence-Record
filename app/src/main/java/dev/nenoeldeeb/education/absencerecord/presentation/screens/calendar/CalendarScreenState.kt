@@ -3,14 +3,12 @@ package dev.nenoeldeeb.education.absencerecord.presentation.screens.calendar
 import androidx.compose.runtime.Stable
 import dev.nenoeldeeb.education.absencerecord.domain.models.Student
 import dev.nenoeldeeb.education.absencerecord.domain.models.StudentAttendance
-import dev.nenoeldeeb.education.absencerecord.presentation.util.UiText
+import dev.nenoeldeeb.education.absencerecord.presentation.utils.UiText
 import kotlinx.datetime.LocalDate
 
 @Stable
 data class CalendarScreenState(
-    val selectedMonth: LocalDate? = null,
     val studentsForSelectedDate: List<StudentAttendance> = emptyList(),
-    val availableMonths: List<LocalDate> = emptyList(),
     val allStudents: List<Student> = emptyList(),
     val selectedDateForDialog: LocalDate? = null,
     val error: UiText? = null

@@ -4,7 +4,7 @@ import android.net.Uri
 import androidx.compose.runtime.Stable
 import dev.nenoeldeeb.education.absencerecord.domain.models.SortType
 import dev.nenoeldeeb.education.absencerecord.domain.models.Student
-import dev.nenoeldeeb.education.absencerecord.presentation.util.UiText
+import dev.nenoeldeeb.education.absencerecord.presentation.utils.UiText
 import kotlinx.datetime.LocalDate
 
 @Stable

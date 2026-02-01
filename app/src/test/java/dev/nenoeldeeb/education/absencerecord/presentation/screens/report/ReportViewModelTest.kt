@@ -11,7 +11,7 @@ import dev.nenoeldeeb.education.absencerecord.domain.usecases.StudentManagementU
 import dev.nenoeldeeb.education.absencerecord.domain.usecases.attendance.GetAttendanceHistoryForDateRangeUseCase
 import dev.nenoeldeeb.education.absencerecord.domain.usecases.attendance.GetStudentAttendanceDatesUseCase
 import dev.nenoeldeeb.education.absencerecord.domain.usecases.report.ShareReportUseCase
-import dev.nenoeldeeb.education.absencerecord.presentation.util.UiText
+import dev.nenoeldeeb.education.absencerecord.presentation.utils.UiText
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
@@ -32,7 +32,8 @@ import kotlin.test.assertNull
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class ReportViewModelTest {
-    @RegisterExtension val mainDispatcherRule = MainDispatcherRule()
+    @RegisterExtension
+    val mainDispatcherRule = MainDispatcherRule()
 
     private lateinit var studentManagementUseCases: StudentManagementUseCases
     private lateinit var attendanceUseCases: AttendanceUseCases
@@ -263,7 +264,7 @@ class ReportViewModelTest {
             // ToggleMonthDropdown
             viewModel.onEvent(ReportScreenEvent.ToggleMonthDropdown(true))
             assertEquals(true, viewModel.uiState.value.monthDropdownExpanded)
-            viewModel.onEvent(ReportScreenEvent.CloseMonthDropdown)
+            viewModel.onEvent(ReportScreenEvent.ToggleMonthDropdown(false))
             assertEquals(false, viewModel.uiState.value.monthDropdownExpanded)
         }
 

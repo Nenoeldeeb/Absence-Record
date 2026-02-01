@@ -51,8 +51,8 @@ import dev.nenoeldeeb.education.absencerecord.app.AppViewModelProvider
 import dev.nenoeldeeb.education.absencerecord.domain.models.SortType
 import dev.nenoeldeeb.education.absencerecord.domain.models.Student
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.components.ComposeCalendar
-import dev.nenoeldeeb.education.absencerecord.presentation.util.DateFormatter.toMonthYearUiText
-import dev.nenoeldeeb.education.absencerecord.presentation.util.UiText
+import dev.nenoeldeeb.education.absencerecord.presentation.utils.DateFormatter.toMonthYearUiText
+import dev.nenoeldeeb.education.absencerecord.presentation.utils.UiText
 import kotlinx.datetime.LocalDate
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -140,7 +140,7 @@ fun ReportScreen(viewModel: ReportViewModel = viewModel(factory = AppViewModelPr
                 monthToPreview = uiState.selectedMonthYearForCalendarPreview!!,
                 datesForPreviewMonth =
                     uiState.studentHistory.find { it.first == uiState.selectedMonthYearForCalendarPreview }?.second
-                        ?: emptyList(),
+                    ?: emptyList(),
                 onDismiss = { viewModel.onEvent(ReportScreenEvent.ShowCalendarPreviewDialog(false)) },
                 onShare = { month, studentId, studentName ->
                     viewModel.onEvent(
@@ -272,7 +272,7 @@ internal fun ReportControls(
                 OutlinedTextField(
                     value =
                         uiState.selectedMonth?.toMonthYearUiText(fullName = true)?.asString()
-                            ?: stringResource(R.string.all_months),
+                        ?: stringResource(R.string.all_months),
                     onValueChange = {},
                     readOnly = true,
                     label = { Text(stringResource(R.string.filter_by_month)) },
@@ -280,7 +280,7 @@ internal fun ReportControls(
                         uiState.selectedMonth?.let {
                             IconButton(onClick = {
                                 onEvent(ReportScreenEvent.ClearMonthFilter)
-                                onEvent(ReportScreenEvent.CloseMonthDropdown)
+                                onEvent(ReportScreenEvent.ToggleMonthDropdown(false))
                             }) {
                                 Icon(
                                     painterResource(id = R.drawable.outline_close_24),
@@ -288,7 +288,7 @@ internal fun ReportControls(
                                 )
                             }
                         }
-                            ?: ExposedDropdownMenuDefaults.TrailingIcon(expanded = uiState.monthDropdownExpanded)
+                        ?: ExposedDropdownMenuDefaults.TrailingIcon(expanded = uiState.monthDropdownExpanded)
                     },
                     modifier =
                         Modifier
@@ -297,7 +297,7 @@ internal fun ReportControls(
                 )
                 ExposedDropdownMenu(
                     expanded = uiState.monthDropdownExpanded,
-                    onDismissRequest = { onEvent(ReportScreenEvent.CloseMonthDropdown) }
+                    onDismissRequest = { onEvent(ReportScreenEvent.ToggleMonthDropdown(false)) }
                 ) {
                     if (uiState.availableMonths.isEmpty()) {
                         DropdownMenuItem(
@@ -311,7 +311,7 @@ internal fun ReportControls(
                             text = { Text(month.toMonthYearUiText(fullName = true).asString()) },
                             onClick = {
                                 onEvent(ReportScreenEvent.UpdateSelectedMonth(month))
-                                onEvent(ReportScreenEvent.CloseMonthDropdown)
+                                onEvent(ReportScreenEvent.ToggleMonthDropdown(false))
                             }
                         )
                     }

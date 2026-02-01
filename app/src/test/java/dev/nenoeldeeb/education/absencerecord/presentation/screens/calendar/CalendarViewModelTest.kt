@@ -10,7 +10,7 @@ import dev.nenoeldeeb.education.absencerecord.domain.usecases.attendance.DeleteS
 import dev.nenoeldeeb.education.absencerecord.domain.usecases.attendance.GetAttendanceForDateUseCase
 import dev.nenoeldeeb.education.absencerecord.domain.usecases.attendance.GetAvailableMonthsUseCase
 import dev.nenoeldeeb.education.absencerecord.domain.usecases.attendance.RecordStudentAttendanceUseCase
-import dev.nenoeldeeb.education.absencerecord.presentation.util.UiText
+import dev.nenoeldeeb.education.absencerecord.presentation.utils.UiText
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
@@ -80,7 +80,6 @@ class CalendarViewModelTest {
         advanceUntilIdle()
 
         // Then
-        assertEquals(months, viewModel.uiState.value.availableMonths)
         assertEquals(students, viewModel.uiState.value.allStudents)
         assertNull(viewModel.uiState.value.error)
     }
@@ -133,8 +132,8 @@ class CalendarViewModelTest {
 
         // Then
         assertEquals(
-                UiText.StringResource(R.string.error_marking_attendance, errorMsg),
-                viewModel.uiState.value.error
+            UiText.StringResource(R.string.error_marking_attendance, errorMsg),
+            viewModel.uiState.value.error
         )
     }
 
@@ -170,33 +169,9 @@ class CalendarViewModelTest {
 
         // Then
         assertEquals(
-                UiText.StringResource(R.string.error_deleting_attendance, errorMsg),
-                viewModel.uiState.value.error
+            UiText.StringResource(R.string.error_deleting_attendance, errorMsg),
+            viewModel.uiState.value.error
         )
-    }
-
-    @Test
-    fun `UpdateSelectedMonth updates state`() = runTest {
-        createViewModel()
-        val month = LocalDate(2023, Month.FEBRUARY, 1)
-
-        viewModel.onEvent(CalendarScreenEvent.UpdateSelectedMonth(month))
-
-        assertEquals(month, viewModel.uiState.value.selectedMonth)
-    }
-
-    @Test
-    fun `ClearMonthFilter clears selected month`() = runTest {
-        createViewModel()
-        val month = LocalDate(2023, Month.FEBRUARY, 1)
-        viewModel.onEvent(CalendarScreenEvent.UpdateSelectedMonth(month))
-        assertEquals(month, viewModel.uiState.value.selectedMonth)
-
-        // When
-        viewModel.onEvent(CalendarScreenEvent.ClearMonthFilter)
-
-        // Then
-        assertNull(viewModel.uiState.value.selectedMonth)
     }
 
     @Test
@@ -209,23 +184,6 @@ class CalendarViewModelTest {
 
         // Then
         assertEquals(date, viewModel.uiState.value.selectedDateForDialog)
-    }
-
-    @Test
-    fun `init handles available months load failure`() = runTest {
-        // Given
-        val errorMsg = "Months error"
-        coEvery { getAvailableMonthsUseCase() } returns flowOf(Result.failure(Exception(errorMsg)))
-        coEvery { studentManagementUseCases.getAllStudentsUseCase() } returns
-                flowOf(Result.success(emptyList()))
-
-        // When
-        createViewModel()
-        advanceUntilIdle()
-
-        // Then
-        val expectedError = UiText.StringResource(R.string.error_loading_available_months, errorMsg)
-        assertEquals(expectedError, viewModel.uiState.value.error)
     }
 
     @Test

@@ -33,22 +33,23 @@ import dev.nenoeldeeb.education.absencerecord.app.AppViewModelProvider
 import dev.nenoeldeeb.education.absencerecord.domain.models.Student
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.components.ComposeCalendar
 import dev.nenoeldeeb.education.absencerecord.presentation.theme.green30
-import dev.nenoeldeeb.education.absencerecord.presentation.util.DateFormatter.toUiText
-import dev.nenoeldeeb.education.absencerecord.presentation.util.SoundPlayer
+import dev.nenoeldeeb.education.absencerecord.presentation.utils.DateFormatter.toUiText
+import dev.nenoeldeeb.education.absencerecord.presentation.utils.SoundPlayer
 import kotlinx.datetime.LocalDate
 
 @Composable
 fun CalendarScreen(viewModel: CalendarViewModel = viewModel(factory = AppViewModelProvider.factory)) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
-    Column(modifier = Modifier.fillMaxSize().padding(8.dp)) {
+    Column(modifier = Modifier
+        .fillMaxSize()
+        .padding(8.dp)) {
         ComposeCalendar(
             modifier = Modifier.weight(1f),
             onDateSelected = { date ->
                 viewModel.onEvent(CalendarScreenEvent.SelectDateForDialog(date))
                 viewModel.onEvent(CalendarScreenEvent.GetStudentsForDate(date))
             },
-            initialMonth = uiState.selectedMonth
         )
     }
 
@@ -132,6 +133,7 @@ internal fun DialogContent(
                 color = MaterialTheme.colorScheme.error
             )
         }
+
         uiState.allStudents.isEmpty() -> {
             Text(
                 stringResource(R.string.no_students_for_attendance),
@@ -139,6 +141,7 @@ internal fun DialogContent(
                 modifier = Modifier.fillMaxWidth()
             )
         }
+
         else -> {
             LazyColumn(contentPadding = PaddingValues(vertical = 8.dp)) {
                 items(uiState.allStudents, key = { it.id }) { student ->
@@ -186,13 +189,17 @@ internal fun StudentListItem(
                 text = student.name,
                 textAlign = TextAlign.Center,
                 style = MaterialTheme.typography.bodyLarge,
-                modifier = Modifier.fillMaxWidth().wrapContentWidth()
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .wrapContentWidth()
             )
         },
         colors = listItemColors,
         modifier =
-            Modifier.clickable(onClick = onClick).semantics {
-                this.contentDescription = contentDescription
-            }
+            Modifier
+                .clickable(onClick = onClick)
+                .semantics {
+                    this.contentDescription = contentDescription
+                }
     )
 }

@@ -10,7 +10,7 @@ import dev.nenoeldeeb.education.absencerecord.domain.models.Student
 import dev.nenoeldeeb.education.absencerecord.domain.usecases.AttendanceUseCases
 import dev.nenoeldeeb.education.absencerecord.domain.usecases.ReportUseCases
 import dev.nenoeldeeb.education.absencerecord.domain.usecases.StudentManagementUseCases
-import dev.nenoeldeeb.education.absencerecord.presentation.util.UiText
+import dev.nenoeldeeb.education.absencerecord.presentation.utils.UiText
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -153,7 +153,6 @@ class ReportViewModel(
                 }
 
             is ReportScreenEvent.ToggleMonthDropdown -> _uiState.update { it.copy(monthDropdownExpanded = event.expanded) }
-            is ReportScreenEvent.CloseMonthDropdown -> _uiState.update { it.copy(monthDropdownExpanded = false) }
         }
     }
 
