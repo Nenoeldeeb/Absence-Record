@@ -11,7 +11,7 @@ import dev.nenoeldeeb.education.absencerecord.domain.usecases.StudentManagementU
 import dev.nenoeldeeb.education.absencerecord.domain.usecases.attendance.GetAttendanceHistoryForDateRangeUseCase
 import dev.nenoeldeeb.education.absencerecord.domain.usecases.attendance.GetStudentAttendanceDatesUseCase
 import dev.nenoeldeeb.education.absencerecord.domain.usecases.report.ShareReportUseCase
-import dev.nenoeldeeb.education.absencerecord.presentation.util.UiText
+import dev.nenoeldeeb.education.absencerecord.presentation.utils.UiText
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
@@ -25,14 +25,15 @@ import kotlinx.datetime.LocalDate
 import kotlinx.datetime.Month
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.RegisterExtension
-import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class ReportViewModelTest {
-    @RegisterExtension val mainDispatcherRule = MainDispatcherRule()
+    @RegisterExtension
+    val mainDispatcherRule = MainDispatcherRule()
 
     private lateinit var studentManagementUseCases: StudentManagementUseCases
     private lateinit var attendanceUseCases: AttendanceUseCases
@@ -50,20 +51,14 @@ class ReportViewModelTest {
         getStudentAttendanceDatesUseCase = mockk(relaxed = true)
         getAttendanceHistoryForDateRangeUseCase = mockk(relaxed = true)
 
-        attendanceUseCases =
-            AttendanceUseCases(
-                getStudentAttendanceDatesUseCase = getStudentAttendanceDatesUseCase,
-                getAttendanceHistoryForDateRangeUseCase =
-                getAttendanceHistoryForDateRangeUseCase,
-                // Relaxed for others
-                recordStudentAttendanceUseCase = mockk(relaxed = true),
-                deleteStudentAttendanceUseCase = mockk(relaxed = true),
-                getAttendanceForDateUseCase = mockk(relaxed = true),
-                getAvailableMonthsUseCase = mockk(relaxed = true)
-            )
+        attendanceUseCases = mockk(relaxed = true)
+        every { attendanceUseCases.getStudentAttendanceDatesUseCase } returns getStudentAttendanceDatesUseCase
+        every { attendanceUseCases.getAttendanceHistoryForDateRangeUseCase } returns getAttendanceHistoryForDateRangeUseCase
+        every { attendanceUseCases.getAvailableMonthsUseCase } returns mockk(relaxed = true)
 
         shareReportUseCase = mockk(relaxed = true)
-        reportUseCases = ReportUseCases(shareReportUseCase)
+        reportUseCases = mockk(relaxed = true)
+        every { reportUseCases.shareReportUseCase } returns shareReportUseCase
 
         // Mock Uri.parse for Android dependence
         mockkStatic(Uri::class)
@@ -269,7 +264,7 @@ class ReportViewModelTest {
             // ToggleMonthDropdown
             viewModel.onEvent(ReportScreenEvent.ToggleMonthDropdown(true))
             assertEquals(true, viewModel.uiState.value.monthDropdownExpanded)
-            viewModel.onEvent(ReportScreenEvent.CloseMonthDropdown)
+            viewModel.onEvent(ReportScreenEvent.ToggleMonthDropdown(false))
             assertEquals(false, viewModel.uiState.value.monthDropdownExpanded)
         }
 

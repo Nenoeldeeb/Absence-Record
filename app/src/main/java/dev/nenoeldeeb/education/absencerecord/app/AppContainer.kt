@@ -64,40 +64,18 @@ class DefaultAppContainer(private val context: Context) : AppContainer {
 
     override val studentManagementUseCases: StudentManagementUseCases by lazy {
         StudentManagementUseCases(
-            addStudentUseCase = AddStudentUseCase(studentRepository),
-            updateStudentUseCase = UpdateStudentUseCase(studentRepository),
-            deleteStudentsUseCase = DeleteStudentsUseCase(studentRepository),
-            getAllStudentsUseCase = GetAllStudentsUseCase(studentRepository),
-            importStudentsUseCase =
-                ImportStudentsUseCase(
-                    studentRepository,
-                    attendanceRepository,
-                    storageRepository,
-                    serializationService
-                ),
-            exportStudentsUseCase =
-                ExportStudentsUseCase(
-                    attendanceRepository,
-                    storageRepository,
-                    serializationService
-                )
+            studentRepository = studentRepository,
+            attendanceRepository = attendanceRepository,
+            storageRepository = storageRepository,
+            serializationService = serializationService
         )
     }
 
     override val attendanceUseCases: AttendanceUseCases by lazy {
-        AttendanceUseCases(
-            recordStudentAttendanceUseCase = RecordStudentAttendanceUseCase(attendanceRepository),
-            deleteStudentAttendanceUseCase = DeleteStudentAttendanceUseCase(attendanceRepository),
-            getAttendanceForDateUseCase = GetAttendanceForDateUseCase(attendanceRepository),
-            getStudentAttendanceDatesUseCase = GetStudentAttendanceDatesUseCase(attendanceRepository),
-            getAttendanceHistoryForDateRangeUseCase = GetAttendanceHistoryForDateRangeUseCase(attendanceRepository),
-            getAvailableMonthsUseCase = GetAvailableMonthsUseCase(attendanceRepository)
-        )
+        AttendanceUseCases(attendanceRepository = attendanceRepository)
     }
 
     override val reportUseCases: ReportUseCases by lazy {
-        ReportUseCases(
-            shareReportUseCase = ShareReportUseCase(reportRepository)
-        )
+        ReportUseCases(reportRepository = reportRepository)
     }
 }

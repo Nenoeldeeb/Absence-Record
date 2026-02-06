@@ -1,4 +1,4 @@
-package dev.nenoeldeeb.education.absencerecord.presentation.util
+package dev.nenoeldeeb.education.absencerecord.presentation.utils
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import org.junit.Test

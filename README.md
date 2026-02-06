@@ -33,7 +33,7 @@ This project leverages the latest tools and libraries in the Android ecosystem t
 ### Architecture & Design Principles
 
 - **Clean Architecture**: The codebase is strictly separated into Presentation, Domain, and Data layers to ensure testability, maintainability, and independence of frameworks.
-- **MVVM (Model-View-ViewModel)**: Utilized to decouple UI logic from business rules and state management, making the UI reactive and easier to test.
+- **MVI (Model-View-Intent)**: Used for state management in the Presentation layer by wrapping them in a single UiState data class and for handling side effects by wrapping them in a sealed interface.
 - **Repository Pattern**: Abstracts the data layer, providing a clean API for the domain layer to access data irrespective of the source (Database, API, etc.).
 - **SOLID Principles**: Adherence to key object-oriented design principles (SRP, OCP, LSP, ISP, DIP) for robust and scalable code.
 - **UDF (Unidirectional Data Flow)**: Ensures consistent state management within the Compose UI, where state flows down and events flow up.

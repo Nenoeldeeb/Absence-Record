@@ -1,6 +1,6 @@
 package dev.nenoeldeeb.education.absencerecord.data.datasources.local.entities
 
-import kotlin.test.Test
+import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotEquals
 

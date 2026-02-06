@@ -23,7 +23,6 @@ class ExportStudentsUseCase(
     private val storageRepository: StorageRepository,
     private val serializationService: SerializationService
 ) {
-
     /**
      * Exports selected students with their attendance history to a JSON file.
      *

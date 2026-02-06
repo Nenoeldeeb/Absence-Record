@@ -1,10 +1,8 @@
-import com.android.build.gradle.internal.api.BaseVariantOutputImpl
 import java.io.FileInputStream
 import java.util.Properties
 
 plugins {
     alias(libs.plugins.android.application)
-    alias(libs.plugins.jetbrains.kotlin.android)
     alias(libs.plugins.jetbrains.kotlin.compose)
     alias(libs.plugins.google.ksp)
     alias(libs.plugins.jetbrains.kotlinx.serialization)
@@ -24,7 +22,7 @@ android {
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
-    ksp { arg("room.schemaLocation", "$projectDir/schemas") }
+
     androidResources {
         @Suppress("UnstableApiUsage")
         generateLocaleConfig = true
@@ -68,31 +66,32 @@ android {
             signingConfig = signingConfigs.getByName("release")
         }
     }
-    applicationVariants.configureEach {
-        outputs.mapNotNull { it as? BaseVariantOutputImpl }.forEach {
-            it.outputFileName = "Absence-Record-v$versionName.apk"
-        }
+    compileOptions {
+        isCoreLibraryDesugaringEnabled = true
+        targetCompatibility(libs.versions.jvmTarget.get())
+        sourceCompatibility(libs.versions.jvmTarget.get())
     }
-    compileOptions { isCoreLibraryDesugaringEnabled = true }
-    kotlin { jvmToolchain(libs.versions.jvmTarget.get().toInt()) }
     buildFeatures { compose = true }
     lint { abortOnError = false }
     testOptions { unitTests { all { it.useJUnitPlatform() } } }
-    ktlint {
-        version.set("1.0.1")
-        android.set(true)
-        verbose.set(true)
-        reporters {
-            reporter(org.jlleitschuh.gradle.ktlint.reporter.ReporterType.HTML)
-            reporter(org.jlleitschuh.gradle.ktlint.reporter.ReporterType.CHECKSTYLE)
-            reporter(org.jlleitschuh.gradle.ktlint.reporter.ReporterType.PLAIN)
-        }
-        filter {
-            exclude { element -> element.file.path.contains("generated/") }
-            exclude("**/generated/**")
-        }
-        kotlinScriptAdditionalPaths { include(fileTree("scripts/")) }
+}
+
+ksp { arg("room.schemaLocation", "$projectDir/schemas") }
+
+ktlint {
+    version.set("1.0.1")
+    android.set(true)
+    verbose.set(true)
+    reporters {
+        reporter(org.jlleitschuh.gradle.ktlint.reporter.ReporterType.HTML)
+        reporter(org.jlleitschuh.gradle.ktlint.reporter.ReporterType.CHECKSTYLE)
+        reporter(org.jlleitschuh.gradle.ktlint.reporter.ReporterType.PLAIN)
     }
+    filter {
+        exclude { element -> element.file.path.contains("generated/") }
+        exclude("**/generated/**")
+    }
+    kotlinScriptAdditionalPaths { include(fileTree("scripts/")) }
 }
 
 dependencies {

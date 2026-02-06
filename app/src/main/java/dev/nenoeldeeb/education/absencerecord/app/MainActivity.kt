@@ -10,8 +10,6 @@ import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.lifecycle.viewmodel.initializer
-import androidx.lifecycle.viewmodel.viewModelFactory
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.calendar.CalendarScreen
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.calendar.CalendarViewModel
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.report.ReportScreen
@@ -24,50 +22,9 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            val app = (application as Application)
-            val studentsViewModel: StudentsViewModel =
-                viewModel(
-                    factory =
-                        viewModelFactory {
-                            initializer {
-                                StudentsViewModel(
-                                    studentManagementUseCases = app.appContainer.studentManagementUseCases
-                                )
-                            }
-                        }
-                )
-            val calendarViewModel: CalendarViewModel =
-                viewModel(
-                    factory =
-                        viewModelFactory {
-                            initializer {
-                                CalendarViewModel(
-                                    attendanceUseCases = app.appContainer.attendanceUseCases,
-                                    studentManagementUseCases = app.appContainer.studentManagementUseCases
-                                )
-                            }
-                        }
-                )
-            val reportViewModel: ReportViewModel =
-                viewModel(
-                    factory =
-                        viewModelFactory {
-                            initializer {
-                                ReportViewModel(
-                                    studentManagementUseCases = app.appContainer.studentManagementUseCases,
-                                    attendanceUseCases = app.appContainer.attendanceUseCases,
-                                    reportUseCases = app.appContainer.reportUseCases
-                                )
-                            }
-                        }
-                )
             AbsenceRecordTheme {
                 Surface {
-                    MainScreen(
-                        studentsViewModel = studentsViewModel,
-                        calendarViewModel = calendarViewModel,
-                        reportViewModel = reportViewModel
-                    )
+                    MainScreen()
                 }
             }
         }
@@ -76,11 +33,7 @@ class MainActivity : ComponentActivity() {
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun MainScreen(
-    studentsViewModel: StudentsViewModel,
-    calendarViewModel: CalendarViewModel,
-    reportViewModel: ReportViewModel
-) {
+fun MainScreen() {
     // 0: Students, 1: Calendar, 2: Report
     val pagerState =
         rememberPagerState(
@@ -93,9 +46,9 @@ fun MainScreen(
         modifier = Modifier
     ) { page ->
         when (page) {
-            0 -> StudentsScreen(viewModel = studentsViewModel)
-            1 -> CalendarScreen(viewModel = calendarViewModel)
-            2 -> ReportScreen(viewModel = reportViewModel)
+            0 -> StudentsScreen()
+            1 -> CalendarScreen()
+            2 -> ReportScreen()
         }
     }
 }

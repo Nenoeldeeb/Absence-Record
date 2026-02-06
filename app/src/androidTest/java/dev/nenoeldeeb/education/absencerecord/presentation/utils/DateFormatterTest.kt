@@ -1,10 +1,10 @@
-package dev.nenoeldeeb.education.absencerecord.presentation.util
+package dev.nenoeldeeb.education.absencerecord.presentation.utils
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import dev.nenoeldeeb.education.absencerecord.R
-import dev.nenoeldeeb.education.absencerecord.presentation.util.DateFormatter.toMonthYearUiText
-import dev.nenoeldeeb.education.absencerecord.presentation.util.DateFormatter.toUiText
+import dev.nenoeldeeb.education.absencerecord.presentation.utils.DateFormatter.toMonthYearUiText
+import dev.nenoeldeeb.education.absencerecord.presentation.utils.DateFormatter.toUiText
 import kotlinx.datetime.DayOfWeek
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.Month

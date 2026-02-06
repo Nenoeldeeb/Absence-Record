@@ -1,4 +1,4 @@
-package dev.nenoeldeeb.education.absencerecord.presentation.util
+package dev.nenoeldeeb.education.absencerecord.presentation.utils
 
 import android.media.AudioManager
 import android.media.ToneGenerator

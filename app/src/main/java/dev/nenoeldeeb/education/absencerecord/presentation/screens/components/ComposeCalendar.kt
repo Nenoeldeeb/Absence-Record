@@ -43,8 +43,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import dev.nenoeldeeb.education.absencerecord.R
-import dev.nenoeldeeb.education.absencerecord.presentation.util.DateFormatter.toMonthYearUiText
-import dev.nenoeldeeb.education.absencerecord.presentation.util.DateFormatter.toUiText
+import dev.nenoeldeeb.education.absencerecord.presentation.utils.DateFormatter.toMonthYearUiText
+import dev.nenoeldeeb.education.absencerecord.presentation.utils.DateFormatter.toUiText
 import kotlinx.datetime.DateTimeUnit
 import kotlinx.datetime.DayOfWeek
 import kotlinx.datetime.LocalDate
@@ -63,18 +63,13 @@ fun ComposeCalendar(
     initialMonth: LocalDate? = null,
     markedDates: Set<LocalDate> = emptySet()
 ) {
-    val today =
-        rememberSaveable {
-            val curr = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault())
-            LocalDate(curr.year, curr.month, curr.day)
-        }
+    val today = rememberSaveable {
+        val curr = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault())
+        LocalDate(curr.year, curr.month, curr.day)
+    }
     var displayedMonth by rememberSaveable {
         mutableStateOf(
-            initialMonth ?: LocalDate(
-                today.year,
-                today.month,
-                1
-            )
+            initialMonth ?: today
         )
     }
 

@@ -13,7 +13,7 @@ import dev.nenoeldeeb.education.absencerecord.R
 import dev.nenoeldeeb.education.absencerecord.domain.models.Student
 import dev.nenoeldeeb.education.absencerecord.domain.models.StudentAttendance
 import dev.nenoeldeeb.education.absencerecord.presentation.theme.AbsenceRecordTheme
-import dev.nenoeldeeb.education.absencerecord.presentation.util.UiText
+import dev.nenoeldeeb.education.absencerecord.presentation.utils.UiText
 import kotlinx.datetime.LocalDate
 import org.junit.Rule
 import org.junit.Test

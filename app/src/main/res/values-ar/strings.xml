@@ -18,7 +18,7 @@
     <string name="student_name_label">اسم الطالب</string>
     <string name="import_students_action">استيراد الطلاب</string>
     <string name="select_students_import_title">اختر الطلاب للاستيراد</string>
-    <string name="select_all_students">تحديد الكل</string>
+    <string name="toggle_students_selection">تحديد الكل / إلغاء تحديد الكل</string>
     <string name="no_items_available">لا توجد عناصر متاحة.</string>
     <string name="import_selected">استيراد المحدد</string>
     <string name="students_deleted_successfully">تم حذف الطلاب المحددين بنجاح</string>
@@ -33,7 +33,6 @@
     </plurals>
     <string name="action_export_delete">تصدير ثم حذف</string>
     <string name="action_export">تصدير</string>
-
     <plurals name="import_preview_message">
         <item quantity="zero">لا يوجد طلاب في الملف.</item>
         <item quantity="one">تم العثور على طالب واحد. سيتم دمج التواريخ للطلاب الموجودين بنفس الاسم</item>
@@ -43,7 +42,6 @@
     </plurals>
 
     <!-- Calendar Screen -->
-
     <string name="mark_attendance_title">تسجيل الحضور ليوم %1$s</string>
     <string name="attendance_count">%1$d | %2$d</string>
     <string name="no_students_for_attendance">لا يوجد طلاب لتسجيل الحضور.</string>
@@ -64,34 +62,24 @@
     <string name="no_students_found">لم يتم العثور على طلاب للتصفية الحالية.</string>
     <string name="student_history_title">سجل حضور: %1$s</string>
     <string name="no_attendance_records">لا توجد سجلات حضور لهذا الطالب.</string>
-
     <string name="action_share_image">مشاركة الصورة</string>
     <string name="share_calendar_image">مشاركة صورة التقويم لهذا الشهر</string>
-
     <string name="absencerecord_export_json">تصدير_الغياب_%1$s.json</string>
     <string name="imported_dates_count">(%1$s تواريخ)</string>
     <string name="view_picture">عرض الصورة</string>
     <string name="sharing_app_not_found">لا يوجد تطبيق للمشاركة عن طريقه: %1$s</string>
     <string name="clear_month_filter">إلغاء التصنيف بالشهر</string>
-
     <string name="error_deleting_student">خطأ في حذف الطالب: %1$s</string>
     <string name="student_name_cannot_be_empty">لا يمكن أن يكون اسم الطالب فارغاً.</string>
     <string name="student_added">تمت إضافة الطالب \"%1$s\".</string>
     <string name="error_adding_student">خطأ في إضافة الطالب: %1$s</string>
-
     <string name="student_updated">تم تحديث بيانات الطالب \"%1$s\".</string>
     <string name="error_updating_student">خطأ في تحديث بيانات الطالب: %1$s</string>
-
     <string name="file_selection_cancelled">تم إلغاء اختيار الملف.</string>
-
     <string name="error_creating_export_data">خطأ في إنشاء بيانات التصدير: %1$s</string>
-
     <string name="data_exported_successfully">تم تصدير البيانات بنجاح.</string>
-
     <string name="error_reading_or_parsing_file">خطأ في قراءة أو تحليل الملف: %1$s</string>
-
     <string name="error_during_import">خطأ أثناء الاستيراد: %1$s</string>
-
     <plurals name="import_complete_new_students_added">
         <item quantity="zero">اكتمل الاستيراد. لم تتم إضافة أي طالب جديد.</item>
         <item quantity="one">اكتمل الاستيراد. تمت إضافة طالب واحد جديد.</item>
@@ -99,7 +87,6 @@
         <item quantity="few">اكتمل الاستيراد. تمت إضافة %1$d طلاب جدد.</item>
         <item quantity="many">اكتمل الاستيراد. تمت إضافة %1$d طالبًا جديدًا.</item>
     </plurals>
-
     <plurals name="existing_students_had_dates_merged">
         <item quantity="zero">لم يتم دمج تواريخ أي من الطلاب الموجودين.</item>
         <item quantity="one">تم دمج تواريخ طالب واحد من الطلاب الموجودين.</item>
@@ -107,7 +94,6 @@
         <item quantity="few">تم دمج تواريخ %1$d من الطلاب الموجودين.</item>
         <item quantity="many">تم دمج تواريخ %1$d من الطلاب الموجودين.</item>
     </plurals>
-
     <plurals name="dates_skipped_due_to_errors">
         <item quantity="zero">لم يتم تخطي أي تواريخ بسبب الأخطاء.</item>
         <item quantity="one">تم تخطي تاريخ واحد بسبب الأخطاء.</item>
@@ -115,7 +101,6 @@
         <item quantity="few">تم تخطي %1$d تواريخ بسبب الأخطاء.</item>
         <item quantity="many">تم تخطي %1$d تاريخًا بسبب الأخطاء.</item>
     </plurals>
-
     <string name="error_student_not_selected_history">خطأ: لم يتم اختيار طالب للسجل.</string>
     <string name="error_preparing_image">خطأ في تجهيز الصورة: %1$s</string>
     <string name="error_fetching_history">خطأ في جلب السجل: %1$s</string>
@@ -129,7 +114,6 @@
 
     <!--    ComposeCalendar -->
     <string name="content_description_today">اليوم الحالي</string>
-
     <plurals name="days_count">
         <item quantity="zero">لا يوجد أيام</item>
         <item quantity="one">يوم واحد</item>
@@ -151,7 +135,6 @@
     <string name="month_october">أكتوبر</string>
     <string name="month_november">نوفمبر</string>
     <string name="month_december">ديسمبر</string>
-
     <string name="month_short_january">يناير</string>
     <string name="month_short_february">فبراير</string>
     <string name="month_short_march">مارس</string>
@@ -164,9 +147,7 @@
     <string name="month_short_october">أكتوبر</string>
     <string name="month_short_november">نوفمبر</string>
     <string name="month_short_december">ديسمبر</string>
-
     <string name="date_format_month_year">%1$s %2$d</string>
-
     <string name="day_monday">الإثنين</string>\
     <string name="day_tuesday">الثلاثاء</string>
     <string name="day_wednesday">الأربعاء</string>
@@ -174,7 +155,6 @@
     <string name="day_friday">الجمعة</string>
     <string name="day_saturday">السبت</string>
     <string name="day_sunday">الأحد</string>
-
     <string name="day_short_monday">ن</string>
     <string name="day_short_tuesday">ث</string>
     <string name="day_short_wednesday">ر</string>

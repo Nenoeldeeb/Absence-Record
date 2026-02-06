@@ -6,7 +6,7 @@ import dev.nenoeldeeb.education.absencerecord.data.datasources.local.entities.St
 import dev.nenoeldeeb.education.absencerecord.domain.models.Student
 import dev.nenoeldeeb.education.absencerecord.domain.models.StudentAttendance
 import kotlinx.datetime.LocalDate
-import kotlin.test.Test
+import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 
 class StudentMappersTest {
