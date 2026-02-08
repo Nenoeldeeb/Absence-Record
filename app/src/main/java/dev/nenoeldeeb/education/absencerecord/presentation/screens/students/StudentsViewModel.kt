@@ -16,12 +16,12 @@ import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.Stud
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.StudentsScreenEvent.ExportSelectedStudents
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.StudentsScreenEvent.PerformImport
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.StudentsScreenEvent.PrepareImportSelectionDialog
-import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.StudentsScreenEvent.ToggleStudentsSelection
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.StudentsScreenEvent.ShowBulkDeleteDialog
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.StudentsScreenEvent.ShowStudentDialog
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.StudentsScreenEvent.ToggleImportSelection
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.StudentsScreenEvent.ToggleSelectionMode
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.StudentsScreenEvent.ToggleStudentSelection
+import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.StudentsScreenEvent.ToggleStudentsSelection
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.StudentsScreenEvent.UpdateNewStudentName
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.StudentsScreenEvent.UpdateStudent
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.delegates.ImportExportDelegate
@@ -51,24 +51,23 @@ open class StudentsViewModel(
 
     private fun initializeStudents() {
         viewModelScope.launch {
-            studentManagementUseCases.getAllStudentsUseCase()
-                .collectLatest { result ->
-                    result
-                        .onSuccess { students ->
-                            _uiState.update { it.copy(allStudents = students) }
+            studentManagementUseCases.getAllStudentsUseCase().collectLatest { result ->
+                result
+                    .onSuccess { students ->
+                        _uiState.update { it.copy(allStudents = students) }
+                    }
+                    .onFailure { e ->
+                        _uiState.update {
+                            it.copy(
+                                error =
+                                    UiText.StringResource(
+                                        R.string.error_loading_students,
+                                        e.message ?: "Unknown error"
+                                    )
+                            )
                         }
-                        .onFailure { e ->
-                            _uiState.update {
-                                it.copy(
-                                    error =
-                                        UiText.StringResource(
-                                            R.string.error_loading_students,
-                                            e.message ?: "Unknown error"
-                                        )
-                                )
-                            }
-                        }
-                }
+                    }
+            }
         }
     }
 
@@ -136,11 +135,13 @@ open class StudentsViewModel(
             is ToggleStudentsSelection ->
                 _uiState.update { state ->
                     state.copy(
-                        selectedStudentIds = if (state.selectedStudentIds.size < state.allStudents.size)
-                            selectionDelegate.selectAll(state.allStudents)
-                        else selectionDelegate.clearSelection(),
+                        selectedStudentIds =
+                            if (state.selectedStudentIds.size < state.allStudents.size)
+                                selectionDelegate.selectAll(state.allStudents)
+                            else selectionDelegate.clearSelection(),
                     )
                 }
+
             is DeleteSelectedStudents -> deleteSelectedStudents()
             is ExportSelectedStudents -> exportSelectedStudents(event.uri)
             is ExportAndDeleteSelectedStudents -> exportAndDeleteSelectedStudents(event.uri)
@@ -184,10 +185,7 @@ open class StudentsViewModel(
         }
     }
 
-    private fun updateStudent(
-        student: Student,
-        newName: String
-    ) {
+    private fun updateStudent(student: Student, newName: String) {
         val trimmed = newName.trim()
         if (trimmed.isBlank()) {
             _uiState.update {
@@ -229,43 +227,46 @@ open class StudentsViewModel(
             return
         }
         viewModelScope.launch {
-            studentManagementUseCases.importStudentsUseCase.parseFile(uri.toString()).collectLatest { result ->
-                result
-                    .onSuccess { parsedData ->
-                        val (data, selectionMap, showDialog) =
-                            importExportDelegate.prepareImportDialog(parsedData)
+            studentManagementUseCases.importStudentsUseCase.parseFile(uri.toString())
+                .collectLatest { result ->
+                    result
+                        .onSuccess { parsedData ->
+                            val (data, selectionMap, showDialog) =
+                                importExportDelegate.prepareImportDialog(parsedData)
 
-                        _uiState.update {
-                            if (data == null) {
+                            _uiState.update {
+                                if (data == null) {
+                                    it.copy(
+                                        parsedStudentsFromFile = null,
+                                        importSelectionMap = emptyMap(),
+                                        toastMessage =
+                                            UiText.StringResource(
+                                                R.string
+                                                    .no_students_found_in_file
+                                            )
+                                    )
+                                } else {
+                                    it.copy(
+                                        parsedStudentsFromFile = data,
+                                        importSelectionMap = selectionMap,
+                                        showImportSelectionDialog = showDialog,
+                                    )
+                                }
+                            }
+                        }
+                        .onFailure { e ->
+                            _uiState.update {
                                 it.copy(
-                                    parsedStudentsFromFile = null,
-                                    importSelectionMap = emptyMap(),
-                                    toastMessage =
+                                    error =
                                         UiText.StringResource(
-                                            R.string.no_students_found_in_file
+                                            R.string
+                                                .error_reading_or_parsing_file,
+                                            e.message ?: "Unknown error"
                                         )
-                                )
-                            } else {
-                                it.copy(
-                                    parsedStudentsFromFile = data,
-                                    importSelectionMap = selectionMap,
-                                    showImportSelectionDialog = showDialog,
                                 )
                             }
                         }
-                    }
-                    .onFailure { e ->
-                        _uiState.update {
-                            it.copy(
-                                error =
-                                    UiText.StringResource(
-                                        R.string.error_reading_or_parsing_file,
-                                        e.message ?: "Unknown error"
-                                    )
-                            )
-                        }
-                    }
-            }
+                }
         }
     }
 

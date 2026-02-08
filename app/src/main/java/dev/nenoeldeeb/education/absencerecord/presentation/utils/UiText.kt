@@ -77,6 +77,7 @@ sealed interface UiText {
                     }.toTypedArray()
                 stringResource(resId, *resolvedArgs)
             }
+
             is PluralResource -> {
                 val resolvedArgs =
                     args.map { arg ->
@@ -84,6 +85,7 @@ sealed interface UiText {
                     }.toTypedArray()
                 pluralStringResource(resId, quantity, *resolvedArgs)
             }
+
             is Joined -> parts.map { it.asString() }.joinToString(separator)
         }
     }
@@ -98,6 +100,7 @@ sealed interface UiText {
                     }.toTypedArray()
                 context.getString(resId, *resolvedArgs)
             }
+
             is PluralResource -> {
                 val resolvedArgs =
                     args.map { arg ->
@@ -105,6 +108,7 @@ sealed interface UiText {
                     }.toTypedArray()
                 context.resources.getQuantityString(resId, quantity, *resolvedArgs)
             }
+
             is Joined -> parts.joinToString(separator) { it.asString(context) }
         }
     }

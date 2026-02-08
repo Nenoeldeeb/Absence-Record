@@ -63,7 +63,9 @@ import kotlin.time.Clock
 import kotlin.time.ExperimentalTime
 
 @Composable
-fun StudentsScreen(viewModel: StudentsViewModel = viewModel(factory = AppViewModelProvider.factory)) {
+fun StudentsScreen(
+    viewModel: StudentsViewModel = viewModel(factory = AppViewModelProvider.factory)
+) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
 
@@ -109,12 +111,9 @@ fun StudentsScreen(viewModel: StudentsViewModel = viewModel(factory = AppViewMod
         )
 
     Box(modifier = Modifier.fillMaxSize()) {
-        Column(
-            modifier =
-                Modifier
-                    .fillMaxSize()
-                    .padding(8.dp)
-        ) {
+        Column(modifier = Modifier
+            .fillMaxSize()
+            .padding(8.dp)) {
             if (uiState.isMultiSelectionMode) {
                 MultiSelectionHeader(
                     uiState,
@@ -141,10 +140,9 @@ fun StudentsScreen(viewModel: StudentsViewModel = viewModel(factory = AppViewMod
 
         FloatingActionButton(
             onClick = { viewModel.onEvent(StudentsScreenEvent.ShowStudentDialog(null, true)) },
-            modifier =
-                Modifier
-                    .align(Alignment.BottomEnd)
-                    .padding(16.dp)
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .padding(16.dp)
         ) {
             Icon(
                 painter = painterResource(id = R.drawable.outline_add_24),
@@ -175,10 +173,9 @@ internal fun MultiSelectionHeader(
     onExportAndDelete: (String) -> Unit
 ) {
     Row(
-        modifier =
-            Modifier
-                .fillMaxWidth()
-                .padding(bottom = 16.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(bottom = 16.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
@@ -196,7 +193,9 @@ internal fun MultiSelectionHeader(
             )
         }
         Row {
-            IconButton(onClick = { viewModel.onEvent(StudentsScreenEvent.ToggleStudentsSelection) }) {
+            IconButton(
+                onClick = { viewModel.onEvent(StudentsScreenEvent.ToggleStudentsSelection) }
+            ) {
                 Icon(
                     painter = painterResource(id = R.drawable.outline_select_all_24),
                     contentDescription = stringResource(R.string.toggle_students_selection)
@@ -274,10 +273,7 @@ internal fun EmptyStateMessage() {
 }
 
 @Composable
-internal fun StudentList(
-    uiState: StudentsScreenState,
-    viewModel: StudentsViewModel
-) {
+internal fun StudentList(uiState: StudentsScreenState, viewModel: StudentsViewModel) {
     LazyColumn {
         items(uiState.allStudents, key = { it.id }) { student ->
             val isSelected = uiState.selectedStudentIds.contains(student.id)
@@ -287,16 +283,13 @@ internal fun StudentList(
                         onClick = {
                             if (uiState.isMultiSelectionMode) {
                                 viewModel.onEvent(
-                                    StudentsScreenEvent
-                                        .ToggleStudentSelection(
-                                            student.id
-                                        )
+                                    StudentsScreenEvent.ToggleStudentSelection(
+                                        student.id
+                                    )
                                 )
                             } else {
                                 viewModel.onEvent(
-                                    StudentsScreenEvent.ShowStudentDialog(
-                                        student
-                                    )
+                                    StudentsScreenEvent.ShowStudentDialog(student)
                                 )
                             }
                         },
@@ -306,10 +299,9 @@ internal fun StudentList(
                                     StudentsScreenEvent.ToggleSelectionMode
                                 )
                                 viewModel.onEvent(
-                                    StudentsScreenEvent
-                                        .ToggleStudentSelection(
-                                            student.id
-                                        )
+                                    StudentsScreenEvent.ToggleStudentSelection(
+                                        student.id
+                                    )
                                 )
                             }
                         }
@@ -318,10 +310,9 @@ internal fun StudentList(
                     Text(
                         student.name,
                         style = MaterialTheme.typography.bodyLarge,
-                        modifier =
-                            Modifier
-                                .fillMaxWidth()
-                                .wrapContentWidth()
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .wrapContentWidth()
                     )
                 },
                 colors =
@@ -431,10 +422,7 @@ internal fun StudentDialog(
 }
 
 @Composable
-internal fun ImportSelectionDialog(
-    uiState: StudentsScreenState,
-    viewModel: StudentsViewModel
-) {
+internal fun ImportSelectionDialog(uiState: StudentsScreenState, viewModel: StudentsViewModel) {
     val items = uiState.parsedStudentsFromFile ?: emptyList()
     val selectionMap = uiState.importSelectionMap
     val allSelected = items.isNotEmpty() && items.all { selectionMap[it.id] == true }

@@ -41,9 +41,11 @@ import kotlinx.datetime.LocalDate
 fun CalendarScreen(viewModel: CalendarViewModel = viewModel(factory = AppViewModelProvider.factory)) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
-    Column(modifier = Modifier
-        .fillMaxSize()
-        .padding(8.dp)) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(8.dp)
+    ) {
         ComposeCalendar(
             modifier = Modifier.weight(1f),
             onDateSelected = { date ->

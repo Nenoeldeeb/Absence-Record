@@ -9,13 +9,9 @@ import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.lifecycle.viewmodel.compose.viewModel
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.calendar.CalendarScreen
-import dev.nenoeldeeb.education.absencerecord.presentation.screens.calendar.CalendarViewModel
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.report.ReportScreen
-import dev.nenoeldeeb.education.absencerecord.presentation.screens.report.ReportViewModel
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.StudentsScreen
-import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.StudentsViewModel
 import dev.nenoeldeeb.education.absencerecord.presentation.theme.AbsenceRecordTheme
 
 class MainActivity : ComponentActivity() {

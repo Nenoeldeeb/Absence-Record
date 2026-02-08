@@ -22,94 +22,92 @@ class ImportStudentsUseCase(
     private val storageRepository: StorageRepository,
     private val serializationService: SerializationService
 ) {
-    fun parseFile(uriString: String): Flow<Result<List<ParsedStudentImportData>>> =
-        flow {
-            storageRepository.readTextFromUri(uriString).collect { result ->
-                if (result.isSuccess) {
-                    val jsonString = result.getOrThrow()
-                    if (jsonString.isBlank()) {
-                        emit(Result.success(emptyList()))
-                    } else {
-                        serializationService
-                            .decodeFromString(
-                                jsonString,
-                                ListSerializer(StudentExportData.serializer())
-                            )
-                            .fold(
-                                onSuccess = { data ->
-                                    emit(
-                                        Result.success(
-                                            data.map { ParsedStudentImportData(it) }
-                                        )
-                                    )
-                                },
-                                onFailure = { e -> emit(Result.failure(e)) }
-                            )
-                    }
+    fun parseFile(uriString: String): Flow<Result<List<ParsedStudentImportData>>> = flow {
+        storageRepository.readTextFromUri(uriString).collect { result ->
+            if (result.isSuccess) {
+                val jsonString = result.getOrThrow()
+                if (jsonString.isBlank()) {
+                    emit(Result.success(emptyList()))
                 } else {
-                    emit(
-                        Result.failure(
-                            result.exceptionOrNull() ?: Exception("Unknown error reading file")
+                    serializationService
+                        .decodeFromString(
+                            jsonString,
+                            ListSerializer(StudentExportData.serializer())
                         )
-                    )
+                        .fold(
+                            onSuccess = { data ->
+                                emit(
+                                    Result.success(
+                                        data.map { ParsedStudentImportData(it) }
+                                    )
+                                )
+                            },
+                            onFailure = { e -> emit(Result.failure(e)) }
+                        )
                 }
+            } else {
+                emit(
+                    Result.failure(
+                        result.exceptionOrNull() ?: Exception("Unknown error reading file")
+                    )
+                )
             }
         }
+    }
 
     fun performImport(
         parsedStudents: List<ParsedStudentImportData>,
         selectionMap: Map<Int, Boolean>
-    ): Flow<Result<ImportResult>> =
-        flow {
-            val studentsToImport =
-                parsedStudents.filter { selectionMap[it.id] == true }.map { it.originalData }
-            if (studentsToImport.isEmpty()) {
-                emit(Result.failure(IllegalArgumentException("No students selected for import")))
-                return@flow
-            }
+    ): Flow<Result<ImportResult>> = flow {
+        val studentsToImport =
+            parsedStudents.filter { selectionMap[it.id] == true }.map { it.originalData }
+        if (studentsToImport.isEmpty()) {
+            emit(Result.failure(IllegalArgumentException("No students selected for import")))
+            return@flow
+        }
 
-            var newCount = 0
-            var mergedCount = 0
-            var datesProcessed = 0
-            var datesSkipped = 0
+        var newCount = 0
+        var mergedCount = 0
+        var datesProcessed = 0
+        var datesSkipped = 0
 
-            try {
-                val existingStudentsResult = studentRepository.getAllStudents().first()
-                if (existingStudentsResult.isFailure) throw existingStudentsResult.exceptionOrNull()!!
-                val existingStudents = existingStudentsResult.getOrNull()!!
-                val existingMap = existingStudents.associateBy { it.name }
+        try {
+            val existingStudentsResult = studentRepository.getAllStudents().first()
+            if (existingStudentsResult.isFailure) throw existingStudentsResult.exceptionOrNull()!!
+            val existingStudents = existingStudentsResult.getOrNull()!!
+            val existingMap = existingStudents.associateBy { it.name }
 
-                studentsToImport.forEach { studentData ->
-                    val studentId =
-                        existingMap[studentData.name]?.id
-                            ?: run {
-                                val newId =
-                                    studentRepository
-                                        .insertStudent(Student(name = studentData.name))
-                                        .getOrDefault(0)
-                                        .toInt()
-                                newCount++
-                                newId
-                            }
+            studentsToImport.forEach { studentData ->
+                val studentId =
+                    existingMap[studentData.name]?.id
+                    ?: run {
+                        val newId =
+                            studentRepository
+                                .insertStudent(Student(name = studentData.name))
+                                .getOrDefault(0)
+                                .toInt()
+                        newCount++
+                        newId
+                    }
 
-                    if (existingMap[studentData.name] != null) mergedCount++
+                if (existingMap[studentData.name] != null) mergedCount++
 
-                    studentData.dates.forEach { dateString ->
-                        try {
-                            val localDate = LocalDate.parse(dateString)
-                            attendanceRepository.insertAttendance(
-                                StudentAttendance(studentId = studentId, date = localDate)
-                            )
-                            datesProcessed++
-                        } catch (_: Exception) {
-                            datesSkipped++
-                        }
+                studentData.dates.forEach { dateString ->
+                    try {
+                        val localDate = LocalDate.parse(dateString)
+                        attendanceRepository.insertAttendance(
+                            StudentAttendance(studentId = studentId, date = localDate)
+                        )
+                        datesProcessed++
+                    } catch (_: Exception) {
+                        datesSkipped++
                     }
                 }
-                emit(Result.success(ImportResult(newCount, mergedCount, datesProcessed, datesSkipped)))
-            } catch (e: Exception) {
-                if (e is CancellationException) throw e
-                emit(Result.failure(e))
             }
+            emit(Result.success(ImportResult(newCount, mergedCount, datesProcessed, datesSkipped)))
+        } catch (e: Exception) {
+            if (e is CancellationException) throw e
+            emit(Result.failure(e))
         }
+    }
 }
