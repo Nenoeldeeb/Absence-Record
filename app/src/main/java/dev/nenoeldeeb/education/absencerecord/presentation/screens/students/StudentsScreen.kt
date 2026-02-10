@@ -111,9 +111,11 @@ fun StudentsScreen(
         )
 
     Box(modifier = Modifier.fillMaxSize()) {
-        Column(modifier = Modifier
-            .fillMaxSize()
-            .padding(8.dp)) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(8.dp)
+        ) {
             if (uiState.isMultiSelectionMode) {
                 MultiSelectionHeader(
                     uiState,
@@ -202,6 +204,7 @@ internal fun MultiSelectionHeader(
                 )
             }
             IconButton(
+                enabled = uiState.selectedStudentIds.isNotEmpty(),
                 onClick = {
                     val timestamp =
                         Clock.System.now()
@@ -222,6 +225,7 @@ internal fun MultiSelectionHeader(
                 )
             }
             IconButton(
+                enabled = uiState.selectedStudentIds.isNotEmpty(),
                 onClick = {
                     val now =
                         Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault())
@@ -242,14 +246,20 @@ internal fun MultiSelectionHeader(
                     painter = painterResource(id = R.drawable.outline_file_upload_24),
                     // Reuse export icon? Or maybe a combined one.
                     contentDescription = stringResource(R.string.action_export_delete),
-                    tint = MaterialTheme.colorScheme.error
+                    tint = if (uiState.selectedStudentIds.isNotEmpty()) MaterialTheme.colorScheme.error
+                    else MaterialTheme.colorScheme.errorContainer
                 )
             }
-            IconButton(onClick = { viewModel.onEvent(StudentsScreenEvent.ShowBulkDeleteDialog) }) {
+            IconButton(
+                enabled = uiState.selectedStudentIds.isNotEmpty(),
+                onClick = {
+                    viewModel.onEvent(StudentsScreenEvent.ShowBulkDeleteDialog)
+                }) {
                 Icon(
                     painter = painterResource(id = R.drawable.outline_delete_24),
                     contentDescription = stringResource(R.string.action_delete),
-                    tint = MaterialTheme.colorScheme.error
+                    tint = if (uiState.selectedStudentIds.isNotEmpty()) MaterialTheme.colorScheme.error
+                    else MaterialTheme.colorScheme.errorContainer
                 )
             }
         }
