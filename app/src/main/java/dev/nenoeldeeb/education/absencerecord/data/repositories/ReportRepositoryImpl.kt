@@ -9,6 +9,7 @@ import dev.nenoeldeeb.education.absencerecord.domain.services.DispatcherProvider
 import kotlinx.coroutines.withContext
 import kotlinx.datetime.LocalDate
 import java.io.File
+import kotlin.coroutines.cancellation.CancellationException
 
 class ReportRepositoryImpl(
     private val context: Context,
@@ -41,6 +42,7 @@ class ReportRepositoryImpl(
                 val uri = FileProvider.getUriForFile(context, authority, file)
                 Result.success(uri.toString())
             } catch (e: Exception) {
+                if (e is CancellationException) throw e
                 Result.failure(e)
             }
         }
