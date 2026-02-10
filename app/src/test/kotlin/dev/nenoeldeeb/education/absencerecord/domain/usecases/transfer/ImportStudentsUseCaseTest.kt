@@ -11,7 +11,6 @@ import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.BeforeEach
@@ -56,8 +55,8 @@ class ImportStudentsUseCaseTest {
                 val jsonString = "[{\"name\":\"John\",\"dates\":[\"2024-01-01\"]}]"
                 val exportDataList = listOf(StudentExportData("John", listOf("2024-01-01")))
 
-                every { storageRepository.readTextFromUri(uriString) } returns
-                    flowOf(Result.success(jsonString))
+                coEvery { storageRepository.readTextFromUri(uriString) } returns
+                    Result.success(jsonString)
                 every {
                     serializationService.decodeFromString(
                         jsonString,
@@ -66,7 +65,7 @@ class ImportStudentsUseCaseTest {
                 } returns Result.success(exportDataList)
 
                 // Act
-                val result = useCase.parseFile(uriString).first()
+                val result = useCase.parseFile(uriString)
 
                 // Assert
                 assertTrue(result.isSuccess)
@@ -80,11 +79,11 @@ class ImportStudentsUseCaseTest {
             runTest {
                 // Arrange
                 val uriString = "content://empty"
-                every { storageRepository.readTextFromUri(uriString) } returns
-                    flowOf(Result.success("  "))
+                coEvery { storageRepository.readTextFromUri(uriString) } returns
+                    Result.success("  ")
 
                 // Act
-                val result = useCase.parseFile(uriString).first()
+                val result = useCase.parseFile(uriString)
 
                 // Assert
                 assertTrue(result.isSuccess)
@@ -97,11 +96,11 @@ class ImportStudentsUseCaseTest {
                 // Arrange
                 val uriString = "content://error"
                 val exception = Exception("Read error")
-                every { storageRepository.readTextFromUri(uriString) } returns
-                    flowOf(Result.failure(exception))
+                coEvery { storageRepository.readTextFromUri(uriString) } returns
+                    Result.failure(exception)
 
                 // Act
-                val result = useCase.parseFile(uriString).first()
+                val result = useCase.parseFile(uriString)
 
                 // Assert
                 assertTrue(result.isFailure)
@@ -116,8 +115,8 @@ class ImportStudentsUseCaseTest {
                 val jsonString = "{ malformed json"
                 val exception = Exception("JSON Parse error")
 
-                every { storageRepository.readTextFromUri(uriString) } returns
-                    flowOf(Result.success(jsonString))
+                coEvery { storageRepository.readTextFromUri(uriString) } returns
+                    Result.success(jsonString)
                 every {
                     serializationService.decodeFromString(
                         jsonString,
@@ -126,7 +125,7 @@ class ImportStudentsUseCaseTest {
                 } returns Result.failure(exception)
 
                 // Act
-                val result = useCase.parseFile(uriString).first()
+                val result = useCase.parseFile(uriString)
 
                 // Assert
                 assertTrue(result.isFailure)
@@ -145,7 +144,7 @@ class ImportStudentsUseCaseTest {
                 val selectionMap = mapOf(parsedData[0].id to false)
 
                 // Act
-                val result = useCase.performImport(parsedData, selectionMap).first()
+                val result = useCase.performImport(parsedData, selectionMap)
 
                 // Assert
                 assertTrue(result.isFailure)
@@ -173,7 +172,7 @@ class ImportStudentsUseCaseTest {
                 coEvery { attendanceRepository.insertAttendance(any()) } returns Result.success(1L)
 
                 // Act
-                val result = useCase.performImport(parsedData, selectionMap).first()
+                val result = useCase.performImport(parsedData, selectionMap)
 
                 // Assert
                 assertTrue(result.isSuccess)
@@ -209,7 +208,7 @@ class ImportStudentsUseCaseTest {
                 coEvery { attendanceRepository.insertAttendance(any()) } returns Result.success(1L)
 
                 // Act
-                val result = useCase.performImport(parsedData, selectionMap).first()
+                val result = useCase.performImport(parsedData, selectionMap)
 
                 // Assert
                 assertTrue(result.isSuccess)
@@ -241,7 +240,7 @@ class ImportStudentsUseCaseTest {
                 coEvery { studentRepository.insertStudent(any()) } returns Result.success(1L)
 
                 // Act
-                val result = useCase.performImport(parsedData, selectionMap).first()
+                val result = useCase.performImport(parsedData, selectionMap)
 
                 // Assert
                 assertTrue(result.isSuccess)
@@ -266,7 +265,7 @@ class ImportStudentsUseCaseTest {
                 coEvery { studentRepository.insertStudent(any()) } returns Result.success(1L)
 
                 // Act
-                val result = useCase.performImport(parsedData, selectionMap).first()
+                val result = useCase.performImport(parsedData, selectionMap)
 
                 // Assert
                 assertTrue(result.isSuccess)
@@ -290,7 +289,7 @@ class ImportStudentsUseCaseTest {
                     }
 
                 // Act
-                val result = useCase.performImport(parsedData, selectionMap).first()
+                val result = useCase.performImport(parsedData, selectionMap)
 
                 // Assert
                 assertTrue(result.isFailure)

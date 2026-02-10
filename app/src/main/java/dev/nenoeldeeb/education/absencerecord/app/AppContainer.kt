@@ -38,7 +38,10 @@ class DefaultAppContainer(private val context: Context) : AppContainer {
     }
 
     private val storageRepository: StorageRepository by lazy {
-        StorageRepositoryImpl(context)
+        StorageRepositoryImpl(
+            context,
+            dispatcherProvider
+        )
     }
 
     private val reportRepository: ReportRepository by lazy {

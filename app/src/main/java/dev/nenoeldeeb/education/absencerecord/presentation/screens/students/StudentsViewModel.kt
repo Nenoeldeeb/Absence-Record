@@ -27,7 +27,6 @@ import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.Stud
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.delegates.ImportExportDelegate
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.delegates.SelectionStateDelegate
 import dev.nenoeldeeb.education.absencerecord.presentation.utils.UiText
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -35,7 +34,6 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-@OptIn(ExperimentalCoroutinesApi::class)
 @Stable
 open class StudentsViewModel(
     private val studentManagementUseCases: StudentManagementUseCases,
@@ -52,10 +50,9 @@ open class StudentsViewModel(
     private fun initializeStudents() {
         viewModelScope.launch {
             studentManagementUseCases.getAllStudentsUseCase().collectLatest { result ->
-                result
-                    .onSuccess { students ->
-                        _uiState.update { it.copy(allStudents = students) }
-                    }
+                result.onSuccess { students ->
+                    _uiState.update { it.copy(allStudents = students) }
+                }
                     .onFailure { e ->
                         _uiState.update {
                             it.copy(
@@ -227,45 +224,43 @@ open class StudentsViewModel(
             return
         }
         viewModelScope.launch {
-            studentManagementUseCases.importStudentsUseCase.parseFile(uri.toString())
-                .collectLatest { result ->
-                    result
-                        .onSuccess { parsedData ->
-                            val (data, selectionMap, showDialog) =
-                                importExportDelegate.prepareImportDialog(parsedData)
+            val result = studentManagementUseCases.importStudentsUseCase.parseFile(uri.toString())
+            result
+                .onSuccess { parsedData ->
+                    val (data, selectionMap, showDialog) =
+                        importExportDelegate.prepareImportDialog(parsedData)
 
-                            _uiState.update {
-                                if (data == null) {
-                                    it.copy(
-                                        parsedStudentsFromFile = null,
-                                        importSelectionMap = emptyMap(),
-                                        toastMessage =
-                                            UiText.StringResource(
-                                                R.string
-                                                    .no_students_found_in_file
-                                            )
+                    _uiState.update {
+                        if (data == null) {
+                            it.copy(
+                                parsedStudentsFromFile = null,
+                                importSelectionMap = emptyMap(),
+                                toastMessage =
+                                    UiText.StringResource(
+                                        R.string
+                                            .no_students_found_in_file
                                     )
-                                } else {
-                                    it.copy(
-                                        parsedStudentsFromFile = data,
-                                        importSelectionMap = selectionMap,
-                                        showImportSelectionDialog = showDialog,
-                                    )
-                                }
-                            }
+                            )
+                        } else {
+                            it.copy(
+                                parsedStudentsFromFile = data,
+                                importSelectionMap = selectionMap,
+                                showImportSelectionDialog = showDialog,
+                            )
                         }
-                        .onFailure { e ->
-                            _uiState.update {
-                                it.copy(
-                                    error =
-                                        UiText.StringResource(
-                                            R.string
-                                                .error_reading_or_parsing_file,
-                                            e.message ?: "Unknown error"
-                                        )
+                    }
+                }
+                .onFailure { e ->
+                    _uiState.update {
+                        it.copy(
+                            error =
+                                UiText.StringResource(
+                                    R.string
+                                        .error_reading_or_parsing_file,
+                                    e.message ?: "Unknown error"
                                 )
-                            }
-                        }
+                        )
+                    }
                 }
         }
     }
@@ -276,35 +271,33 @@ open class StudentsViewModel(
         if (parsedStudents == null) return
 
         viewModelScope.launch {
-            studentManagementUseCases.importStudentsUseCase.performImport(
+            val result = studentManagementUseCases.importStudentsUseCase.performImport(
                 parsedStudents,
                 selectionMap
             )
-                .collectLatest { result ->
-                    result
-                        .onSuccess { importResult ->
-                            val message =
-                                importExportDelegate.buildImportResultMessage(
-                                    importResult
+            result
+                .onSuccess { importResult ->
+                    val message =
+                        importExportDelegate.buildImportResultMessage(
+                            importResult
+                        )
+                    _uiState.update {
+                        it.copy(
+                            showImportSelectionDialog = false,
+                            toastMessage = message
+                        )
+                    }
+                }
+                .onFailure { e ->
+                    _uiState.update {
+                        it.copy(
+                            error =
+                                UiText.StringResource(
+                                    R.string.error_during_import,
+                                    e.message ?: "Unknown error"
                                 )
-                            _uiState.update {
-                                it.copy(
-                                    showImportSelectionDialog = false,
-                                    toastMessage = message
-                                )
-                            }
-                        }
-                        .onFailure { e ->
-                            _uiState.update {
-                                it.copy(
-                                    error =
-                                        UiText.StringResource(
-                                            R.string.error_during_import,
-                                            e.message ?: "Unknown error"
-                                        )
-                                )
-                            }
-                        }
+                        )
+                    }
                 }
         }
     }
@@ -351,36 +344,34 @@ open class StudentsViewModel(
         val allStudents = _uiState.value.allStudents
 
         viewModelScope.launch {
-            studentManagementUseCases.exportStudentsUseCase(
+            val result = studentManagementUseCases.exportStudentsUseCase(
                 uri.toString(),
                 selectedIds,
                 allStudents
             )
-                .collectLatest { result ->
-                    result
-                        .onSuccess {
-                            _uiState.update {
-                                it.copy(
-                                    isMultiSelectionMode = false,
-                                    selectedStudentIds = emptySet(),
-                                    toastMessage =
-                                        UiText.StringResource(
-                                            R.string.data_exported_successfully
-                                        )
+            result
+                .onSuccess {
+                    _uiState.update {
+                        it.copy(
+                            isMultiSelectionMode = false,
+                            selectedStudentIds = emptySet(),
+                            toastMessage =
+                                UiText.StringResource(
+                                    R.string.data_exported_successfully
                                 )
-                            }
-                        }
-                        .onFailure { e ->
-                            _uiState.update {
-                                it.copy(
-                                    error =
-                                        UiText.StringResource(
-                                            R.string.error_creating_export_data,
-                                            e.message ?: "Unknown error"
-                                        )
+                        )
+                    }
+                }
+                .onFailure { e ->
+                    _uiState.update {
+                        it.copy(
+                            error =
+                                UiText.StringResource(
+                                    R.string.error_creating_export_data,
+                                    e.message ?: "Unknown error"
                                 )
-                            }
-                        }
+                        )
+                    }
                 }
         }
     }
@@ -392,55 +383,53 @@ open class StudentsViewModel(
         val studentsToDelete = allStudents.filter { it.id in selectedIds }
 
         viewModelScope.launch {
-            studentManagementUseCases.exportStudentsUseCase(
+            val result = studentManagementUseCases.exportStudentsUseCase(
                 uri.toString(),
                 selectedIds,
                 allStudents
             )
-                .collectLatest { result ->
-                    result
+            result
+                .onSuccess {
+                    studentManagementUseCases
+                        .deleteStudentsUseCase(studentsToDelete)
                         .onSuccess {
-                            studentManagementUseCases
-                                .deleteStudentsUseCase(studentsToDelete)
-                                .onSuccess {
-                                    _uiState.update {
-                                        it.copy(
-                                            showBulkDeleteDialog = false,
-                                            isMultiSelectionMode = false,
-                                            selectedStudentIds = emptySet(),
-                                            toastMessage =
-                                                UiText.StringResource(
-                                                    R.string
-                                                        .data_exported_and_deleted_successfully
-                                                )
+                            _uiState.update {
+                                it.copy(
+                                    showBulkDeleteDialog = false,
+                                    isMultiSelectionMode = false,
+                                    selectedStudentIds = emptySet(),
+                                    toastMessage =
+                                        UiText.StringResource(
+                                            R.string
+                                                .data_exported_and_deleted_successfully
                                         )
-                                    }
-                                }
-                                .onFailure { e ->
-                                    _uiState.update {
-                                        it.copy(
-                                            error =
-                                                UiText.StringResource(
-                                                    R.string
-                                                        .error_deleting_student,
-                                                    e.message
-                                                    ?: "Unknown error"
-                                                )
-                                        )
-                                    }
-                                }
+                                )
+                            }
                         }
                         .onFailure { e ->
                             _uiState.update {
                                 it.copy(
                                     error =
                                         UiText.StringResource(
-                                            R.string.error_creating_export_data,
-                                            e.message ?: "Unknown error"
+                                            R.string
+                                                .error_deleting_student,
+                                            e.message
+                                            ?: "Unknown error"
                                         )
                                 )
                             }
                         }
+                }
+                .onFailure { e ->
+                    _uiState.update {
+                        it.copy(
+                            error =
+                                UiText.StringResource(
+                                    R.string.error_creating_export_data,
+                                    e.message ?: "Unknown error"
+                                )
+                        )
+                    }
                 }
         }
     }
