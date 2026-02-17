@@ -8,10 +8,14 @@ import dev.nenoeldeeb.education.absencerecord.domain.models.StudentAttendance
 import dev.nenoeldeeb.education.absencerecord.domain.usecases.AttendanceUseCases
 import dev.nenoeldeeb.education.absencerecord.domain.usecases.StudentManagementUseCases
 import dev.nenoeldeeb.education.absencerecord.presentation.utils.UiText
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.datetime.LocalDate
@@ -26,6 +30,7 @@ class CalendarViewModel(
 
     init {
         initializeStudents()
+        setupAttendanceListener()
     }
 
     private fun initializeStudents() {
@@ -51,7 +56,6 @@ class CalendarViewModel(
 
     fun onEvent(event: CalendarScreenEvent) {
         when (event) {
-            is CalendarScreenEvent.GetStudentsForDate -> getStudentsForDate(event.date)
             is CalendarScreenEvent.MarkStudentAttendance ->
                 markStudentAttendance(
                     event.studentId,
@@ -67,15 +71,27 @@ class CalendarViewModel(
             is CalendarScreenEvent.SelectDateForDialog ->
                 _uiState.update {
                     it.copy(
-                        selectedDateForDialog = event.date
+                        selectedDateForDialog = event.date,
+                        studentsForSelectedDate =
+                            if (event.date == null) {
+                                emptyList()
+                            } else {
+                                it.studentsForSelectedDate
+                            }
                     )
                 }
         }
     }
 
-    private fun getStudentsForDate(date: LocalDate) {
+    @OptIn(ExperimentalCoroutinesApi::class)
+    private fun setupAttendanceListener() {
         viewModelScope.launch {
-            attendanceUseCases.getAttendanceForDateUseCase(date)
+            _uiState
+                .map { it.selectedDateForDialog }
+                .filterNotNull()
+                .flatMapLatest { date ->
+                    attendanceUseCases.getAttendanceForDateUseCase(date)
+                }
                 .collectLatest { result ->
                     result.onSuccess { selectedStudentsForDate ->
                         _uiState.update {

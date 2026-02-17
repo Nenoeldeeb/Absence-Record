@@ -50,7 +50,6 @@ fun CalendarScreen(viewModel: CalendarViewModel = viewModel(factory = AppViewMod
             modifier = Modifier.weight(1f),
             onDateSelected = { date ->
                 viewModel.onEvent(CalendarScreenEvent.SelectDateForDialog(date))
-                viewModel.onEvent(CalendarScreenEvent.GetStudentsForDate(date))
             },
         )
     }
@@ -73,7 +72,6 @@ fun CalendarScreen(viewModel: CalendarViewModel = viewModel(factory = AppViewMod
                         CalendarScreenEvent.MarkStudentAttendance(student.id, date)
                     }
                 viewModel.onEvent(event)
-                viewModel.onEvent(CalendarScreenEvent.GetStudentsForDate(date))
             }
         )
     }
