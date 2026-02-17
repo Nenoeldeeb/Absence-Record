@@ -255,7 +255,7 @@ private fun DayCell(
                     when {
                         isMarked ->
                             Modifier.background(
-                                MaterialTheme.colorScheme.secondary.copy(alpha = 0.5f)
+                                MaterialTheme.colorScheme.secondary
                             )
 
                         isCurrentDay && day != null ->

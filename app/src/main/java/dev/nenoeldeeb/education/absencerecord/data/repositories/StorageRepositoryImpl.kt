@@ -5,6 +5,7 @@ import androidx.core.net.toUri
 import dev.nenoeldeeb.education.absencerecord.domain.repositories.StorageRepository
 import dev.nenoeldeeb.education.absencerecord.domain.services.DispatcherProvider
 import kotlinx.coroutines.withContext
+import java.io.File
 import kotlin.coroutines.cancellation.CancellationException
 
 class StorageRepositoryImpl(
@@ -32,10 +33,18 @@ class StorageRepositoryImpl(
     ): Result<Unit> = withContext(dispatcherProvider.io) {
         try {
             val uri = uriString.toUri()
-            context.contentResolver.openOutputStream(uri)?.use { outputStream ->
-                outputStream.write(text.toByteArray())
+            // For file URIs, convert to File and use FileOutputStream to ensure truncation
+            if (uri.scheme == "file") {
+                val file = File(uri.path ?: return@withContext Result.failure(Exception()))
+                file.writeText(text)
+                Result.success(Unit)
+            } else {
+                // For other URI schemes (content://, etc.), use ContentResolver
+                context.contentResolver.openOutputStream(uri, "w")?.use { outputStream ->
+                    outputStream.write(text.toByteArray())
+                }
+                Result.success(Unit)
             }
-            Result.success(Unit)
         } catch (e: Exception) {
             if (e is CancellationException) throw e
             Result.failure(e)
