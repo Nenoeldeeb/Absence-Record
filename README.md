@@ -42,40 +42,103 @@ This project leverages the latest tools and libraries in the Android ecosystem t
 
 To get this project up and running on your local machine:
 
-1.  **Clone the repository**:
-    ```bash
-    git clone https://github.com/Nenoeldeeb/Absence-Record.git
-    ```
-2.  **Create Your own copy of `signing.properties` file in the root directory** Put the following properties in the file:
-    ```properties
-    release.store.file=path/to/keystore
-    release.key.alias=alias_name
-    release.key.password=alias_password
-    release.store.password=store_password(use the same password as alias_password)
-    debug.store.file=path/to/keystore
-    debug.key.alias=alias_name
-    debug.key.password=alias_password
-    debug.store.password=store_password(use the same password as alias_password)
-    ```
-3.  **Build the project**:
-    ```bash
-    ./gradlew assembleRelease
-    ```
-    OR
-    ```bash
-    ./gradlew assembleDebug
-    ```
+1. **Clone the repository**:
+   ```bash
+   git clone https://github.com/Nenoeldeeb/Absence-Record.git
+   ```
+2. **Create Your own copy of `signing.properties` file in the root directory** Put the following properties in the file:
+   ```properties
+   release.store.file=path/to/keystore
+   release.key.alias=alias_name
+   release.key.password=alias_password
+   release.store.password=store_password(use the same password as alias_password)
+   debug.store.file=path/to/keystore
+   debug.key.alias=alias_name
+   debug.key.password=alias_password
+   debug.store.password=store_password(use the same password as alias_password)
+   ```
+
+## Development
+
+### Building
+
+```bash
+./gradlew assembleDebug        # Debug build
+./gradlew assembleRelease      # Release build
+./gradlew build                # Full build with tests
+```
+
+### Running Tests
+
+```bash
+./gradlew test                           # All unit tests
+./gradlew testDebugUnitTest              # Unit tests only
+./gradlew connectedDebugAndroidTest      # Instrumented tests (requires emulator/device)
+./gradlew check                          # All checks (ktlint + lint + unit tests)
+```
+
+**Running Single Test:**
+
+```bash
+# Unit test example
+./gradlew testDebugUnitTest --tests "dev.nenoeldeeb.education.absencerecord.presentation.utils.DateFormatterTest"
+
+# Instrumented test example (requires connected device/emulator)
+./gradlew connectedDebugAndroidTest --tests "dev.nenoeldeeb.education.absencerecord.presentation.screens.students.StudentsScreenTest"
+```
+
+### Code Quality & Linting
+
+```bash
+./gradlew ktlintCheck       # Check code style without fixing
+./gradlew ktlintFormat      # Auto-format all Kotlin sources
+./gradlew lint              # Android lint checks
+./gradlew check             # All checks (ktlint + lint + tests)
+```
+
+> **Important**: `ktlintFormat` runs automatically before every build. Always run `./gradlew check` before committing to catch any issues.
+
+### Pre-Commit Checklist
+
+Before pushing your changes:
+
+- [ ] Run `./gradlew ktlintFormat` to ensure code style compliance
+- [ ] Run `./gradlew check` to validate all code quality checks and tests pass
+- [ ] Write tests for new functionality (both success and failure paths)
+- [ ] Keep strings in `res/values/strings.xml` (with Arabic translations in `values-ar/`)
+- [ ] Follow naming conventions from [AGENTS.md](AGENTS.md)
+
+## Project Structure
+
+```
+app/src/main/java/dev/nenoeldeeb/education/absencerecord/
+├── app/                  # Application class, DI container, ViewModel provider
+├── domain/
+│   ├── models/           # Domain models (Student, Attendance, etc.)
+│   ├── repositories/     # Repository interfaces
+│   └── usecases/         # Use case classes
+├── data/
+│   ├── datasources/      # Room DAOs, local data sources
+│   ├── repositories/     # Repository implementations
+│   └── utils/            # Data utilities
+└── presentation/
+    ├── screens/          # Screen composables, ViewModels, state, events
+    ├── theme/            # Material3 theme (Color, Type, Theme)
+    └── utils/            # UI utilities (UiText, DateFormatter, etc.)
+```
+
+For detailed development guidelines, code style conventions, and architecture patterns, refer to [AGENTS.md](AGENTS.md).
 
 ## Contributing
 
 Contributions are welcome! If you have suggestions for improvements or want to report a bug, please follow these steps:
 
-1.  **Fork the Project**: Create your own copy of the repository.
-2.  **Create your Feature Branch**: `git checkout -b feat/Amazing-feature` or `git checkout -b fix/Critical-bug`
-3.  **Make Your changes with tests**: Write Your own code and test It.
-4.  **Commit your Changes**: `git commit -m "Add some AmazingFeature"`
-5.  **Push to the Branch**: `git push origin feat/Amazing-feature` or `git push origin fix/Critical-bug`
-6.  **Open a Pull Request**: Submit your changes for review.
+1. **Fork the Project**: Create your own copy of the repository.
+2. **Create your Feature Branch**: `git checkout -b feat/Amazing-feature` or `git checkout -b fix/Critical-bug`
+3. **Make Your changes with tests**: Write Your own code and test It.
+4. **Commit your Changes**: `git commit -m "Add some AmazingFeature"`
+5. **Push to the Branch**: `git push origin feat/Amazing-feature` or `git push origin fix/Critical-bug`
+6. **Open a Pull Request**: Submit your changes for review.
 
 ## License
 

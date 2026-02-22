@@ -1,10 +1,10 @@
 # AGENTS.md - Guidelines for Agentic Coding
 
-This document provides guidelines for AI agents working on this codebase.
+This document provides guidelines for AI agents working on this codebase. Follow these conventions strictly to maintain consistency and code quality.
 
 ## Project Overview
 
-Absence Record is an Android application for student attendance tracking. Built with Kotlin, Jetpack Compose, Room database, and Clean Architecture.
+Absence Record is an Android application for student attendance tracking. Built with Kotlin, Jetpack Compose, Room database, and Clean Architecture. The app uses MVI (Model-View-Intent) for state management and enforces strict separation of concerns across three layers.
 
 ## Build Commands
 
@@ -12,38 +12,42 @@ Absence Record is an Android application for student attendance tracking. Built 
 
 ```bash
 ./gradlew assembleDebug        # Debug build
-./gradlew assembleRelease     # Release build
-./gradlew build               # Full build with tests
+./gradlew assembleRelease      # Release build
+./gradlew build                # Full build with tests
 ```
 
 ### Running Tests
 
 ```bash
-./gradlew test                         # All unit tests
-./gradlew connectedDebugAndroidTest   # All Android instrumented tests
-./gradlew testDebugUnitTest            # Unit tests for debug variant
+./gradlew test                           # All unit tests
+./gradlew testDebugUnitTest              # Unit tests only (no instrumented tests)
+./gradlew connectedDebugAndroidTest      # Instrumented tests (requires connected device/emulator)
+./gradlew check                          # All checks (ktlint + lint + unit tests)
 ```
 
 ### Running a Single Test
 
 ```bash
-# Unit test - specify fully qualified class name
+# Unit test - fully qualified class name
 ./gradlew testDebugUnitTest --tests "dev.nenoeldeeb.education.absencerecord.presentation.utils.DateFormatterTest"
 
-# Android instrumented test
+# Instrumented test - requires emulator/device
 ./gradlew connectedDebugAndroidTest --tests "dev.nenoeldeeb.education.absencerecord.presentation.screens.students.StudentsScreenTest"
+
+# Run multiple test classes
+./gradlew testDebugUnitTest --tests "dev.nenoeldeeb.education.absencerecord.presentation.**"
 ```
 
 ### Linting & Code Quality
 
 ```bash
-./gradlew ktlintCheck       # Check code style
-./gradlew ktlintFormat     # Auto-format code
-./gradlew lint             # Android lint
-./gradlew check            # All checks (ktlint + lint + tests)
+./gradlew ktlintCheck       # Check code style without fixing
+./gradlew ktlintFormat      # Auto-format all Kotlin sources
+./gradlew lint              # Android lint checks
+./gradlew check             # All checks (ktlint + lint + tests)
 ```
 
-**Note:** `ktlintFormat` runs automatically before every build (`preBuild` task).
+**Important:** `ktlintFormat` runs automatically before every build (`preBuild` task). Always run lint checks before committing.
 
 ---
 
@@ -102,7 +106,7 @@ app/src/main/java/dev/nenoeldeeb/education/absencerecord/
 - Third-party libraries
 - Project imports
 - Use explicit imports (avoid wildcard `*`)
-- Don't use Java libraries if Kotlin have an alternative
+- Don't use Java libraries if Kotlin has an alternative
 
 2. **Visibility Modifiers**: Use explicit modifiers. Prefer `private` for class members.
 
@@ -118,8 +122,9 @@ app/src/main/java/dev/nenoeldeeb/education/absencerecord/
 
 - Use `@Composable` annotation for all UI functions
 - Add `@Stable` annotation to ViewModels State and Event wrappers
-- Use `remember`, `retain` and `rememberSaveable` for UI state prefer `retain`
-- Use `derivedStateOf` for computed state
+- Use `remember` and `rememberSaveable` for UI state (prefer `rememberSaveable` for important state)
+- Use `derivedStateOf` for computed state that should not recompose parent
+- Never mutate state directly—always use immutable updates
 - Group related imports
 
 ### Code Organization
@@ -128,11 +133,16 @@ app/src/main/java/dev/nenoeldeeb/education/absencerecord/
 
 2. **Repository**: Interface in `domain/repositories`, implementation in `data/repositories`.
 
-3. **ViewModels**: Single `uiState: StateFlow<ScreenState>`, single `onEvent(event: ScreenEvent)` function. Use ` MutableStateFlow` internally, expose as `StateFlow`.
+3. **ViewModels**: Single `uiState: StateFlow<ScreenState>`, single `onEvent(event: ScreenEvent)` function. Use `MutableStateFlow` internally, expose as `StateFlow`. Always wrap state in `@Stable` annotation.
 
-4. **Screen State**: Immutable data class with all UI state. No functions, only data.
+4. **Screen State**: Immutable data class with all UI state. No functions, only data. Mark with `@Stable` annotation.
 
 5. **Screen Events**: Sealed interface/class hierarchy for all user interactions.
+
+### Sealed Classes vs Sealed Interfaces
+
+- Use **sealed interface** for events (allowing multiple implementation): `sealed interface ScreenEvent { data class MyEvent(...) : ScreenEvent }`
+- Use **sealed class** when you need a base constructor or method: `sealed class Result<T>`
 
 ### Testing
 
@@ -141,7 +151,27 @@ app/src/main/java/dev/nenoeldeeb/education/absencerecord/
 - **Test Naming**: `[Method]_[Scenario]_[ExpectedResult]`
 - **Arrange-Act-Assert**: Structure test code clearly
 - **Use `@get:Rule` for Compose test rule**
-- **Use `mockk()` for ViewModel mocks in Compose tests**
+- **Use `mockk()` for ViewModel mocks in Compose tests** (e.g., `mockk(relaxed = true)` for flexible mocking)
+
+#### Testing Patterns
+
+**Test failure paths explicitly:**
+
+```kotlin
+result.onFailure { e ->
+    // Assert error state is set correctly
+    assert(uiState.value.error != null)
+}
+```
+
+**Do NOT rely only on happy path tests.** Test Repository error handling, UseCase validation, and ViewModel error state updates.
+
+### Threading & Async
+
+- **Suspend functions**: Use `suspend` in repository/use case methods for database/IO operations
+- **ViewModels**: Launch coroutines with `viewModelScope.launch` (never create raw Job instances)
+- **Testing async code**: Use `runTest` from `kotlinx-coroutines-test` to advance virtual time
+- **Result<T> pattern**: Domain/Data layers return `Result<T>`, Presentation layer handles `onSuccess`/`onFailure`
 
 ### Android-Specific Guidelines
 
@@ -182,14 +212,25 @@ app/src/main/java/dev/nenoeldeeb/education/absencerecord/
 6. Create ViewModel, ScreenState, ScreenEvent in `presentation/screens/[feature]/`
 7. Create Composable screen in `presentation/screens/[feature]/`
 8. Add DI in `AppContainer.kt` and `AppViewModelProvider.kt`
-9. Add strings to `res/values/strings.xml`
+9. Add strings to `res/values/strings.xml` (with Arabic translations in `values-ar/`)
 10. Write tests for new functionality
 
 ### Adding Tests
 
-1. Unit tests: Create in `src/test/java/...` mirroring source structure
-2. Instrumented tests: Create in `src/androidTest/java/...`
-3. Run tests: `./gradlew testDebugUnitTest --tests "TestClassName"`
+1. **Unit tests**: Create in `src/test/java/...` mirroring source structure
+2. **Instrumented tests**: Create in `src/androidTest/java/...`
+3. **Run single test**: `./gradlew testDebugUnitTest --tests "TestClassName"`
+4. **Run multiple tests**: `./gradlew testDebugUnitTest --tests "dev.nenoeldeeb.education.absencerecord.presentation.**"`
+5. **Always test both success and failure paths** - verify error state is set correctly
+
+### Anti-Patterns to Avoid
+
+- **Don't mutate state directly**: Always use `_uiState.update { it.copy(...) }`
+- **Don't use `try-catch` in repositories**: Use `Result<T>` and `onSuccess`/`onFailure` patterns
+- **Don't hardcode strings in UI**: All user-facing text must be in `strings.xml`
+- **Don't call `collect()` without proper lifecycle management**: Use `collectAsStateWithLifecycle()` in Compose
+- **Don't bypass ViewModelScope**: Always use `viewModelScope.launch`, never create raw Jobs
+- **Don't store UI state in domain/data layers**: State belongs in presentation layer only
 
 ---
 
