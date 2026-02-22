@@ -8,13 +8,13 @@ import androidx.annotation.StringRes
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.util.fastJoinToString
 
 sealed interface UiText {
     data class DynamicString(val value: String) : UiText
 
     class StringResource(
-        @param:StringRes val resId: Int,
-        vararg val args: Any
+        @param:StringRes val resId: Int, vararg val args: Any
     ) : UiText {
         override fun equals(other: Any?): Boolean {
             if (this === other) return true
@@ -36,9 +36,7 @@ sealed interface UiText {
     }
 
     class PluralResource(
-        @param:PluralsRes val resId: Int,
-        val quantity: Int,
-        vararg val args: Any
+        @param:PluralsRes val resId: Int, val quantity: Int, vararg val args: Any
     ) : UiText {
         override fun equals(other: Any?): Boolean {
             if (this === other) return true
@@ -62,8 +60,7 @@ sealed interface UiText {
     }
 
     data class Joined(
-        val parts: List<UiText>,
-        val separator: String = ""
+        val parts: List<UiText>, val separator: String = ""
     ) : UiText
 
     @Composable
@@ -71,20 +68,20 @@ sealed interface UiText {
         return when (this) {
             is DynamicString -> value
             is StringResource -> {
-                val resolvedArgs =
-                    args.map { arg ->
-                        if (arg is UiText) arg.asString() else arg
-                    }.toTypedArray()
+                val resolvedArgs = args.map { arg ->
+                    if (arg is UiText) arg.asString() else arg
+                }.toTypedArray()
                 stringResource(resId, *resolvedArgs)
             }
+
             is PluralResource -> {
-                val resolvedArgs =
-                    args.map { arg ->
-                        if (arg is UiText) arg.asString() else arg
-                    }.toTypedArray()
+                val resolvedArgs = args.map { arg ->
+                    if (arg is UiText) arg.asString() else arg
+                }.toTypedArray()
                 pluralStringResource(resId, quantity, *resolvedArgs)
             }
-            is Joined -> parts.map { it.asString() }.joinToString(separator)
+
+            is Joined -> parts.map { it.asString() }.fastJoinToString(separator)
         }
     }
 
@@ -92,19 +89,19 @@ sealed interface UiText {
         return when (this) {
             is DynamicString -> value
             is StringResource -> {
-                val resolvedArgs =
-                    args.map { arg ->
-                        if (arg is UiText) arg.asString(context) else arg
-                    }.toTypedArray()
+                val resolvedArgs = args.map { arg ->
+                    if (arg is UiText) arg.asString(context) else arg
+                }.toTypedArray()
                 context.getString(resId, *resolvedArgs)
             }
+
             is PluralResource -> {
-                val resolvedArgs =
-                    args.map { arg ->
-                        if (arg is UiText) arg.asString(context) else arg
-                    }.toTypedArray()
+                val resolvedArgs = args.map { arg ->
+                    if (arg is UiText) arg.asString(context) else arg
+                }.toTypedArray()
                 context.resources.getQuantityString(resId, quantity, *resolvedArgs)
             }
+
             is Joined -> parts.joinToString(separator) { it.asString(context) }
         }
     }

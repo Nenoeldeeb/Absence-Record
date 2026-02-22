@@ -10,6 +10,10 @@ import androidx.test.platform.app.InstrumentationRegistry
 import dev.nenoeldeeb.education.absencerecord.R
 import dev.nenoeldeeb.education.absencerecord.domain.models.SortType
 import dev.nenoeldeeb.education.absencerecord.domain.models.Student
+import dev.nenoeldeeb.education.absencerecord.presentation.screens.report.components.ReportControls
+import dev.nenoeldeeb.education.absencerecord.presentation.screens.report.components.StudentList
+import dev.nenoeldeeb.education.absencerecord.presentation.screens.report.dialogs.CalendarPreviewDialog
+import dev.nenoeldeeb.education.absencerecord.presentation.screens.report.dialogs.StudentHistoryDialog
 import dev.nenoeldeeb.education.absencerecord.presentation.theme.AbsenceRecordTheme
 import kotlinx.datetime.LocalDate
 import org.junit.Rule
@@ -33,10 +37,19 @@ class ReportScreenTest {
 
     @Test
     fun reportControls_displaysAllMonthsByDefault() {
-        val uiState = ReportScreenState()
-
         composeTestRule.setContent {
-            AbsenceRecordTheme { ReportControls(uiState = uiState, onEvent = {}) }
+            AbsenceRecordTheme {
+                ReportControls(
+                    selectedMonth = null,
+                    availableMonths = emptyList(),
+                    monthDropdownExpanded = false,
+                    sortType = SortType.ByName,
+                    onMonthSelected = {},
+                    onMonthCleared = {},
+                    onMonthDropdownToggled = {},
+                    onSortTypeToggled = {}
+                )
+            }
         }
 
         composeTestRule.onNodeWithText(getString(R.string.all_months)).assertIsDisplayed()
@@ -45,56 +58,93 @@ class ReportScreenTest {
     @Test
     fun reportControls_displaysSelectedMonth() {
         val selectedMonth = LocalDate(2026, 1, 1)
-        val uiState = ReportScreenState(selectedMonth = selectedMonth)
 
         composeTestRule.setContent {
-            AbsenceRecordTheme { ReportControls(uiState = uiState, onEvent = {}) }
+            AbsenceRecordTheme {
+                ReportControls(
+                    selectedMonth = selectedMonth,
+                    availableMonths = emptyList(),
+                    monthDropdownExpanded = false,
+                    sortType = SortType.ByName,
+                    onMonthSelected = {},
+                    onMonthCleared = {},
+                    onMonthDropdownToggled = {},
+                    onSortTypeToggled = {}
+                )
+            }
         }
 
-        // The month is formatted as "January 2026"
         composeTestRule.onNodeWithText("January 2026", substring = true).assertIsDisplayed()
     }
 
     @Test
     fun reportControls_togglingSortTypeInvokesEvent() {
-        var eventSent: ReportScreenEvent? = null
-        val uiState = ReportScreenState(sortType = SortType.ByName)
+        var eventTriggered = false
 
         composeTestRule.setContent {
-            AbsenceRecordTheme { ReportControls(uiState = uiState, onEvent = { eventSent = it }) }
+            AbsenceRecordTheme {
+                ReportControls(
+                    selectedMonth = null,
+                    availableMonths = emptyList(),
+                    monthDropdownExpanded = false,
+                    sortType = SortType.ByName,
+                    onMonthSelected = {},
+                    onMonthCleared = {},
+                    onMonthDropdownToggled = {},
+                    onSortTypeToggled = { eventTriggered = true }
+                )
+            }
         }
 
-        // When sorted by name, button shows "Sort by Rate" (R.string.sort_action_rate)
         composeTestRule.onNodeWithText(getString(R.string.sort_action_rate)).performClick()
 
-        assert(eventSent is ReportScreenEvent.ToggleSortType)
+        assert(eventTriggered)
     }
 
     @Test
     fun reportControls_clearingMonthFilterInvokesEvent() {
-        var events = mutableListOf<ReportScreenEvent>()
+        var clearTriggered = false
         val selectedMonth = LocalDate(2026, 1, 1)
-        val uiState = ReportScreenState(selectedMonth = selectedMonth)
 
         composeTestRule.setContent {
-            AbsenceRecordTheme { ReportControls(uiState = uiState, onEvent = { events += it }) }
+            AbsenceRecordTheme {
+                ReportControls(
+                    selectedMonth = selectedMonth,
+                    availableMonths = emptyList(),
+                    monthDropdownExpanded = false,
+                    sortType = SortType.ByName,
+                    onMonthSelected = {},
+                    onMonthCleared = { clearTriggered = true },
+                    onMonthDropdownToggled = {},
+                    onSortTypeToggled = {}
+                )
+            }
         }
 
         composeTestRule
             .onNodeWithContentDescription(getString(R.string.clear_month_filter))
             .performClick()
 
-        assert(events.any { it is ReportScreenEvent.ClearMonthFilter })
+        assert(clearTriggered)
     }
 
     @Test
     fun reportControls_openingDropdownDisplaysMonths() {
         val availableMonths = listOf(LocalDate(2026, 1, 1), LocalDate(2026, 2, 1))
-        val uiState =
-            ReportScreenState(availableMonths = availableMonths, monthDropdownExpanded = true)
 
         composeTestRule.setContent {
-            AbsenceRecordTheme { ReportControls(uiState = uiState, onEvent = {}) }
+            AbsenceRecordTheme {
+                ReportControls(
+                    selectedMonth = null,
+                    availableMonths = availableMonths,
+                    monthDropdownExpanded = true,
+                    sortType = SortType.ByName,
+                    onMonthSelected = {},
+                    onMonthCleared = {},
+                    onMonthDropdownToggled = {},
+                    onSortTypeToggled = {}
+                )
+            }
         }
 
         composeTestRule.onNodeWithText("January 2026", substring = true).assertIsDisplayed()
@@ -103,24 +153,27 @@ class ReportScreenTest {
 
     @Test
     fun reportControls_selectingMonthInvokesUpdateEvent() {
-        var events = mutableListOf<ReportScreenEvent>()
+        var selectedMonth: LocalDate? = null
         val month = LocalDate(2026, 1, 1)
-        val uiState =
-            ReportScreenState(availableMonths = listOf(month), monthDropdownExpanded = true)
 
         composeTestRule.setContent {
-            AbsenceRecordTheme { ReportControls(uiState = uiState, onEvent = { events += it }) }
+            AbsenceRecordTheme {
+                ReportControls(
+                    selectedMonth = null,
+                    availableMonths = listOf(month),
+                    monthDropdownExpanded = true,
+                    sortType = SortType.ByName,
+                    onMonthSelected = { selectedMonth = it },
+                    onMonthCleared = {},
+                    onMonthDropdownToggled = {},
+                    onSortTypeToggled = {}
+                )
+            }
         }
 
         composeTestRule.onNodeWithText("January 2026", substring = true).performClick()
 
-        assert(events.any { it is ReportScreenEvent.UpdateSelectedMonth })
-        val eventMonth =
-            (
-                events.find { it is ReportScreenEvent.UpdateSelectedMonth }
-                    as ReportScreenEvent.UpdateSelectedMonth
-            ).month
-        assert(eventMonth == month)
+        assert(selectedMonth == month)
     }
 
     // endregion
@@ -130,7 +183,9 @@ class ReportScreenTest {
     @Test
     fun studentList_displaysNoStudentsMessage_whenListEmpty() {
         composeTestRule.setContent {
-            AbsenceRecordTheme { StudentList(students = emptyList(), onStudentClick = {}) }
+            AbsenceRecordTheme {
+                StudentList(students = emptyList(), onStudentClick = {})
+            }
         }
 
         composeTestRule.onNodeWithText(getString(R.string.no_students_found)).assertIsDisplayed()
@@ -138,10 +193,15 @@ class ReportScreenTest {
 
     @Test
     fun studentList_displaysStudentNames() {
-        val students = listOf(Student(id = 1, name = "Alice"), Student(id = 2, name = "Bob"))
+        val students = listOf(
+            Student(id = 1, name = "Alice"),
+            Student(id = 2, name = "Bob")
+        )
 
         composeTestRule.setContent {
-            AbsenceRecordTheme { StudentList(students = students, onStudentClick = {}) }
+            AbsenceRecordTheme {
+                StudentList(students = students, onStudentClick = {})
+            }
         }
 
         composeTestRule.onNodeWithText("Alice").assertIsDisplayed()
@@ -155,7 +215,10 @@ class ReportScreenTest {
 
         composeTestRule.setContent {
             AbsenceRecordTheme {
-                StudentList(students = listOf(student), onStudentClick = { clickedStudent = it })
+                StudentList(
+                    students = listOf(student),
+                    onStudentClick = { clickedStudent = it }
+                )
             }
         }
 

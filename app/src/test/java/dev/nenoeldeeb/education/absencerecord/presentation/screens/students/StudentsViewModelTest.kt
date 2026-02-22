@@ -32,11 +32,11 @@ import kotlin.test.assertEquals
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
-@Suppress("UnusedFlow")
 @OptIn(ExperimentalCoroutinesApi::class)
 class StudentsViewModelTest {
     companion object {
-        @JvmStatic @RegisterExtension
+        @JvmStatic
+        @RegisterExtension
         val mainDispatcherRule = MainDispatcherRule()
     }
 
@@ -279,7 +279,7 @@ class StudentsViewModelTest {
             // Given
             val parsedData = listOf(ParsedStudentImportData(StudentExportData("S1", emptyList()), 1))
             every { getAllStudentsUseCase(any(), any()) } returns flowOf(Result.success(emptyList()))
-            every { importStudentsUseCase.parseFile(any()) } returns flowOf(Result.success(parsedData))
+            coEvery { importStudentsUseCase.parseFile(any()) } returns Result.success(parsedData)
             createViewModel()
             advanceUntilIdle()
 
@@ -319,8 +319,8 @@ class StudentsViewModelTest {
             // Given
             val errorMsg = "Parse failed"
             every { getAllStudentsUseCase(any(), any()) } returns flowOf(Result.success(emptyList()))
-            every { importStudentsUseCase.parseFile(any()) } returns
-                flowOf(Result.failure(Exception(errorMsg)))
+            coEvery { importStudentsUseCase.parseFile(any()) } returns
+                Result.failure(Exception(errorMsg))
             createViewModel()
             advanceUntilIdle()
 
@@ -351,9 +351,9 @@ class StudentsViewModelTest {
                     datesProcessedCount = 0
                 )
 
-            every { importStudentsUseCase.parseFile(any()) } returns flowOf(Result.success(parsedData))
-            every { importStudentsUseCase.performImport(any(), any()) } returns
-                flowOf(Result.success(importResult))
+            coEvery { importStudentsUseCase.parseFile(any()) } returns Result.success(parsedData)
+            coEvery { importStudentsUseCase.performImport(any(), any()) } returns
+                Result.success(importResult)
 
             createViewModel()
             advanceUntilIdle()
@@ -379,9 +379,9 @@ class StudentsViewModelTest {
             val parsedData = listOf(ParsedStudentImportData(StudentExportData("S1", emptyList()), 1))
             val errorMsg = "Import failed"
 
-            every { importStudentsUseCase.parseFile(any()) } returns flowOf(Result.success(parsedData))
-            every { importStudentsUseCase.performImport(any(), any()) } returns
-                flowOf(Result.failure(Exception(errorMsg)))
+            coEvery { importStudentsUseCase.parseFile(any()) } returns Result.success(parsedData)
+            coEvery { importStudentsUseCase.performImport(any(), any()) } returns
+                Result.failure(Exception(errorMsg))
 
             createViewModel()
             advanceUntilIdle()
@@ -407,7 +407,7 @@ class StudentsViewModelTest {
             val student = Student(id = 1, name = "S1")
             every { getAllStudentsUseCase(any(), any()) } returns
                 flowOf(Result.success(listOf(student)))
-            every { exportStudentsUseCase(any(), any(), any()) } returns flowOf(Result.success(Unit))
+            coEvery { exportStudentsUseCase(any(), any(), any()) } returns Result.success(Unit)
 
             createViewModel()
             advanceUntilIdle()
@@ -437,8 +437,8 @@ class StudentsViewModelTest {
             val errorMsg = "Export failed"
             every { getAllStudentsUseCase(any(), any()) } returns
                 flowOf(Result.success(listOf(student)))
-            every { exportStudentsUseCase(any(), any(), any()) } returns
-                flowOf(Result.failure(Exception(errorMsg)))
+            coEvery { exportStudentsUseCase(any(), any(), any()) } returns
+                Result.failure(Exception(errorMsg))
 
             createViewModel()
             advanceUntilIdle()
@@ -464,7 +464,7 @@ class StudentsViewModelTest {
             val student = Student(id = 1, name = "S1")
             every { getAllStudentsUseCase(any(), any()) } returns
                 flowOf(Result.success(listOf(student)))
-            every { exportStudentsUseCase(any(), any(), any()) } returns flowOf(Result.success(Unit))
+            coEvery { exportStudentsUseCase(any(), any(), any()) } returns Result.success(Unit)
             coEvery { deleteStudentsUseCase(any()) } returns Result.success(Unit)
 
             createViewModel()
@@ -496,8 +496,8 @@ class StudentsViewModelTest {
             val errorMsg = "Export failed"
             every { getAllStudentsUseCase(any(), any()) } returns
                 flowOf(Result.success(listOf(student)))
-            every { exportStudentsUseCase(any(), any(), any()) } returns
-                flowOf(Result.failure(Exception(errorMsg)))
+            coEvery { exportStudentsUseCase(any(), any(), any()) } returns
+                Result.failure(Exception(errorMsg))
 
             createViewModel()
             advanceUntilIdle()
@@ -524,7 +524,7 @@ class StudentsViewModelTest {
             val errorMsg = "Delete failed"
             every { getAllStudentsUseCase(any(), any()) } returns
                 flowOf(Result.success(listOf(student)))
-            every { exportStudentsUseCase(any(), any(), any()) } returns flowOf(Result.success(Unit))
+            coEvery { exportStudentsUseCase(any(), any(), any()) } returns Result.success(Unit)
             coEvery { deleteStudentsUseCase(any()) } returns Result.failure(Exception(errorMsg))
 
             createViewModel()

@@ -56,7 +56,9 @@ class CalendarScreenTest {
         composeTestRule.setContent {
             AbsenceRecordTheme {
                 AttendanceDialog(
-                    uiState = state,
+                    allStudents = state.allStudents,
+                    studentsForSelectedDate = state.studentsForSelectedDate,
+                    error = state.error,
                     selectedDate = selectedDate,
                     onDismiss = {},
                     onToggleAttendance = { _, _, _ -> }
@@ -87,7 +89,9 @@ class CalendarScreenTest {
         composeTestRule.setContent {
             AbsenceRecordTheme {
                 AttendanceDialog(
-                    uiState = state,
+                    allStudents = state.allStudents,
+                    studentsForSelectedDate = state.studentsForSelectedDate,
+                    error = state.error,
                     selectedDate = selectedDate,
                     onDismiss = {},
                     onToggleAttendance = { _, _, _ -> }
@@ -118,7 +122,9 @@ class CalendarScreenTest {
         composeTestRule.setContent {
             AbsenceRecordTheme {
                 AttendanceDialog(
-                    uiState = state,
+                    allStudents = state.allStudents,
+                    studentsForSelectedDate = state.studentsForSelectedDate,
+                    error = state.error,
                     selectedDate = selectedDate,
                     onDismiss = {},
                     onToggleAttendance = { _, _, _ -> }
@@ -145,7 +151,9 @@ class CalendarScreenTest {
         composeTestRule.setContent {
             AbsenceRecordTheme {
                 AttendanceDialog(
-                    uiState = state,
+                    allStudents = state.allStudents,
+                    studentsForSelectedDate = state.studentsForSelectedDate,
+                    error = state.error,
                     selectedDate = selectedDate,
                     onDismiss = { dismissed = true },
                     onToggleAttendance = { _, _, _ -> }
@@ -172,7 +180,9 @@ class CalendarScreenTest {
         composeTestRule.setContent {
             AbsenceRecordTheme {
                 AttendanceDialog(
-                    uiState = state,
+                    allStudents = state.allStudents,
+                    studentsForSelectedDate = state.studentsForSelectedDate,
+                    error = state.error,
                     selectedDate = selectedDate,
                     onDismiss = {},
                     onToggleAttendance = { _, _, _ -> }
@@ -200,7 +210,9 @@ class CalendarScreenTest {
         composeTestRule.setContent {
             AbsenceRecordTheme {
                 AttendanceDialog(
-                    uiState = state,
+                    allStudents = state.allStudents,
+                    studentsForSelectedDate = state.studentsForSelectedDate,
+                    error = state.error,
                     selectedDate = selectedDate,
                     onDismiss = {},
                     onToggleAttendance = { _, _, _ -> }
@@ -232,7 +244,9 @@ class CalendarScreenTest {
         composeTestRule.setContent {
             AbsenceRecordTheme {
                 AttendanceDialog(
-                    uiState = state,
+                    allStudents = state.allStudents,
+                    studentsForSelectedDate = state.studentsForSelectedDate,
+                    error = state.error,
                     selectedDate = selectedDate,
                     onDismiss = {},
                     onToggleAttendance = { s, d, p ->
@@ -269,7 +283,9 @@ class CalendarScreenTest {
         composeTestRule.setContent {
             AbsenceRecordTheme {
                 AttendanceDialog(
-                    uiState = state,
+                    allStudents = state.allStudents,
+                    studentsForSelectedDate = state.studentsForSelectedDate,
+                    error = state.error,
                     selectedDate = selectedDate,
                     onDismiss = {},
                     onToggleAttendance = { _, _, p -> wasPresent = p }
@@ -302,7 +318,9 @@ class CalendarScreenTest {
         composeTestRule.setContent {
             AbsenceRecordTheme {
                 AttendanceDialog(
-                    uiState = state,
+                    allStudents = state.allStudents,
+                    studentsForSelectedDate = state.studentsForSelectedDate,
+                    error = state.error,
                     selectedDate = selectedDate,
                     onDismiss = {},
                     onToggleAttendance = { _, _, _ -> }
@@ -333,7 +351,9 @@ class CalendarScreenTest {
         composeTestRule.setContent {
             AbsenceRecordTheme {
                 AttendanceDialog(
-                    uiState = state,
+                    allStudents = state.allStudents,
+                    studentsForSelectedDate = state.studentsForSelectedDate,
+                    error = state.error,
                     selectedDate = selectedDate,
                     onDismiss = {},
                     onToggleAttendance = { _, _, _ -> }
@@ -369,7 +389,9 @@ class CalendarScreenTest {
         composeTestRule.setContent {
             AbsenceRecordTheme {
                 AttendanceDialog(
-                    uiState = state,
+                    allStudents = state.allStudents,
+                    studentsForSelectedDate = state.studentsForSelectedDate,
+                    error = state.error,
                     selectedDate = selectedDate,
                     onDismiss = {},
                     onToggleAttendance = { _, _, _ -> }
@@ -415,7 +437,9 @@ class CalendarScreenTest {
         composeTestRule.setContent {
             AbsenceRecordTheme {
                 AttendanceDialog(
-                    uiState = state,
+                    allStudents = state.allStudents,
+                    studentsForSelectedDate = state.studentsForSelectedDate,
+                    error = state.error,
                     selectedDate = selectedDate,
                     onDismiss = {},
                     onToggleAttendance = { _, _, _ -> }

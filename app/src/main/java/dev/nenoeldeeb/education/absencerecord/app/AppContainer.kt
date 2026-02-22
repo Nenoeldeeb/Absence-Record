@@ -17,19 +17,6 @@ import dev.nenoeldeeb.education.absencerecord.domain.services.SerializationServi
 import dev.nenoeldeeb.education.absencerecord.domain.usecases.AttendanceUseCases
 import dev.nenoeldeeb.education.absencerecord.domain.usecases.ReportUseCases
 import dev.nenoeldeeb.education.absencerecord.domain.usecases.StudentManagementUseCases
-import dev.nenoeldeeb.education.absencerecord.domain.usecases.attendance.DeleteStudentAttendanceUseCase
-import dev.nenoeldeeb.education.absencerecord.domain.usecases.attendance.GetAttendanceForDateUseCase
-import dev.nenoeldeeb.education.absencerecord.domain.usecases.attendance.GetAttendanceHistoryForDateRangeUseCase
-import dev.nenoeldeeb.education.absencerecord.domain.usecases.attendance.GetAvailableMonthsUseCase
-import dev.nenoeldeeb.education.absencerecord.domain.usecases.attendance.GetStudentAttendanceDatesUseCase
-import dev.nenoeldeeb.education.absencerecord.domain.usecases.attendance.RecordStudentAttendanceUseCase
-import dev.nenoeldeeb.education.absencerecord.domain.usecases.report.ShareReportUseCase
-import dev.nenoeldeeb.education.absencerecord.domain.usecases.student.AddStudentUseCase
-import dev.nenoeldeeb.education.absencerecord.domain.usecases.student.DeleteStudentsUseCase
-import dev.nenoeldeeb.education.absencerecord.domain.usecases.student.GetAllStudentsUseCase
-import dev.nenoeldeeb.education.absencerecord.domain.usecases.student.UpdateStudentUseCase
-import dev.nenoeldeeb.education.absencerecord.domain.usecases.transfer.ExportStudentsUseCase
-import dev.nenoeldeeb.education.absencerecord.domain.usecases.transfer.ImportStudentsUseCase
 
 interface AppContainer {
     val studentManagementUseCases: StudentManagementUseCases
@@ -51,7 +38,10 @@ class DefaultAppContainer(private val context: Context) : AppContainer {
     }
 
     private val storageRepository: StorageRepository by lazy {
-        StorageRepositoryImpl(context)
+        StorageRepositoryImpl(
+            context,
+            dispatcherProvider
+        )
     }
 
     private val reportRepository: ReportRepository by lazy {

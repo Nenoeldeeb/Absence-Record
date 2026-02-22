@@ -5,7 +5,8 @@ import android.net.Uri
 import androidx.core.net.toUri
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
-import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.TestCoroutineScheduler
 import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Assert.assertEquals
@@ -24,14 +25,12 @@ import java.io.File
 @RunWith(AndroidJUnit4::class)
 class StorageRepositoryImplTest {
     private lateinit var context: Context
-    private lateinit var repository: StorageRepositoryImpl
     private lateinit var testDir: File
     private val testFiles = mutableListOf<File>()
 
     @Before
     fun setUp() {
         context = InstrumentationRegistry.getInstrumentation().targetContext
-        repository = StorageRepositoryImpl(context)
         testDir = File(context.cacheDir, "storage_test")
         if (!testDir.exists()) testDir.mkdirs()
     }
@@ -41,6 +40,18 @@ class StorageRepositoryImplTest {
         // Clean up test files
         testFiles.forEach { it.delete() }
         testDir.deleteRecursively()
+    }
+
+    /**
+     * Creates a repository with a test dispatcher that uses the current test scheduler.
+     * Must be called from within a runTest block to ensure scheduler compatibility.
+     */
+    private fun createRepository(scheduler: TestCoroutineScheduler): StorageRepositoryImpl {
+        val testDispatcher = StandardTestDispatcher(scheduler)
+        return StorageRepositoryImpl(
+            context = context,
+            dispatcherProvider = TestDispatcherProvider(testDispatcher)
+        )
     }
 
     private fun createTestFile(
@@ -63,12 +74,13 @@ class StorageRepositoryImplTest {
     fun readTextFromUri_existingFile_returnsContent() =
         runTest {
             // Arrange
+            val repository = createRepository(testScheduler)
             val expectedContent = "Hello, World!\nThis is test content."
             val file = createTestFile("read_test.txt", expectedContent)
             val uri = getFileUri(file)
 
             // Act
-            val result = repository.readTextFromUri(uri.toString()).first()
+            val result = repository.readTextFromUri(uri.toString())
 
             // Assert
             assertTrue(result.isSuccess)
@@ -79,11 +91,12 @@ class StorageRepositoryImplTest {
     fun readTextFromUri_emptyFile_returnsEmptyString() =
         runTest {
             // Arrange
+            val repository = createRepository(testScheduler)
             val file = createTestFile("empty.txt", "")
             val uri = getFileUri(file)
 
             // Act
-            val result = repository.readTextFromUri(uri.toString()).first()
+            val result = repository.readTextFromUri(uri.toString())
 
             // Assert
             assertTrue(result.isSuccess)
@@ -94,12 +107,13 @@ class StorageRepositoryImplTest {
     fun readTextFromUri_unicodeContent_handlesCorrectly() =
         runTest {
             // Arrange
+            val repository = createRepository(testScheduler)
             val unicodeContent = "مرحبا بالعالم\n日本語\n🎉🎊"
             val file = createTestFile("unicode.txt", unicodeContent)
             val uri = getFileUri(file)
 
             // Act
-            val result = repository.readTextFromUri(uri.toString()).first()
+            val result = repository.readTextFromUri(uri.toString())
 
             // Assert
             assertTrue(result.isSuccess)
@@ -110,10 +124,11 @@ class StorageRepositoryImplTest {
     fun readTextFromUri_invalidUri_returnsFailure() =
         runTest {
             // Arrange
+            val repository = createRepository(testScheduler)
             val invalidUri = "file:///non/existent/path/file.txt"
 
             // Act
-            val result = repository.readTextFromUri(invalidUri).first()
+            val result = repository.readTextFromUri(invalidUri)
 
             // Assert
             assertTrue(result.isFailure)
@@ -123,12 +138,13 @@ class StorageRepositoryImplTest {
     fun readTextFromUri_largeFile_handlesCorrectly() =
         runTest {
             // Arrange
+            val repository = createRepository(testScheduler)
             val largeContent = "Line of text\n".repeat(1000)
             val file = createTestFile("large.txt", largeContent)
             val uri = getFileUri(file)
 
             // Act
-            val result = repository.readTextFromUri(uri.toString()).first()
+            val result = repository.readTextFromUri(uri.toString())
 
             // Assert
             assertTrue(result.isSuccess)
@@ -143,12 +159,13 @@ class StorageRepositoryImplTest {
     fun writeTextToUri_newContent_writesSuccessfully() =
         runTest {
             // Arrange
+            val repository = createRepository(testScheduler)
             val file = createTestFile("write_test.txt")
             val uri = getFileUri(file)
             val contentToWrite = "New content to write"
 
             // Act
-            val result = repository.writeTextToUri(uri.toString(), contentToWrite).first()
+            val result = repository.writeTextToUri(uri.toString(), contentToWrite)
 
             // Assert
             assertTrue(result.isSuccess)
@@ -159,12 +176,13 @@ class StorageRepositoryImplTest {
     fun writeTextToUri_overwritesExistingContent() =
         runTest {
             // Arrange
+            val repository = createRepository(testScheduler)
             val file = createTestFile("overwrite_test.txt", "Original content")
             val uri = getFileUri(file)
             val newContent = "Overwritten content"
 
             // Act
-            val result = repository.writeTextToUri(uri.toString(), newContent).first()
+            val result = repository.writeTextToUri(uri.toString(), newContent)
 
             // Assert
             assertTrue(result.isSuccess)
@@ -175,11 +193,12 @@ class StorageRepositoryImplTest {
     fun writeTextToUri_emptyString_writesEmptyFile() =
         runTest {
             // Arrange
+            val repository = createRepository(testScheduler)
             val file = createTestFile("empty_write.txt", "Will be cleared")
             val uri = getFileUri(file)
 
             // Act
-            val result = repository.writeTextToUri(uri.toString(), "").first()
+            val result = repository.writeTextToUri(uri.toString(), "")
 
             // Assert
             assertTrue(result.isSuccess)
@@ -190,12 +209,13 @@ class StorageRepositoryImplTest {
     fun writeTextToUri_unicodeContent_handlesCorrectly() =
         runTest {
             // Arrange
+            val repository = createRepository(testScheduler)
             val file = createTestFile("unicode_write.txt")
             val uri = getFileUri(file)
             val unicodeContent = "العربية\n中文\n🚀✨"
 
             // Act
-            val result = repository.writeTextToUri(uri.toString(), unicodeContent).first()
+            val result = repository.writeTextToUri(uri.toString(), unicodeContent)
 
             // Assert
             assertTrue(result.isSuccess)
@@ -210,16 +230,17 @@ class StorageRepositoryImplTest {
     fun writeAndRead_preservesContent() =
         runTest {
             // Arrange
+            val repository = createRepository(testScheduler)
             val file = createTestFile("roundtrip.txt")
             val uri = getFileUri(file)
             val content = "Test content for round-trip\nMultiple lines\n\tWith tabs"
 
             // Act - Write
-            val writeResult = repository.writeTextToUri(uri.toString(), content).first()
+            val writeResult = repository.writeTextToUri(uri.toString(), content)
             assertTrue(writeResult.isSuccess)
 
             // Act - Read back
-            val readResult = repository.readTextFromUri(uri.toString()).first()
+            val readResult = repository.readTextFromUri(uri.toString())
 
             // Assert
             assertTrue(readResult.isSuccess)

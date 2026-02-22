@@ -19,7 +19,6 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import kotlin.time.Clock
-import kotlin.time.ExperimentalTime
 
 /**
  * Instrumentation tests for [ComposeCalendar] composable.
@@ -27,18 +26,17 @@ import kotlin.time.ExperimentalTime
  * These tests verify the UI behavior of calendar display, navigation, date selection, and visual
  * indicators.
  */
-@OptIn(ExperimentalTime::class)
 @RunWith(AndroidJUnit4::class)
 class ComposeCalendarTest {
-    @get:Rule val composeTestRule = createComposeRule()
+    @get:Rule
+    val composeTestRule = createComposeRule()
 
     private val context = InstrumentationRegistry.getInstrumentation().targetContext
 
     // region Helper functions
 
     private fun getString(
-        resId: Int,
-        vararg formatArgs: Any
+        resId: Int, vararg formatArgs: Any
     ): String = context.getString(resId, *formatArgs)
 
     private fun getToday(): LocalDate {
@@ -95,9 +93,7 @@ class ComposeCalendarTest {
         }
 
         // Current day should have "Current day." content description
-        composeTestRule
-            .onNodeWithContentDescription(getString(R.string.content_description_today))
-            .assertIsDisplayed()
+        composeTestRule.onNodeWithContentDescription(getString(R.string.content_description_today)).assertIsDisplayed()
     }
 
     @Test
@@ -108,17 +104,13 @@ class ComposeCalendarTest {
         composeTestRule.setContent {
             AbsenceRecordTheme {
                 ComposeCalendar(
-                    onDateSelected = {},
-                    initialMonth = today,
-                    markedDates = setOf(markedDate)
+                    onDateSelected = {}, initialMonth = today, markedDates = setOf(markedDate)
                 )
             }
         }
 
         // Day 10 should have "Present" content description
-        composeTestRule
-            .onNodeWithContentDescription(getString(R.string.content_description_present))
-            .assertIsDisplayed()
+        composeTestRule.onNodeWithContentDescription(getString(R.string.content_description_present)).assertIsDisplayed()
     }
 
     // endregion
@@ -135,14 +127,10 @@ class ComposeCalendarTest {
         }
 
         // Click previous month button
-        composeTestRule
-            .onNodeWithContentDescription(getString(R.string.previous_month))
-            .performClick()
+        composeTestRule.onNodeWithContentDescription(getString(R.string.previous_month)).performClick()
 
         // Verify the previous month's year is displayed
-        composeTestRule
-            .onNodeWithText(previousMonth.year.toString(), substring = true)
-            .assertIsDisplayed()
+        composeTestRule.onNodeWithText(previousMonth.year.toString(), substring = true).assertIsDisplayed()
     }
 
     @Test
@@ -158,9 +146,7 @@ class ComposeCalendarTest {
         composeTestRule.onNodeWithContentDescription(getString(R.string.next_month)).performClick()
 
         // Verify the next month's year is displayed
-        composeTestRule
-            .onNodeWithText(nextMonth.year.toString(), substring = true)
-            .assertIsDisplayed()
+        composeTestRule.onNodeWithText(nextMonth.year.toString(), substring = true).assertIsDisplayed()
     }
 
     // endregion
@@ -174,8 +160,7 @@ class ComposeCalendarTest {
         composeTestRule.setContent {
             AbsenceRecordTheme {
                 ComposeCalendar(
-                    onDateSelected = { date -> selectedDate = date },
-                    initialMonth = getToday()
+                    onDateSelected = { date -> selectedDate = date }, initialMonth = getToday()
                 )
             }
         }

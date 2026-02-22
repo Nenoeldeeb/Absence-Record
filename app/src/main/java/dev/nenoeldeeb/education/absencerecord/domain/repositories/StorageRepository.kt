@@ -1,12 +1,10 @@
 package dev.nenoeldeeb.education.absencerecord.domain.repositories
 
-import kotlinx.coroutines.flow.Flow
-
 interface StorageRepository {
-    fun readTextFromUri(uriString: String): Flow<Result<String>>
+    suspend fun readTextFromUri(uriString: String): Result<String>
 
-    fun writeTextToUri(
+    suspend fun writeTextToUri(
         uriString: String,
         text: String
-    ): Flow<Result<Unit>>
+    ): Result<Unit>
 }

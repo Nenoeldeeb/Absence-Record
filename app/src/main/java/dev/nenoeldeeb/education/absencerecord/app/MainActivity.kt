@@ -3,19 +3,18 @@ package dev.nenoeldeeb.education.absencerecord.app
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
-import androidx.compose.material3.Surface
+import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.compose.ui.unit.dp
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.calendar.CalendarScreen
-import dev.nenoeldeeb.education.absencerecord.presentation.screens.calendar.CalendarViewModel
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.report.ReportScreen
-import dev.nenoeldeeb.education.absencerecord.presentation.screens.report.ReportViewModel
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.StudentsScreen
-import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.StudentsViewModel
 import dev.nenoeldeeb.education.absencerecord.presentation.theme.AbsenceRecordTheme
 
 class MainActivity : ComponentActivity() {
@@ -23,32 +22,36 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             AbsenceRecordTheme {
-                Surface {
-                    MainScreen()
+                Scaffold { padding ->
+                    MainScreen(contentPadding = padding)
                 }
             }
         }
     }
 }
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun MainScreen() {
+fun MainScreen(contentPadding: PaddingValues) {
     // 0: Students, 1: Calendar, 2: Report
-    val pagerState =
-        rememberPagerState(
-            initialPage = 1,
-            pageCount = { 3 }
-        )
+    val pagerState = rememberPagerState(
+        initialPage = 1, pageCount = { 3 })
 
     HorizontalPager(
-        state = pagerState,
-        modifier = Modifier
+        state = pagerState, contentPadding = contentPadding
     ) { page ->
         when (page) {
-            0 -> StudentsScreen()
-            1 -> CalendarScreen()
-            2 -> ReportScreen()
+            0 -> StudentsScreen(modifier = Modifier.fillMaxSize())
+            1 -> CalendarScreen(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(8.dp)
+            )
+
+            2 -> ReportScreen(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(8.dp)
+            )
         }
     }
 }

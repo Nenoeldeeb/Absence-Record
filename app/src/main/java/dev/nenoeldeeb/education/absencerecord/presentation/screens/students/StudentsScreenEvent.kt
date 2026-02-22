@@ -40,5 +40,6 @@ sealed interface StudentsScreenEvent {
 
     data object DismissBulkDeleteDialog : StudentsScreenEvent
 
-    data class ShowStudentDialog(val student: Student?, val show: Boolean = false) : StudentsScreenEvent
+    data class ShowStudentDialog(val student: Student?, val show: Boolean = false) :
+        StudentsScreenEvent
 }

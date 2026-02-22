@@ -15,9 +15,13 @@ import dev.nenoeldeeb.education.absencerecord.R
 import dev.nenoeldeeb.education.absencerecord.domain.models.ParsedStudentImportData
 import dev.nenoeldeeb.education.absencerecord.domain.models.Student
 import dev.nenoeldeeb.education.absencerecord.domain.models.StudentExportData
+import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.components.EmptyStateMessage
+import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.components.MultiSelectionHeader
+import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.components.StudentList
+import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.dialogs.BulkDeleteConfirmationDialog
+import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.dialogs.ImportSelectionDialog
+import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.dialogs.StudentDialog
 import dev.nenoeldeeb.education.absencerecord.presentation.theme.AbsenceRecordTheme
-import io.mockk.every
-import io.mockk.mockk
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -55,7 +59,14 @@ class StudentsScreenTest {
         val uiState = StudentsScreenState(allStudents = students)
 
         composeTestRule.setContent {
-            AbsenceRecordTheme { StudentList(uiState = uiState, viewModel = mockk(relaxed = true)) }
+            AbsenceRecordTheme {
+                StudentList(
+                    allStudents = uiState.allStudents,
+                    selectedStudentIds = uiState.selectedStudentIds,
+                    onStudentClick = {},
+                    onStudentLongClick = {}
+                )
+            }
         }
 
         composeTestRule.onNodeWithText("Alice").assertIsDisplayed()
@@ -63,58 +74,50 @@ class StudentsScreenTest {
     }
 
     @Test
-    fun studentList_clickingStudentInvokesEvent() {
+    fun studentList_clickingStudentInvokesCallback() {
         val student = Student(id = 1, name = "Alice")
         val students = listOf(student)
         val uiState = StudentsScreenState(allStudents = students)
-        var eventSent: StudentsScreenEvent? = null
+        var clickedStudent: Student? = null
 
         composeTestRule.setContent {
             AbsenceRecordTheme {
                 StudentList(
-                    uiState = uiState,
-                    viewModel =
-                        mockk(relaxed = true) {
-                            every { onEvent(any()) } answers { eventSent = firstArg() }
-                        }
+                    allStudents = uiState.allStudents,
+                    selectedStudentIds = uiState.selectedStudentIds,
+                    onStudentClick = { clickedStudent = it },
+                    onStudentLongClick = {}
                 )
             }
         }
 
         composeTestRule.onNodeWithText("Alice").performClick()
 
-        assert(eventSent is StudentsScreenEvent.ShowStudentDialog)
-        assert((eventSent as StudentsScreenEvent.ShowStudentDialog).student == student)
+        assert(clickedStudent == student)
     }
 
     @SuppressLint("CheckResult")
     @Test
-    fun studentList_longClickingStudentInvokesSelectionModeEvent() {
+    fun studentList_longClickingStudentInvokesCallback() {
         val student = Student(id = 1, name = "Alice")
         val students = listOf(student)
         val uiState = StudentsScreenState(allStudents = students)
-        val events = mutableListOf<StudentsScreenEvent>()
+        var longClickedId: Int? = null
 
         composeTestRule.setContent {
             AbsenceRecordTheme {
                 StudentList(
-                    uiState = uiState,
-                    viewModel =
-                        mockk(relaxed = true) {
-                            every { onEvent(any()) } answers { events.add(firstArg()) }
-                        }
+                    allStudents = uiState.allStudents,
+                    selectedStudentIds = uiState.selectedStudentIds,
+                    onStudentClick = {},
+                    onStudentLongClick = { longClickedId = it }
                 )
             }
         }
 
         composeTestRule.onNodeWithText("Alice").performTouchInput { longClick(durationMillis = 400L) }
 
-        assert(events.any { it is StudentsScreenEvent.ToggleSelectionMode })
-        assert(
-            events.any {
-                it is StudentsScreenEvent.ToggleStudentSelection && it.studentId == student.id
-            }
-        )
+        assert(longClickedId == student.id)
     }
 
     // endregion
@@ -128,9 +131,12 @@ class StudentsScreenTest {
         composeTestRule.setContent {
             AbsenceRecordTheme {
                 StudentDialog(
-                    uiState = uiState,
-                    viewModel = mockk(relaxed = true),
-                    importLauncher = {}
+                    showEditDialog = uiState.showEditDialog,
+                    newStudentName = uiState.newStudentName,
+                    onStudentNameChange = {},
+                    onSave = { _, _ -> },
+                    onImportClick = {},
+                    onDismiss = {}
                 )
             }
         }
@@ -150,9 +156,12 @@ class StudentsScreenTest {
         composeTestRule.setContent {
             AbsenceRecordTheme {
                 StudentDialog(
-                    uiState = uiState,
-                    viewModel = mockk(relaxed = true),
-                    importLauncher = {}
+                    showEditDialog = uiState.showEditDialog,
+                    newStudentName = uiState.newStudentName,
+                    onStudentNameChange = {},
+                    onSave = { _, _ -> },
+                    onImportClick = {},
+                    onDismiss = {}
                 )
             }
         }
@@ -172,9 +181,12 @@ class StudentsScreenTest {
         composeTestRule.setContent {
             AbsenceRecordTheme {
                 StudentDialog(
-                    uiState = uiState,
-                    viewModel = mockk(relaxed = true),
-                    importLauncher = {}
+                    showEditDialog = uiState.showEditDialog,
+                    newStudentName = uiState.newStudentName,
+                    onStudentNameChange = {},
+                    onSave = { _, _ -> },
+                    onImportClick = {},
+                    onDismiss = {}
                 )
             }
         }
@@ -197,11 +209,12 @@ class StudentsScreenTest {
         composeTestRule.setContent {
             AbsenceRecordTheme {
                 MultiSelectionHeader(
-                    uiState = uiState,
-                    viewModel = mockk(relaxed = true),
-                    context = context,
+                    selectedStudentIds = uiState.selectedStudentIds,
+                    onCloseSelectionMode = {},
+                    onToggleSelection = {},
                     onExport = {},
-                    onExportAndDelete = {}
+                    onExportAndDelete = {},
+                    onShowDeleteDialog = {}
                 )
             }
         }
@@ -210,22 +223,20 @@ class StudentsScreenTest {
     }
 
     @Test
-    fun multiSelectionHeader_clickingCloseInvokesClearSelection() {
+    fun multiSelectionHeader_clickingCloseInvokesCallback() {
         val uiState =
             StudentsScreenState(isMultiSelectionMode = true, selectedStudentIds = setOf(1))
-        var eventSent: StudentsScreenEvent? = null
+        var closeClicked = false
 
         composeTestRule.setContent {
             AbsenceRecordTheme {
                 MultiSelectionHeader(
-                    uiState = uiState,
-                    viewModel =
-                        mockk(relaxed = true) {
-                            every { onEvent(any()) } answers { eventSent = firstArg() }
-                        },
-                    context = context,
+                    selectedStudentIds = uiState.selectedStudentIds,
+                    onCloseSelectionMode = { closeClicked = true },
+                    onToggleSelection = {},
                     onExport = {},
-                    onExportAndDelete = {}
+                    onExportAndDelete = {},
+                    onShowDeleteDialog = {}
                 )
             }
         }
@@ -234,7 +245,7 @@ class StudentsScreenTest {
             .onNodeWithContentDescription(getString(R.string.action_close))
             .performClick()
 
-        assert(eventSent is StudentsScreenEvent.ToggleSelectionMode)
+        assert(closeClicked)
     }
 
     // endregion
@@ -247,7 +258,11 @@ class StudentsScreenTest {
 
         composeTestRule.setContent {
             AbsenceRecordTheme {
-                BulkDeleteConfirmationDialog(uiState = uiState, viewModel = mockk(relaxed = true))
+                BulkDeleteConfirmationDialog(
+                    selectedStudentIds = uiState.selectedStudentIds,
+                    onConfirmDelete = {},
+                    onDismiss = {}
+                )
             }
         }
 
@@ -282,15 +297,19 @@ class StudentsScreenTest {
 
         composeTestRule.setContent {
             AbsenceRecordTheme {
-                ImportSelectionDialog(uiState = uiState, viewModel = mockk(relaxed = true))
+                ImportSelectionDialog(
+                    parsedStudentsFromFile = uiState.parsedStudentsFromFile,
+                    importSelectionMap = uiState.importSelectionMap,
+                    onToggleSelection = {},
+                    onSelectAll = {},
+                    onImport = {},
+                    onDismiss = {}
+                )
             }
         }
 
         composeTestRule.onNodeWithText("Alice").assertIsDisplayed()
         composeTestRule.onNodeWithText("Bob").assertIsDisplayed()
-        // Alice should be checked, Bob unchecked
-        // Since we have multiple checkboxes, we might need to be more specific if possible.
-        // But for a simple test, just asserting they are displayed is a good start.
     }
 
     @Test
@@ -312,7 +331,14 @@ class StudentsScreenTest {
 
         composeTestRule.setContent {
             AbsenceRecordTheme {
-                ImportSelectionDialog(uiState = uiState, viewModel = mockk(relaxed = true))
+                ImportSelectionDialog(
+                    parsedStudentsFromFile = uiState.parsedStudentsFromFile,
+                    importSelectionMap = uiState.importSelectionMap,
+                    onToggleSelection = {},
+                    onSelectAll = {},
+                    onImport = {},
+                    onDismiss = {}
+                )
             }
         }
 
