@@ -3,9 +3,7 @@ package dev.nenoeldeeb.education.absencerecord.presentation.screens.calendar
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -31,20 +29,22 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import dev.nenoeldeeb.education.absencerecord.R
 import dev.nenoeldeeb.education.absencerecord.app.AppViewModelProvider
 import dev.nenoeldeeb.education.absencerecord.domain.models.Student
+import dev.nenoeldeeb.education.absencerecord.domain.models.StudentAttendance
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.components.ComposeCalendar
 import dev.nenoeldeeb.education.absencerecord.presentation.theme.green30
 import dev.nenoeldeeb.education.absencerecord.presentation.utils.DateFormatter.toUiText
 import dev.nenoeldeeb.education.absencerecord.presentation.utils.SoundPlayer
+import dev.nenoeldeeb.education.absencerecord.presentation.utils.UiText
 import kotlinx.datetime.LocalDate
 
 @Composable
-fun CalendarScreen(viewModel: CalendarViewModel = viewModel(factory = AppViewModelProvider.factory)) {
+fun CalendarScreen(
+    modifier: Modifier = Modifier, viewModel: CalendarViewModel = viewModel(factory = AppViewModelProvider.factory)
+) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
     Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(8.dp)
+        modifier = modifier
     ) {
         ComposeCalendar(
             modifier = Modifier.weight(1f),
@@ -56,63 +56,66 @@ fun CalendarScreen(viewModel: CalendarViewModel = viewModel(factory = AppViewMod
 
     uiState.selectedDateForDialog?.let {
         AttendanceDialog(
-            uiState = uiState,
+            allStudents = uiState.allStudents,
+            studentsForSelectedDate = uiState.studentsForSelectedDate,
+            error = uiState.error,
             selectedDate = it,
             onDismiss = { viewModel.onEvent(CalendarScreenEvent.SelectDateForDialog(null)) },
             onToggleAttendance = { student, date, isPresent ->
                 if (isPresent) {
+                    viewModel.onEvent(CalendarScreenEvent.DeleteStudentAttendance(student.id, date))
                     SoundPlayer.playRemoveAttendanceSound()
                 } else {
+                    viewModel.onEvent(CalendarScreenEvent.MarkStudentAttendance(student.id, date))
                     SoundPlayer.playAddAttendanceSound()
                 }
-                val event =
-                    if (isPresent) {
-                        CalendarScreenEvent.DeleteStudentAttendance(student.id, date)
-                    } else {
-                        CalendarScreenEvent.MarkStudentAttendance(student.id, date)
-                    }
-                viewModel.onEvent(event)
-            }
-        )
+            })
     }
 }
 
 @Composable
 internal fun AttendanceDialog(
-    uiState: CalendarScreenState,
+    modifier: Modifier = Modifier,
+    allStudents: List<Student>,
+    studentsForSelectedDate: List<StudentAttendance>,
+    error: UiText?,
     selectedDate: LocalDate,
     onDismiss: () -> Unit,
     onToggleAttendance: (Student, LocalDate, Boolean) -> Unit
 ) {
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { DialogTitle(uiState, selectedDate) },
-        text = { DialogContent(uiState, selectedDate, onToggleAttendance) },
-        confirmButton = {
-            TextButton(onClick = onDismiss) { Text(stringResource(R.string.action_close)) }
-        }
-    )
+    AlertDialog(modifier = modifier, onDismissRequest = onDismiss, title = {
+        DialogTitle(
+            selectedDate = selectedDate, totalStudents = allStudents.size, presentCount = studentsForSelectedDate.size
+        )
+    }, text = {
+        DialogContent(
+            modifier = Modifier.fillMaxWidth(),
+            allStudents = allStudents,
+            studentsForSelectedDate = studentsForSelectedDate,
+            error = error,
+            selectedDate = selectedDate,
+            onToggleAttendance = onToggleAttendance
+        )
+    }, confirmButton = {
+        TextButton(onClick = onDismiss) { Text(stringResource(R.string.action_close)) }
+    })
 }
 
 @Composable
 internal fun DialogTitle(
-    uiState: CalendarScreenState,
-    selectedDate: LocalDate
+    selectedDate: LocalDate, totalStudents: Int, presentCount: Int
 ) {
     val month = selectedDate.month.toUiText(fullName = false).asString()
     val dayName = selectedDate.dayOfWeek.toUiText(fullName = true).asString()
 
-    val formattedDate =
-        rememberSaveable(selectedDate) {
-            "${selectedDate.year} $month ${selectedDate.day} $dayName"
-        }
+    val formattedDate = rememberSaveable(selectedDate) {
+        "${selectedDate.year} $month ${selectedDate.day} $dayName"
+    }
     Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()) {
         Text(stringResource(R.string.mark_attendance_title, formattedDate))
         Text(
             stringResource(
-                R.string.attendance_count,
-                uiState.allStudents.size,
-                uiState.studentsForSelectedDate.size
+                R.string.attendance_count, totalStudents, presentCount
             )
         )
     }
@@ -120,38 +123,38 @@ internal fun DialogTitle(
 
 @Composable
 internal fun DialogContent(
-    uiState: CalendarScreenState,
+    modifier: Modifier = Modifier,
+    allStudents: List<Student>,
+    studentsForSelectedDate: List<StudentAttendance>,
+    error: UiText?,
     selectedDate: LocalDate,
     onToggleAttendance: (Student, LocalDate, Boolean) -> Unit
 ) {
     when {
-        uiState.error != null -> {
+        error != null -> {
             Text(
-                text = stringResource(R.string.error_display, uiState.error.asString()),
+                text = stringResource(R.string.error_display, error.asString()),
                 textAlign = TextAlign.Center,
-                modifier = Modifier.fillMaxWidth(),
+                modifier = modifier,
                 color = MaterialTheme.colorScheme.error
             )
         }
 
-        uiState.allStudents.isEmpty() -> {
+        allStudents.isEmpty() -> {
             Text(
-                stringResource(R.string.no_students_for_attendance),
-                textAlign = TextAlign.Center,
-                modifier = Modifier.fillMaxWidth()
+                stringResource(R.string.no_students_for_attendance), textAlign = TextAlign.Center, modifier = modifier
             )
         }
 
         else -> {
-            LazyColumn(contentPadding = PaddingValues(vertical = 8.dp)) {
-                items(uiState.allStudents, key = { it.id }) { student ->
-                    val isPresent =
-                        uiState.studentsForSelectedDate.any {
-                            it.studentId == student.id && it.date == selectedDate
-                        }
-                    StudentListItem(student, isPresent) {
-                        onToggleAttendance(student, selectedDate, isPresent)
+            LazyColumn(modifier = modifier, contentPadding = PaddingValues(vertical = 8.dp)) {
+                items(allStudents, key = { it.id }) { student ->
+                    val isPresent = studentsForSelectedDate.any {
+                        it.studentId == student.id && it.date == selectedDate
                     }
+                    StudentListItem(modifier = Modifier.clickable {
+                        onToggleAttendance(student, selectedDate, isPresent)
+                    }, student, isPresent)
                     HorizontalDivider()
                 }
             }
@@ -161,27 +164,22 @@ internal fun DialogContent(
 
 @Composable
 internal fun StudentListItem(
-    student: Student,
-    isPresent: Boolean,
-    onClick: () -> Unit
+    modifier: Modifier = Modifier, student: Student, isPresent: Boolean
 ) {
-    val contentDescription =
-        stringResource(
-            if (isPresent) {
-                R.string.content_description_present
-            } else {
-                R.string.content_description_absent
-            }
-        )
-    val listItemColors =
-        ListItemDefaults.colors(
-            containerColor =
-                if (isPresent) {
-                    green30.copy(alpha = 0.5f)
-                } else {
-                    ListItemDefaults.colors().containerColor
-                }
-        )
+    val contentDescription = stringResource(
+        if (isPresent) {
+            R.string.content_description_present
+        } else {
+            R.string.content_description_absent
+        }
+    )
+    val listItemColors = ListItemDefaults.colors(
+        containerColor = if (isPresent) {
+            green30.copy(alpha = 0.5f)
+        } else {
+            ListItemDefaults.colors().containerColor
+        }
+    )
 
     ListItem(
         headlineContent = {
@@ -193,13 +191,8 @@ internal fun StudentListItem(
                     .fillMaxWidth()
                     .wrapContentWidth()
             )
-        },
-        colors = listItemColors,
-        modifier =
-            Modifier
-                .clickable(onClick = onClick)
-                .semantics {
-                    this.contentDescription = contentDescription
-                }
-    )
+        }, colors = listItemColors, modifier = modifier
+            .semantics {
+                this.contentDescription = contentDescription
+            })
 }

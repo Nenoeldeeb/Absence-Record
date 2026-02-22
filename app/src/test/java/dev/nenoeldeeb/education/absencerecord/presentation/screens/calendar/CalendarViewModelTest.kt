@@ -52,10 +52,8 @@ class CalendarViewModelTest {
         deleteStudentAttendanceUseCase = mockk(relaxed = true)
 
         attendanceUseCases = mockk(relaxed = true)
-        every { attendanceUseCases.recordStudentAttendanceUseCase } returns
-            recordStudentAttendanceUseCase
-        every { attendanceUseCases.deleteStudentAttendanceUseCase } returns
-            deleteStudentAttendanceUseCase
+        every { attendanceUseCases.recordStudentAttendanceUseCase } returns recordStudentAttendanceUseCase
+        every { attendanceUseCases.deleteStudentAttendanceUseCase } returns deleteStudentAttendanceUseCase
         every { attendanceUseCases.getAttendanceForDateUseCase } returns getAttendanceForDateUseCase
         every { attendanceUseCases.getAvailableMonthsUseCase } returns getAvailableMonthsUseCase
 
@@ -73,8 +71,7 @@ class CalendarViewModelTest {
         val students = listOf(Student(1, "S1"))
 
         coEvery { getAvailableMonthsUseCase() } returns flowOf(Result.success(months))
-        coEvery { studentManagementUseCases.getAllStudentsUseCase() } returns
-            flowOf(Result.success(students))
+        coEvery { studentManagementUseCases.getAllStudentsUseCase() } returns flowOf(Result.success(students))
 
         // When
         createViewModel()
@@ -107,8 +104,7 @@ class CalendarViewModelTest {
         // Given
         val date = LocalDate(2023, Month.JANUARY, 15)
         val errorMsg = "Msg"
-        coEvery { recordStudentAttendanceUseCase(any()) } returns
-            Result.failure(Exception(errorMsg))
+        coEvery { recordStudentAttendanceUseCase(any()) } returns Result.failure(Exception(errorMsg))
         createViewModel()
 
         // When
@@ -117,8 +113,7 @@ class CalendarViewModelTest {
 
         // Then
         assertEquals(
-            UiText.StringResource(R.string.error_marking_attendance, errorMsg),
-            viewModel.uiState.value.error
+            UiText.StringResource(R.string.error_marking_attendance, errorMsg), viewModel.uiState.value.error
         )
     }
 
@@ -144,8 +139,7 @@ class CalendarViewModelTest {
         // Given
         val date = LocalDate(2023, Month.JANUARY, 15)
         val errorMsg = "Msg"
-        coEvery { deleteStudentAttendanceUseCase(any(), any()) } returns
-            Result.failure(Exception(errorMsg))
+        coEvery { deleteStudentAttendanceUseCase(any(), any()) } returns Result.failure(Exception(errorMsg))
         createViewModel()
 
         // When
@@ -154,8 +148,7 @@ class CalendarViewModelTest {
 
         // Then
         assertEquals(
-            UiText.StringResource(R.string.error_deleting_attendance, errorMsg),
-            viewModel.uiState.value.error
+            UiText.StringResource(R.string.error_deleting_attendance, errorMsg), viewModel.uiState.value.error
         )
     }
 
@@ -176,8 +169,7 @@ class CalendarViewModelTest {
         // Given
         val errorMsg = "Students error"
         coEvery { getAvailableMonthsUseCase() } returns flowOf(Result.success(emptyList()))
-        coEvery { studentManagementUseCases.getAllStudentsUseCase() } returns
-            flowOf(Result.failure(Exception(errorMsg)))
+        coEvery { studentManagementUseCases.getAllStudentsUseCase() } returns flowOf(Result.failure(Exception(errorMsg)))
 
         // When
         createViewModel()
@@ -196,15 +188,12 @@ class CalendarViewModelTest {
         val date = LocalDate(2026, Month.FEBRUARY, 15)
         val attendance = listOf(
             dev.nenoeldeeb.education.absencerecord.domain.models.StudentAttendance(
-                studentId = 1,
-                date = date
+                studentId = 1, date = date
             )
         )
 
-        coEvery { studentManagementUseCases.getAllStudentsUseCase() } returns
-            flowOf(Result.success(emptyList()))
-        coEvery { getAttendanceForDateUseCase(date) } returns
-            flowOf(Result.success(attendance))
+        coEvery { studentManagementUseCases.getAllStudentsUseCase() } returns flowOf(Result.success(emptyList()))
+        coEvery { getAttendanceForDateUseCase(date) } returns flowOf(Result.success(attendance))
 
         createViewModel()
 
@@ -223,19 +212,16 @@ class CalendarViewModelTest {
         val dateB = LocalDate(2026, Month.FEBRUARY, 16)
         val attendanceA = listOf(
             dev.nenoeldeeb.education.absencerecord.domain.models.StudentAttendance(
-                studentId = 1,
-                date = dateA
+                studentId = 1, date = dateA
             )
         )
         val attendanceB = listOf(
             dev.nenoeldeeb.education.absencerecord.domain.models.StudentAttendance(
-                studentId = 2,
-                date = dateB
+                studentId = 2, date = dateB
             )
         )
 
-        coEvery { studentManagementUseCases.getAllStudentsUseCase() } returns
-            flowOf(Result.success(emptyList()))
+        coEvery { studentManagementUseCases.getAllStudentsUseCase() } returns flowOf(Result.success(emptyList()))
 
         // Mock getAttendanceForDateUseCase to return different lists for different dates
         val dateSlot = slot<LocalDate>()
@@ -270,15 +256,12 @@ class CalendarViewModelTest {
         val date = LocalDate(2026, Month.FEBRUARY, 15)
         val attendance = listOf(
             dev.nenoeldeeb.education.absencerecord.domain.models.StudentAttendance(
-                studentId = 1,
-                date = date
+                studentId = 1, date = date
             )
         )
 
-        coEvery { studentManagementUseCases.getAllStudentsUseCase() } returns
-            flowOf(Result.success(emptyList()))
-        coEvery { getAttendanceForDateUseCase(date) } returns
-            flowOf(Result.success(attendance))
+        coEvery { studentManagementUseCases.getAllStudentsUseCase() } returns flowOf(Result.success(emptyList()))
+        coEvery { getAttendanceForDateUseCase(date) } returns flowOf(Result.success(attendance))
 
         createViewModel()
 
@@ -304,15 +287,13 @@ class CalendarViewModelTest {
                 replay = 1
             )
 
-        coEvery { studentManagementUseCases.getAllStudentsUseCase() } returns
-            flowOf(Result.success(emptyList()))
+        coEvery { studentManagementUseCases.getAllStudentsUseCase() } returns flowOf(Result.success(emptyList()))
         coEvery { getAttendanceForDateUseCase(date) } returns attendanceFlow
 
         // Initial attendance
         val initialAttendance = listOf(
             dev.nenoeldeeb.education.absencerecord.domain.models.StudentAttendance(
-                studentId = 1,
-                date = date
+                studentId = 1, date = date
             )
         )
         attendanceFlow.emit(Result.success(initialAttendance))
@@ -329,12 +310,9 @@ class CalendarViewModelTest {
         // When - database emits new attendance (simulating insert)
         val updatedAttendance = listOf(
             dev.nenoeldeeb.education.absencerecord.domain.models.StudentAttendance(
-                studentId = 1,
-                date = date
-            ),
-            dev.nenoeldeeb.education.absencerecord.domain.models.StudentAttendance(
-                studentId = 2,
-                date = date
+                studentId = 1, date = date
+            ), dev.nenoeldeeb.education.absencerecord.domain.models.StudentAttendance(
+                studentId = 2, date = date
             )
         )
         attendanceFlow.emit(Result.success(updatedAttendance))
@@ -350,10 +328,8 @@ class CalendarViewModelTest {
         val date = LocalDate(2026, Month.FEBRUARY, 15)
         val errorMsg = "Database error"
 
-        coEvery { studentManagementUseCases.getAllStudentsUseCase() } returns
-            flowOf(Result.success(emptyList()))
-        coEvery { getAttendanceForDateUseCase(date) } returns
-            flowOf(Result.failure(Exception(errorMsg)))
+        coEvery { studentManagementUseCases.getAllStudentsUseCase() } returns flowOf(Result.success(emptyList()))
+        coEvery { getAttendanceForDateUseCase(date) } returns flowOf(Result.failure(Exception(errorMsg)))
 
         createViewModel()
 
@@ -363,8 +339,7 @@ class CalendarViewModelTest {
 
         // Then - error state should be set
         val expectedError = UiText.StringResource(
-            R.string.error_loading_attendance,
-            errorMsg
+            R.string.error_loading_attendance, errorMsg
         )
         assertEquals(expectedError, viewModel.uiState.value.error)
     }
