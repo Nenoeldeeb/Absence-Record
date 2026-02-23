@@ -5,6 +5,7 @@ package dev.nenoeldeeb.education.absencerecord.presentation.screens.report
 import android.content.Intent
 import android.widget.Toast
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -18,9 +19,9 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import dev.nenoeldeeb.education.absencerecord.R
 import dev.nenoeldeeb.education.absencerecord.app.AppViewModelProvider
-import dev.nenoeldeeb.education.absencerecord.presentation.screens.report.components.EmptyStateMessage
+import dev.nenoeldeeb.education.absencerecord.presentation.screens.components.EmptyStateMessage
+import dev.nenoeldeeb.education.absencerecord.presentation.screens.components.StudentList
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.report.components.ReportControls
-import dev.nenoeldeeb.education.absencerecord.presentation.screens.report.components.StudentList
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.report.dialogs.CalendarPreviewDialog
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.report.dialogs.StudentHistoryDialog
 import dev.nenoeldeeb.education.absencerecord.presentation.utils.UiText
@@ -85,17 +86,24 @@ fun ReportScreen(
             })
 
         if (uiState.allStudents.isEmpty()) {
-            EmptyStateMessage(modifier = Modifier.padding(16.dp))
+            EmptyStateMessage(
+                message = R.string.no_students_found,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(16.dp)
+            )
         } else {
             StudentList(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(top = 16.dp),
-                students = uiState.allStudents,
+                allStudents = uiState.allStudents,
                 onStudentClick = { student ->
                     viewModel.onEvent(ReportScreenEvent.SelectStudentForHistory(student))
                     viewModel.onEvent(ReportScreenEvent.ShowHistoryDialog(true))
-                })
+                },
+                onStudentLongClick = { }
+            )
         }
     }
 

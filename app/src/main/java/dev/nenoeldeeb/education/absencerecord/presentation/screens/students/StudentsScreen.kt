@@ -27,9 +27,9 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import dev.nenoeldeeb.education.absencerecord.R
 import dev.nenoeldeeb.education.absencerecord.app.AppViewModelProvider
-import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.components.EmptyStateMessage
+import dev.nenoeldeeb.education.absencerecord.presentation.screens.components.EmptyStateMessage
+import dev.nenoeldeeb.education.absencerecord.presentation.screens.components.StudentList
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.components.MultiSelectionHeader
-import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.components.StudentList
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.dialogs.BulkDeleteConfirmationDialog
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.dialogs.ImportSelectionDialog
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.dialogs.StudentDialog
@@ -110,7 +110,10 @@ fun StudentsScreen(
             }
 
             if (uiState.allStudents.isEmpty()) {
-                EmptyStateMessage(modifier = Modifier.fillMaxWidth())
+                EmptyStateMessage(
+                    message = R.string.no_students_message,
+                    modifier = Modifier.fillMaxSize()
+                )
             } else {
                 StudentList(
                     allStudents = uiState.allStudents,
