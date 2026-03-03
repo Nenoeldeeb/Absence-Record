@@ -77,6 +77,7 @@
     <string name="error_adding_student">خطأ في إضافة الطالب: %1$s</string>
     <string name="student_updated">تم تحديث بيانات الطالب \"%1$s\".</string>
     <string name="error_updating_student">خطأ في تحديث بيانات الطالب: %1$s</string>
+    <string name="delete_class_message">هل أنت متأكد من حذف الصف \"%1$s\"؟ سيتم إلغاء إرتباط الطلاب بهذا الصف.</string>
     <string name="file_selection_cancelled">تم إلغاء اختيار الملف.</string>
     <string name="error_creating_export_data">خطأ في إنشاء بيانات التصدير: %1$s</string>
     <string name="data_exported_successfully">تم تصدير البيانات بنجاح.</string>
@@ -169,5 +170,14 @@
     <string name="class_filter_label">صفِّ الصفوف</string>
     <string name="manage_classes_title">إدارة الصفوف</string>
     <string name="new_class_label">اسم صف جديد</string>
+    <string name="class_name_cannot_be_empty">اسم الصف لا يمكن أن يكون فارغ</string>
+    <string name="class_added">تم إضافة الصف \"%1$s\".</string>
+    <string name="error_adding_class">خطأ إضافة الصف: %1$s</string>
+    <string name="class_updated">تم تحديث الصف \"%1$s\".</string>
+    <string name="error_updating_class">خطأ أثناء تحديث الصف \"%1$s\".</string>
+    <string name="class_deleted">تم حذف الصف بنجاح.</string>
+    <string name="error_deleting_class">خطأ أثناء حذف الصف: \"%1$s\".</string>
+    <string name="error_class_name_already_exists">يوجد بالفعل صف بنفس الاسمز</string>
+    <string name="delete_class_title">أحذف الصف</string>
 </resources>
 
