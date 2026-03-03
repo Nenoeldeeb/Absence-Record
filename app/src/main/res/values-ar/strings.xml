@@ -16,6 +16,7 @@
     <string name="students_title">الطلاب: %d</string>
     <string name="edit_student">تعديل الطالب</string>
     <string name="student_name_label">اسم الطالب</string>
+    <string name="class_unassigned_label">غير مسجل</string>
     <string name="import_students_action">استيراد الطلاب</string>
     <string name="select_students_import_title">اختر الطلاب للاستيراد</string>
     <string name="toggle_students_selection">تحديد الكل / إلغاء تحديد الكل</string>
@@ -32,6 +33,7 @@
         <item quantity="many">هل أنت متأكد من أنك تود حذف %1$d طالب لا يمكن التراجع عن هذه الخطوة</item>
     </plurals>
     <string name="action_export_delete">تصدير ثم حذف</string>
+    <string name="action_edit">تعديل</string>
     <string name="action_export">تصدير</string>
     <plurals name="import_preview_message">
         <item quantity="zero">لا يوجد طلاب في الملف.</item>
@@ -162,5 +164,10 @@
     <string name="day_short_friday">ج</string>
     <string name="day_short_saturday">س</string>
     <string name="day_short_sunday">ح</string>
+    <string name="class_filter_all">كل الصفوف</string>
+    <string name="class_filter_unassigned">غير مسجل</string>
+    <string name="class_filter_label">صفِّ الصفوف</string>
+    <string name="manage_classes_title">إدارة الصفوف</string>
+    <string name="new_class_label">اسم صف جديد</string>
 </resources>
 

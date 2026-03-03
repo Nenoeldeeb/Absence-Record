@@ -57,8 +57,9 @@ class StudentsScreenTest {
                 StudentDialog(
                     showEditDialog = uiState.showEditDialog,
                     newStudentName = uiState.newStudentName,
+                    availableClasses = emptyList(),
                     onStudentNameChange = {},
-                    onSave = { _, _ -> },
+                    onSave = { _, _, _ -> },
                     onImportClick = {},
                     onDismiss = {})
             }
@@ -79,8 +80,9 @@ class StudentsScreenTest {
                 StudentDialog(
                     showEditDialog = uiState.showEditDialog,
                     newStudentName = uiState.newStudentName,
+                    availableClasses = emptyList(),
                     onStudentNameChange = {},
-                    onSave = { _, _ -> },
+                    onSave = { _, _, _ -> },
                     onImportClick = {},
                     onDismiss = {})
             }
@@ -101,8 +103,9 @@ class StudentsScreenTest {
                 StudentDialog(
                     showEditDialog = uiState.showEditDialog,
                     newStudentName = uiState.newStudentName,
+                    availableClasses = emptyList(),
                     onStudentNameChange = {},
-                    onSave = { _, _ -> },
+                    onSave = { _, _, _ -> },
                     onImportClick = {},
                     onDismiss = {})
             }

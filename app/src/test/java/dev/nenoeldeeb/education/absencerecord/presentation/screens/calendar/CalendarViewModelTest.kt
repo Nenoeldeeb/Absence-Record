@@ -4,6 +4,7 @@ import dev.nenoeldeeb.education.absencerecord.MainDispatcherRule
 import dev.nenoeldeeb.education.absencerecord.R
 import dev.nenoeldeeb.education.absencerecord.domain.models.Student
 import dev.nenoeldeeb.education.absencerecord.domain.usecases.AttendanceUseCases
+import dev.nenoeldeeb.education.absencerecord.domain.usecases.ClassManagementUseCases
 import dev.nenoeldeeb.education.absencerecord.domain.usecases.StudentManagementUseCases
 import dev.nenoeldeeb.education.absencerecord.domain.usecases.attendance.DeleteStudentAttendanceUseCase
 import dev.nenoeldeeb.education.absencerecord.domain.usecases.attendance.GetAttendanceForDateUseCase
@@ -61,7 +62,11 @@ class CalendarViewModelTest {
     }
 
     private fun createViewModel() {
-        viewModel = CalendarViewModel(attendanceUseCases, studentManagementUseCases)
+        viewModel = CalendarViewModel(
+            attendanceUseCases,
+            studentManagementUseCases,
+            mockk<ClassManagementUseCases>(relaxed = true)
+        )
     }
 
     @Test

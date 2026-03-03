@@ -16,6 +16,12 @@
     <string name="no_students_message">No students added yet.</string>
     <string name="edit_student">Edit Student</string>
     <string name="student_name_label">Student name</string>
+    <string name="class_filter_all">All Classes</string>
+    <string name="class_filter_unassigned">Unassigned</string>
+    <string name="class_filter_label">Class Filter</string>
+    <string name="manage_classes_title">Manage Classes</string>
+    <string name="new_class_label">New class name</string>
+    <string name="class_unassigned_label">Unassigned</string>
     <string name="import_students_action">Import Students</string>
     <string name="select_students_import_title">Select Students to Import</string>
     <string name="toggle_students_selection">Select All / Deselect  All</string>
@@ -29,6 +35,7 @@
         <item quantity="other">Are you sure you want to delete %1$d students? This action cannot be undone.</item>
     </plurals>
     <string name="action_export_delete">Export &amp; Delete</string>
+    <string name="action_edit">Edit</string>
     <string name="action_export">Export</string>
     <plurals name="import_preview_message">
         <item quantity="zero">No students found in file.</item>
@@ -70,6 +77,16 @@
     <string name="error_adding_student">Error adding student: %1$s</string>
     <string name="student_updated">Student \"%1$s\" updated.</string>
     <string name="error_updating_student">Error updating student: %1$s</string>
+    <string name="class_name_cannot_be_empty">Class name cannot be empty.</string>
+    <string name="class_added">Class \"%1$s\" added.</string>
+    <string name="error_adding_class">Error adding class: %1$s</string>
+    <string name="class_updated">Class \"%1$s\" updated.</string>
+    <string name="error_updating_class">Error updating class: %1$s</string>
+    <string name="class_deleted">Class deleted successfully.</string>
+    <string name="error_deleting_class">Error deleting class: %1$s</string>
+    <string name="error_class_name_already_exists">A class with this name already exists.</string>
+    <string name="delete_class_title">Delete Class</string>
+    <string name="delete_class_message">Are you sure you want to delete the class \"%1$s\"? This will unassign all students from this class.</string>
     <string name="file_selection_cancelled">File selection cancelled.</string>
     <string name="error_creating_export_data">Error creating export data: %1$s</string>
     <string name="data_exported_successfully">Data exported successfully.</string>

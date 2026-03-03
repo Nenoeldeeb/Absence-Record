@@ -19,6 +19,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import dev.nenoeldeeb.education.absencerecord.R
 import dev.nenoeldeeb.education.absencerecord.app.AppViewModelProvider
+import dev.nenoeldeeb.education.absencerecord.presentation.screens.components.ClassFilterDropdown
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.components.EmptyStateMessage
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.components.StudentList
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.report.components.ReportControls
@@ -28,28 +29,32 @@ import dev.nenoeldeeb.education.absencerecord.presentation.utils.UiText
 
 @Composable
 fun ReportScreen(
-    modifier: Modifier = Modifier, viewModel: ReportViewModel = viewModel(factory = AppViewModelProvider.factory)
+    modifier: Modifier = Modifier,
+    viewModel: ReportViewModel = viewModel(factory = AppViewModelProvider.factory)
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
 
     LaunchedEffect(uiState.shareFileUri) {
         uiState.shareFileUri?.let { uri ->
-            val shareIntent = Intent(Intent.ACTION_VIEW).apply {
-                data = uri
-                flags += Intent.FLAG_GRANT_READ_URI_PERMISSION
-            }
+            val shareIntent =
+                Intent(Intent.ACTION_VIEW).apply {
+                    data = uri
+                    flags += Intent.FLAG_GRANT_READ_URI_PERMISSION
+                }
             try {
                 context.startActivity(
                     Intent.createChooser(
-                        shareIntent, context.applicationContext.getString(R.string.view_picture)
+                        shareIntent,
+                        context.applicationContext.getString(R.string.view_picture)
                     )
                 )
             } catch (e: Exception) {
                 viewModel.onEvent(
                     ReportScreenEvent.ShowToast(
                         UiText.StringResource(
-                            R.string.sharing_app_not_found, e.message ?: ""
+                            R.string.sharing_app_not_found,
+                            e.message ?: ""
                         )
                     )
                 )
@@ -75,15 +80,23 @@ fun ReportScreen(
             onMonthSelected = { month ->
                 viewModel.onEvent(ReportScreenEvent.UpdateSelectedMonth(month))
             },
-            onMonthCleared = {
-                viewModel.onEvent(ReportScreenEvent.ClearMonthFilter)
-            },
+            onMonthCleared = { viewModel.onEvent(ReportScreenEvent.ClearMonthFilter) },
             onMonthDropdownToggled = { expanded ->
                 viewModel.onEvent(ReportScreenEvent.ToggleMonthDropdown(expanded))
             },
-            onSortTypeToggled = {
-                viewModel.onEvent(ReportScreenEvent.ToggleSortType)
-            })
+            onSortTypeToggled = { viewModel.onEvent(ReportScreenEvent.ToggleSortType) }
+        )
+
+        ClassFilterDropdown(
+            selectedFilter = uiState.selectedClassFilter,
+            availableClasses = uiState.availableClasses,
+            expanded = uiState.classDropdownExpanded,
+            onExpandedChange = { viewModel.onEvent(ReportScreenEvent.ToggleClassDropdown(it)) },
+            onFilterSelected = { viewModel.onEvent(ReportScreenEvent.SelectClassFilter(it)) },
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 8.dp, vertical = 4.dp)
+        )
 
         if (uiState.allStudents.isEmpty()) {
             EmptyStateMessage(
@@ -102,42 +115,55 @@ fun ReportScreen(
                     viewModel.onEvent(ReportScreenEvent.SelectStudentForHistory(student))
                     viewModel.onEvent(ReportScreenEvent.ShowHistoryDialog(true))
                 },
-                onStudentLongClick = { }
+                onStudentLongClick = {}
             )
         }
     }
 
     uiState.selectedStudentForHistory?.let { student ->
         if (uiState.showHistoryDialog) {
-            StudentHistoryDialog(student = student, history = uiState.studentHistory, onDismiss = {
-                viewModel.onEvent(ReportScreenEvent.ShowHistoryDialog(false))
-                viewModel.onEvent(ReportScreenEvent.SelectStudentForHistory(null))
-            }, onShareMonth = { month ->
-                viewModel.onEvent(
-                    ReportScreenEvent.SelectMonthYearForCalendarPreview(month)
-                )
-                viewModel.onEvent(ReportScreenEvent.ShowCalendarPreviewDialog(true))
-            })
+            StudentHistoryDialog(
+                student = student,
+                history = uiState.studentHistory,
+                onDismiss = {
+                    viewModel.onEvent(ReportScreenEvent.ShowHistoryDialog(false))
+                    viewModel.onEvent(ReportScreenEvent.SelectStudentForHistory(null))
+                },
+                onShareMonth = { month ->
+                    viewModel.onEvent(
+                        ReportScreenEvent.SelectMonthYearForCalendarPreview(month)
+                    )
+                    viewModel.onEvent(ReportScreenEvent.ShowCalendarPreviewDialog(true))
+                }
+            )
         }
 
-        if (uiState.showCalendarPreviewDialog && uiState.selectedMonthYearForCalendarPreview != null) {
+        if (uiState.showCalendarPreviewDialog && uiState.selectedMonthYearForCalendarPreview != null
+        ) {
             CalendarPreviewDialog(
                 student = student,
                 monthToPreview = uiState.selectedMonthYearForCalendarPreview!!,
-                datesForPreviewMonth = uiState.studentHistory.find {
-                    it.first == uiState.selectedMonthYearForCalendarPreview
-                }?.second ?: emptyList(),
+                datesForPreviewMonth =
+                    uiState.studentHistory
+                        .find {
+                            it.first == uiState.selectedMonthYearForCalendarPreview
+                        }
+                        ?.second
+                    ?: emptyList(),
                 onDismiss = {
                     viewModel.onEvent(ReportScreenEvent.ShowCalendarPreviewDialog(false))
                 },
                 onShare = { month, studentId, studentName ->
                     viewModel.onEvent(
                         ReportScreenEvent.PrepareCalendarImageForSharing(
-                            month, studentId, studentName
+                            month,
+                            studentId,
+                            studentName
                         )
                     )
                     viewModel.onEvent(ReportScreenEvent.ShowCalendarPreviewDialog(false))
-                })
+                }
+            )
         }
     }
 }

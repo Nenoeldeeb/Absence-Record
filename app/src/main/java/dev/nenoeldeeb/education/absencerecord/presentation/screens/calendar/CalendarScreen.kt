@@ -4,6 +4,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -23,6 +24,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDirection
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -30,6 +32,7 @@ import dev.nenoeldeeb.education.absencerecord.R
 import dev.nenoeldeeb.education.absencerecord.app.AppViewModelProvider
 import dev.nenoeldeeb.education.absencerecord.domain.models.Student
 import dev.nenoeldeeb.education.absencerecord.domain.models.StudentAttendance
+import dev.nenoeldeeb.education.absencerecord.presentation.screens.components.ClassFilterDropdown
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.components.ComposeCalendar
 import dev.nenoeldeeb.education.absencerecord.presentation.theme.green30
 import dev.nenoeldeeb.education.absencerecord.presentation.utils.DateFormatter.toUiText
@@ -43,9 +46,19 @@ fun CalendarScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
-    Column(
-        modifier = modifier
-    ) {
+    Column(modifier = modifier) {
+        ClassFilterDropdown(
+            selectedFilter = uiState.selectedClassFilter,
+            availableClasses = uiState.availableClasses,
+            expanded = uiState.classDropdownExpanded,
+            onExpandedChange = {
+                viewModel.onEvent(CalendarScreenEvent.ToggleClassDropdown(it))
+            },
+            onFilterSelected = { viewModel.onEvent(CalendarScreenEvent.SelectClassFilter(it)) },
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 8.dp, vertical = 4.dp)
+        )
         ComposeCalendar(
             modifier = Modifier.weight(1f),
             onDateSelected = { date ->
@@ -63,10 +76,14 @@ fun CalendarScreen(
             onDismiss = { viewModel.onEvent(CalendarScreenEvent.SelectDateForDialog(null)) },
             onToggleAttendance = { student, date, isPresent ->
                 if (isPresent) {
-                    viewModel.onEvent(CalendarScreenEvent.DeleteStudentAttendance(student.id, date))
+                    viewModel.onEvent(
+                        CalendarScreenEvent.DeleteStudentAttendance(student.id, date)
+                    )
                     SoundPlayer.playRemoveAttendanceSound()
                 } else {
-                    viewModel.onEvent(CalendarScreenEvent.MarkStudentAttendance(student.id, date))
+                    viewModel.onEvent(
+                        CalendarScreenEvent.MarkStudentAttendance(student.id, date)
+                    )
                     SoundPlayer.playAddAttendanceSound()
                 }
             })
@@ -102,9 +119,7 @@ internal fun AttendanceDialog(
 }
 
 @Composable
-internal fun DialogTitle(
-    selectedDate: LocalDate, totalStudents: Int, presentCount: Int
-) {
+internal fun DialogTitle(selectedDate: LocalDate, totalStudents: Int, presentCount: Int) {
     val month = selectedDate.month.toUiText(fullName = false).asString()
     val dayName = selectedDate.dayOfWeek.toUiText(fullName = true).asString()
 
@@ -113,11 +128,7 @@ internal fun DialogTitle(
     }
     Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()) {
         Text(stringResource(R.string.mark_attendance_title, formattedDate))
-        Text(
-            stringResource(
-                R.string.attendance_count, totalStudents, presentCount
-            )
-        )
+        Text(stringResource(R.string.attendance_count, totalStudents, presentCount))
     }
 }
 
@@ -152,9 +163,11 @@ internal fun DialogContent(
                     val isPresent = studentsForSelectedDate.any {
                         it.studentId == student.id && it.date == selectedDate
                     }
-                    StudentListItem(modifier = Modifier.clickable {
-                        onToggleAttendance(student, selectedDate, isPresent)
-                    }, student, isPresent)
+                    StudentListItem(
+                        modifier = Modifier.clickable {
+                            onToggleAttendance(student, selectedDate, isPresent)
+                        }, student, isPresent
+                    )
                     HorizontalDivider()
                 }
             }
@@ -163,9 +176,7 @@ internal fun DialogContent(
 }
 
 @Composable
-internal fun StudentListItem(
-    modifier: Modifier = Modifier, student: Student, isPresent: Boolean
-) {
+internal fun StudentListItem(modifier: Modifier = Modifier, student: Student, isPresent: Boolean) {
     val contentDescription = stringResource(
         if (isPresent) {
             R.string.content_description_present
@@ -181,18 +192,14 @@ internal fun StudentListItem(
         }
     )
 
-    ListItem(
-        headlineContent = {
-            Text(
-                text = student.name,
-                textAlign = TextAlign.Center,
-                style = MaterialTheme.typography.bodyLarge,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .wrapContentWidth()
-            )
-        }, colors = listItemColors, modifier = modifier
-            .semantics {
-                this.contentDescription = contentDescription
-            })
+    ListItem(headlineContent = {
+        Text(
+            text = student.name,
+            textAlign = TextAlign.Start,
+            style = MaterialTheme.typography.bodyLarge.copy(textDirection = TextDirection.Content),
+            modifier = Modifier
+                .fillMaxWidth()
+                .wrapContentWidth()
+        )
+    }, colors = listItemColors, modifier = modifier.semantics { this.contentDescription = contentDescription })
 }

@@ -1,7 +1,6 @@
 package dev.nenoeldeeb.education.absencerecord.domain.models
 
-data class Student(
+data class StudentClass(
     val id: Int = 0,
-    val name: String,
-    val classId: Int? = null
+    val name: String
 )
