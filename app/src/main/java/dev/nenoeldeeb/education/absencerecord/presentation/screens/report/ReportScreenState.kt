@@ -23,6 +23,8 @@ data class ReportScreenState(
     // Class filter
     val selectedClassFilter: ClassFilter = ClassFilter.All,
     val classDropdownExpanded: Boolean = false,
+    val isClassFilterVisible: Boolean = false,
+    val isSortComponentsVisible: Boolean = false,
     // UI state
     val showHistoryDialog: Boolean = false,
     val showCalendarPreviewDialog: Boolean = false,

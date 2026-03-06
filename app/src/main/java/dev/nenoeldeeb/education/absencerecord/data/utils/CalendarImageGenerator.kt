@@ -130,7 +130,7 @@ object CalendarImageGenerator {
         val daysOfWeek =
             (0..6).map { i ->
                 // Calculate DayOfWeek starting from Saturday
-                // Saturday = 6, Sunday = 7, Monday = 1...
+                // = 6, Sunday = 7, Monday = 1...
                 val isoDay = (DayOfWeek.SATURDAY.isoDayNumber - 1 + i) % 7 + 1
                 DayOfWeek(isoDay)
             }

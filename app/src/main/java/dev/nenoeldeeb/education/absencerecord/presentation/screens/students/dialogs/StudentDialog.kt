@@ -22,6 +22,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -55,11 +56,11 @@ internal fun StudentDialog(
         stringResource(R.string.new_student_label)
     }
 
-    // Initialise class selection from the student being edited (or null = unassigned)
+    // Initialize class selection from the student being edited (or null = unassigned)
     var selectedClass by remember(showEditDialog) {
         mutableStateOf(availableClasses.find { it.id == showEditDialog?.classId })
     }
-    var classDropdownExpanded by remember { mutableStateOf(false) }
+    var classDropdownExpanded by rememberSaveable { mutableStateOf(false) }
 
     val classLabel = selectedClass?.name ?: stringResource(R.string.class_unassigned_label)
 

@@ -11,6 +11,7 @@
     <string name="error_display">خطأ: %1$s</string>
 
     <!-- Students Screen -->
+    <string name="sort_description">ترتيب</string>
     <string name="new_student_label">أدخل اسم الطالب الجديد</string>
     <string name="no_students_message">لم يتم إضافة طلاب بعد.</string>
     <string name="students_title">الطلاب: %d</string>
@@ -179,5 +180,6 @@
     <string name="error_deleting_class">خطأ أثناء حذف الصف: \"%1$s\".</string>
     <string name="error_class_name_already_exists">يوجد بالفعل صف بنفس الاسمز</string>
     <string name="delete_class_title">أحذف الصف</string>
+    <string name="filter_description">تصفية</string>
 </resources>
 

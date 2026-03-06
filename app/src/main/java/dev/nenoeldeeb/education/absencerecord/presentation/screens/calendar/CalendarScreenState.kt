@@ -15,6 +15,7 @@ data class CalendarScreenState(
     val availableClasses: List<StudentClass> = emptyList(),
     val selectedClassFilter: ClassFilter = ClassFilter.All,
     val classDropdownExpanded: Boolean = false,
+    val isClassFilterVisible: Boolean = false,
     val selectedDateForDialog: LocalDate? = null,
     val error: UiText? = null
 )

@@ -13,5 +13,7 @@ sealed interface CalendarScreenEvent {
 
     data class SelectClassFilter(val filter: ClassFilter) : CalendarScreenEvent
 
+    data object ToggleClassFilterVisibility : CalendarScreenEvent
+
     data class ToggleClassDropdown(val expanded: Boolean) : CalendarScreenEvent
 }

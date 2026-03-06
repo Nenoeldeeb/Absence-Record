@@ -52,43 +52,52 @@ class ReportViewModel(
 
     private fun initializeStudents() {
         viewModelScope.launch {
-            combine(
-                _uiState.map { it.sortType },
-                _uiState.map { it.selectedMonth }
-            ) { type, month -> Pair(type, month) }
+            combine(_uiState.map { it.sortType }, _uiState.map { it.selectedMonth }) { type, month
+                ->
+                Pair(type, month)
+            }
                 .flatMapLatest { (currentSortType, currentSelectedMonth) ->
-                    studentManagementUseCases.getAllStudentsUseCase(currentSortType, currentSelectedMonth)
+                    studentManagementUseCases.getAllStudentsUseCase(
+                        currentSortType,
+                        currentSelectedMonth
+                    )
                 }
                 .collectLatest { result ->
-                    result.onSuccess { students ->
-                        _rawStudents = students
-                        _uiState.update { state ->
-                            state.copy(
-                                allStudents = applyFilter(students, state.selectedClassFilter)
-                            )
-                        }
-                    }.onFailure { e ->
-                        _uiState.update {
-                            it.copy(
-                                error = UiText.StringResource(
-                                    R.string.error_loading_students,
-                                    e.message ?: "Unknown error"
+                    result
+                        .onSuccess { students ->
+                            _rawStudents = students
+                            _uiState.update { state ->
+                                state.copy(
+                                    allStudents =
+                                        applyFilter(
+                                            students,
+                                            state.selectedClassFilter
+                                        )
                                 )
-                            )
+                            }
                         }
-                    }
+                        .onFailure { e ->
+                            _uiState.update {
+                                it.copy(
+                                    error =
+                                        UiText.StringResource(
+                                            R.string.error_loading_students,
+                                            e.message ?: "Unknown error"
+                                        )
+                                )
+                            }
+                        }
                 }
         }
     }
 
     private fun initializeClasses() {
         viewModelScope.launch {
-            classManagementUseCases.getAllClassesUseCase()
-                .collectLatest { result ->
-                    result.onSuccess { classes ->
-                        _uiState.update { it.copy(availableClasses = classes) }
-                    }
+            classManagementUseCases.getAllClassesUseCase().collectLatest { result ->
+                result.onSuccess { classes ->
+                    _uiState.update { it.copy(availableClasses = classes) }
                 }
+            }
         }
     }
 
@@ -101,48 +110,58 @@ class ReportViewModel(
 
     private fun initializeAvailableMonths() {
         viewModelScope.launch {
-            attendanceUseCases.getAvailableMonthsUseCase()
-                .collectLatest { result ->
-                    result.onSuccess { months ->
+            attendanceUseCases.getAvailableMonthsUseCase().collectLatest { result ->
+                result
+                    .onSuccess { months ->
                         _uiState.update { it.copy(availableMonths = months) }
-                    }.onFailure { e ->
+                    }
+                    .onFailure { e ->
                         _uiState.update {
                             it.copy(
-                                error = UiText.StringResource(
-                                    R.string.error_loading_available_months,
-                                    e.message ?: "Unknown error"
-                                )
+                                error =
+                                    UiText.StringResource(
+                                        R.string.error_loading_available_months,
+                                        e.message ?: "Unknown error"
+                                    )
                             )
                         }
                     }
-                }
+            }
         }
     }
 
     private fun initializeStudentHistory() {
         viewModelScope.launch {
-            _uiState.map { it.selectedStudentForHistory }
+            _uiState
+                .map { it.selectedStudentForHistory }
                 .filterNotNull()
                 .flatMapLatest { student ->
                     attendanceUseCases.getStudentAttendanceDatesUseCase(student.id)
                 }
                 .collectLatest { result ->
-                    result.onSuccess { historyDates ->
-                        val history = historyDates
-                            .groupBy { LocalDate(it.year, it.month, 1) }
-                            .map { entry -> Pair(entry.key, entry.value.sorted()) }
-                            .sortedByDescending { it.first }
-                        _uiState.update { it.copy(studentHistory = history) }
-                    }.onFailure { e ->
-                        _uiState.update {
-                            it.copy(
-                                error = UiText.StringResource(
-                                    R.string.error_loading_student_history,
-                                    e.message ?: "Unknown error"
-                                )
-                            )
+                    result
+                        .onSuccess { historyDates ->
+                            val history =
+                                historyDates
+                                    .groupBy { LocalDate(it.year, it.month, 1) }
+                                    .map { entry ->
+                                        Pair(entry.key, entry.value.sorted())
+                                    }
+                                    .sortedByDescending { it.first }
+                            _uiState.update { it.copy(studentHistory = history) }
                         }
-                    }
+                        .onFailure { e ->
+                            _uiState.update {
+                                it.copy(
+                                    error =
+                                        UiText.StringResource(
+                                            R.string
+                                                .error_loading_student_history,
+                                            e.message ?: "Unknown error"
+                                        )
+                                )
+                            }
+                        }
                 }
         }
     }
@@ -184,6 +203,14 @@ class ReportViewModel(
                     )
                 }
 
+            is ReportScreenEvent.ToggleClassFilterVisibility ->
+                _uiState.update { it.copy(isClassFilterVisible = !it.isClassFilterVisible) }
+
+            is ReportScreenEvent.ToggleSortComponentsVisibility ->
+                _uiState.update {
+                    it.copy(isSortComponentsVisible = !it.isSortComponentsVisible)
+                }
+
             is ReportScreenEvent.ToggleClassDropdown ->
                 _uiState.update { it.copy(classDropdownExpanded = event.expanded) }
         }
@@ -195,7 +222,11 @@ class ReportViewModel(
 
     private fun toggleSortType() {
         _uiState.update {
-            it.copy(sortType = if (it.sortType == SortType.ByName) SortType.ByAttendance else SortType.ByName)
+            it.copy(
+                sortType =
+                    if (it.sortType == SortType.ByName) SortType.ByAttendance
+                    else SortType.ByName
+            )
         }
     }
 
@@ -230,32 +261,54 @@ class ReportViewModel(
                 val endOfMonth = startOfMonth.plus(1, DateTimeUnit.MONTH).minus(1, DateTimeUnit.DAY)
 
                 attendanceUseCases.getAttendanceHistoryForDateRangeUseCase(
-                    studentId, startOfMonth, endOfMonth
-                ).collectLatest { result ->
-                    result.onSuccess { items ->
-                        reportUseCases.shareReportUseCase(studentName, month, items.map { it.date })
-                            .onSuccess { uri ->
-                                _uiState.update { it.copy(shareFileUri = uri.toUri()) }
+                    studentId,
+                    startOfMonth,
+                    endOfMonth
+                )
+                    .collectLatest { result ->
+                        result
+                            .onSuccess { items ->
+                                reportUseCases
+                                    .shareReportUseCase(
+                                        studentName,
+                                        month,
+                                        items.map { it.date }
+                                    )
+                                    .onSuccess { uri ->
+                                        _uiState.update {
+                                            it.copy(shareFileUri = uri.toUri())
+                                        }
+                                    }
+                                    .onFailure { e ->
+                                        onEvent(
+                                            ReportScreenEvent.ShowToast(
+                                                UiText.StringResource(
+                                                    R.string
+                                                        .error_preparing_image,
+                                                    e.message ?: ""
+                                                )
+                                            )
+                                        )
+                                    }
                             }
                             .onFailure { e ->
                                 onEvent(
                                     ReportScreenEvent.ShowToast(
-                                        UiText.StringResource(R.string.error_preparing_image, e.message ?: "")
+                                        UiText.StringResource(
+                                            R.string.error_fetching_history,
+                                            e.message ?: ""
+                                        )
                                     )
                                 )
                             }
-                    }.onFailure { e ->
-                        onEvent(
-                            ReportScreenEvent.ShowToast(
-                                UiText.StringResource(R.string.error_fetching_history, e.message ?: "")
-                            )
-                        )
                     }
-                }
             } catch (e: Exception) {
                 onEvent(
                     ReportScreenEvent.ShowToast(
-                        UiText.StringResource(R.string.error_preparing_image, e.message ?: "")
+                        UiText.StringResource(
+                            R.string.error_preparing_image,
+                            e.message ?: ""
+                        )
                     )
                 )
             }

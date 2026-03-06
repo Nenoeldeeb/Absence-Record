@@ -49,6 +49,8 @@ sealed interface StudentsScreenEvent {
     // Class management
     data class SelectClassFilter(val filter: ClassFilter) : StudentsScreenEvent
 
+    data object ToggleClassFilterVisibility : StudentsScreenEvent
+
     data class ToggleClassDropdown(val expanded: Boolean) : StudentsScreenEvent
 
     data class ShowManageClassesDialog(val show: Boolean) : StudentsScreenEvent

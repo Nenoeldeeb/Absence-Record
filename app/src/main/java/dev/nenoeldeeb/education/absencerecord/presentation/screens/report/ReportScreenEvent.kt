@@ -36,5 +36,9 @@ sealed interface ReportScreenEvent {
 
     data class SelectClassFilter(val filter: ClassFilter) : ReportScreenEvent
 
+    data object ToggleClassFilterVisibility : ReportScreenEvent
+
+    data object ToggleSortComponentsVisibility : ReportScreenEvent
+
     data class ToggleClassDropdown(val expanded: Boolean) : ReportScreenEvent
 }

@@ -16,6 +16,7 @@ data class StudentsScreenState(
     // Class filter
     val selectedClassFilter: ClassFilter = ClassFilter.All,
     val classDropdownExpanded: Boolean = false,
+    val isClassFilterVisible: Boolean = false,
     val showManageClassesDialog: Boolean = false,
     // Selection state
     val isMultiSelectionMode: Boolean = false,

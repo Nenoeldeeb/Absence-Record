@@ -43,22 +43,27 @@ class CalendarViewModel(
     private fun initializeStudents() {
         viewModelScope.launch {
             studentManagementUseCases.getAllStudentsUseCase().collectLatest { result ->
-                result.onSuccess { students ->
-                    _rawStudents = students
-                    _uiState.update { state ->
-                        state.copy(
-                            allStudents = applyFilter(students, state.selectedClassFilter)
-                        )
-                    }
-                }.onFailure { e ->
-                    _uiState.update {
-                        it.copy(
-                            error = UiText.StringResource(
-                                R.string.error_loading_students, e.message ?: "Unknown error"
+                result
+                    .onSuccess { students ->
+                        _rawStudents = students
+                        _uiState.update { state ->
+                            state.copy(
+                                allStudents =
+                                    applyFilter(students, state.selectedClassFilter)
                             )
-                        )
+                        }
                     }
-                }
+                    .onFailure { e ->
+                        _uiState.update {
+                            it.copy(
+                                error =
+                                    UiText.StringResource(
+                                        R.string.error_loading_students,
+                                        e.message ?: "Unknown error"
+                                    )
+                            )
+                        }
+                    }
             }
         }
     }
@@ -73,58 +78,76 @@ class CalendarViewModel(
         }
     }
 
-    private fun applyFilter(students: List<Student>, filter: ClassFilter): List<Student> = when (filter) {
-        ClassFilter.All -> students
-        ClassFilter.Unassigned -> students.filter { it.classId == null }
-        is ClassFilter.ByClass -> students.filter { it.classId == filter.studentClass.id }
-    }
+    private fun applyFilter(students: List<Student>, filter: ClassFilter): List<Student> =
+        when (filter) {
+            ClassFilter.All -> students
+            ClassFilter.Unassigned -> students.filter { it.classId == null }
+            is ClassFilter.ByClass -> students.filter { it.classId == filter.studentClass.id }
+        }
 
     fun onEvent(event: CalendarScreenEvent) {
         when (event) {
-            is CalendarScreenEvent.MarkStudentAttendance -> markStudentAttendance(event.studentId, event.date)
+            is CalendarScreenEvent.MarkStudentAttendance ->
+                markStudentAttendance(event.studentId, event.date)
 
-            is CalendarScreenEvent.DeleteStudentAttendance -> deleteStudentAttendance(event.studentId, event.date)
+            is CalendarScreenEvent.DeleteStudentAttendance ->
+                deleteStudentAttendance(event.studentId, event.date)
 
-            is CalendarScreenEvent.SelectDateForDialog -> _uiState.update {
-                it.copy(
-                    selectedDateForDialog = event.date, studentsForSelectedDate = if (event.date == null) {
-                        emptyList()
-                    } else {
-                        it.studentsForSelectedDate
-                    }
-                )
-            }
+            is CalendarScreenEvent.SelectDateForDialog ->
+                _uiState.update {
+                    it.copy(
+                        selectedDateForDialog = event.date,
+                        studentsForSelectedDate =
+                            if (event.date == null) {
+                                emptyList()
+                            } else {
+                                it.studentsForSelectedDate
+                            }
+                    )
+                }
 
-            is CalendarScreenEvent.SelectClassFilter -> _uiState.update { state ->
-                state.copy(
-                    selectedClassFilter = event.filter,
-                    classDropdownExpanded = false,
-                    allStudents = applyFilter(_rawStudents, event.filter)
-                )
-            }
+            is CalendarScreenEvent.SelectClassFilter ->
+                _uiState.update { state ->
+                    state.copy(
+                        selectedClassFilter = event.filter,
+                        classDropdownExpanded = false,
+                        allStudents = applyFilter(_rawStudents, event.filter)
+                    )
+                }
 
-            is CalendarScreenEvent.ToggleClassDropdown -> _uiState.update { it.copy(classDropdownExpanded = event.expanded) }
+            is CalendarScreenEvent.ToggleClassFilterVisibility ->
+                _uiState.update { it.copy(isClassFilterVisible = !it.isClassFilterVisible) }
+
+            is CalendarScreenEvent.ToggleClassDropdown ->
+                _uiState.update { it.copy(classDropdownExpanded = event.expanded) }
         }
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
     private fun setupAttendanceListener() {
         viewModelScope.launch {
-            _uiState.map { it.selectedDateForDialog }.filterNotNull()
-                .flatMapLatest { date -> attendanceUseCases.getAttendanceForDateUseCase(date) }.collectLatest { result ->
-                    result.onSuccess { selectedStudentsForDate ->
-                        _uiState.update {
-                            it.copy(studentsForSelectedDate = selectedStudentsForDate)
+            _uiState
+                .map { it.selectedDateForDialog }
+                .filterNotNull()
+                .flatMapLatest { date -> attendanceUseCases.getAttendanceForDateUseCase(date) }
+                .collectLatest { result ->
+                    result
+                        .onSuccess { selectedStudentsForDate ->
+                            _uiState.update {
+                                it.copy(studentsForSelectedDate = selectedStudentsForDate)
+                            }
                         }
-                    }.onFailure { e ->
-                        _uiState.update {
-                            it.copy(
-                                error = UiText.StringResource(
-                                    R.string.error_loading_attendance, e.message ?: "Unknown error"
+                        .onFailure { e ->
+                            _uiState.update {
+                                it.copy(
+                                    error =
+                                        UiText.StringResource(
+                                            R.string.error_loading_attendance,
+                                            e.message ?: "Unknown error"
+                                        )
                                 )
-                            )
+                            }
                         }
-                    }
                 }
         }
     }
@@ -133,15 +156,18 @@ class CalendarViewModel(
         viewModelScope.launch {
             attendanceUseCases.recordStudentAttendanceUseCase(
                 StudentAttendance(studentId = studentId, date = date)
-            ).onFailure { e ->
-                _uiState.update {
-                    it.copy(
-                        error = UiText.StringResource(
-                            R.string.error_marking_attendance, e.message ?: "Unknown error"
+            )
+                .onFailure { e ->
+                    _uiState.update {
+                        it.copy(
+                            error =
+                                UiText.StringResource(
+                                    R.string.error_marking_attendance,
+                                    e.message ?: "Unknown error"
+                                )
                         )
-                    )
+                    }
                 }
-            }
         }
     }
 
@@ -150,9 +176,11 @@ class CalendarViewModel(
             attendanceUseCases.deleteStudentAttendanceUseCase(studentId, date).onFailure { e ->
                 _uiState.update {
                     it.copy(
-                        error = UiText.StringResource(
-                            R.string.error_deleting_attendance, e.message ?: "Unknown error"
-                        )
+                        error =
+                            UiText.StringResource(
+                                R.string.error_deleting_attendance,
+                                e.message ?: "Unknown error"
+                            )
                     )
                 }
             }

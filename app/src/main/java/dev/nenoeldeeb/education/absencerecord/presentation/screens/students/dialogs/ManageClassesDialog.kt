@@ -23,6 +23,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -45,9 +46,9 @@ internal fun ManageClassesDialog(
     onDeleteClass: (StudentClass) -> Unit,
     onDismiss: () -> Unit
 ) {
-    var newClassName by remember { mutableStateOf("") }
-    var renamingClassId by remember { mutableStateOf<Int?>(null) }
-    var renameText by remember { mutableStateOf("") }
+    var newClassName by rememberSaveable { mutableStateOf("") }
+    var renamingClassId by rememberSaveable { mutableStateOf<Int?>(null) }
+    var renameText by rememberSaveable { mutableStateOf("") }
     var classToDelete by remember { mutableStateOf<StudentClass?>(null) }
 
     if (classToDelete != null) {
@@ -60,11 +61,9 @@ internal fun ManageClassesDialog(
                     onClick = {
                         onDeleteClass(classToDelete!!)
                         classToDelete = null
-                    }
-                ) {
+                    }) {
                     Text(
-                        text = stringResource(R.string.action_delete),
-                        color = MaterialTheme.colorScheme.error
+                        text = stringResource(R.string.action_delete), color = MaterialTheme.colorScheme.error
                     )
                 }
             },
@@ -72,8 +71,7 @@ internal fun ManageClassesDialog(
                 TextButton(onClick = { classToDelete = null }) {
                     Text(stringResource(R.string.action_cancel))
                 }
-            }
-        )
+            })
     }
 
     AlertDialog(onDismissRequest = onDismiss, title = { Text(stringResource(R.string.manage_classes_title)) }, text = {
@@ -151,7 +149,8 @@ internal fun ManageClassesDialog(
                                             R.drawable.outline_check_24
                                         ),
                                         contentDescription = stringResource(R.string.action_save),
-                                        tint = MaterialTheme.colorScheme.primary,
+                                        tint = if (renameText.isNotBlank()) MaterialTheme.colorScheme.primary
+                                        else MaterialTheme.colorScheme.primaryContainer,
                                         modifier = Modifier.size(20.dp)
                                     )
                                 }
