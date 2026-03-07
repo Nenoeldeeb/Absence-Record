@@ -1,7 +1,7 @@
 # Absence Record
 
-<p style="margin: auto 0;">
-  <img src="app/src/main/ic_launcher-playstore.png" alt="Application Icon" width="512" height="512">
+<p align="center">
+  <img src="app/src/main/ic_launcher-playstore.png" alt="Application Icon" width="100" height="100">
 </p>
 
 Absence Record is a comprehensive Android application designed to streamline student attendance tracking. Built with modern Android development practices, it offers a robust solution for educators and administrators to manage student records, track daily attendance, and generate insightful reports.
