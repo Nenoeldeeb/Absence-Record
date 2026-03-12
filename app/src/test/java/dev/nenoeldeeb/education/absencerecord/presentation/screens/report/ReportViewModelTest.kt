@@ -6,6 +6,7 @@ import dev.nenoeldeeb.education.absencerecord.R
 import dev.nenoeldeeb.education.absencerecord.domain.models.AttendanceHistoryItem
 import dev.nenoeldeeb.education.absencerecord.domain.models.Student
 import dev.nenoeldeeb.education.absencerecord.domain.usecases.AttendanceUseCases
+import dev.nenoeldeeb.education.absencerecord.domain.usecases.ClassManagementUseCases
 import dev.nenoeldeeb.education.absencerecord.domain.usecases.ReportUseCases
 import dev.nenoeldeeb.education.absencerecord.domain.usecases.StudentManagementUseCases
 import dev.nenoeldeeb.education.absencerecord.domain.usecases.attendance.GetAttendanceHistoryForDateRangeUseCase
@@ -71,7 +72,12 @@ class ReportViewModelTest {
     }
 
     private fun createViewModel() {
-        viewModel = ReportViewModel(studentManagementUseCases, attendanceUseCases, reportUseCases)
+        viewModel = ReportViewModel(
+            studentManagementUseCases,
+            attendanceUseCases,
+            reportUseCases,
+            mockk<ClassManagementUseCases>(relaxed = true)
+        )
     }
 
     @Test

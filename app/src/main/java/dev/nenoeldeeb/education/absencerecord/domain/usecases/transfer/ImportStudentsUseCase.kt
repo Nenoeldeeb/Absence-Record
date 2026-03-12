@@ -7,6 +7,7 @@ import dev.nenoeldeeb.education.absencerecord.domain.models.StudentAttendance
 import dev.nenoeldeeb.education.absencerecord.domain.models.StudentExportData
 import dev.nenoeldeeb.education.absencerecord.domain.repositories.AttendanceRepository
 import dev.nenoeldeeb.education.absencerecord.domain.repositories.StorageRepository
+import dev.nenoeldeeb.education.absencerecord.domain.repositories.StudentClassRepository
 import dev.nenoeldeeb.education.absencerecord.domain.repositories.StudentRepository
 import dev.nenoeldeeb.education.absencerecord.domain.services.SerializationService
 import kotlinx.coroutines.flow.first
@@ -18,7 +19,8 @@ class ImportStudentsUseCase(
     private val studentRepository: StudentRepository,
     private val attendanceRepository: AttendanceRepository,
     private val storageRepository: StorageRepository,
-    private val serializationService: SerializationService
+    private val serializationService: SerializationService,
+    private val studentClassRepository: StudentClassRepository
 ) {
     suspend fun parseFile(uriString: String): Result<List<ParsedStudentImportData>> {
         return try {
@@ -73,14 +75,32 @@ class ImportStudentsUseCase(
             existingStudentsResult.fold(
                 onSuccess = { existingStudents ->
                     val existingMap = existingStudents.associateBy { it.name }
+                    val classCache = mutableMapOf<String, Int>()
 
                     studentsToImport.forEach { studentData ->
+                        val className = studentData.className.trim()
+                        val classId = if (className.isNotBlank()) {
+                            if (classCache.containsKey(className)) {
+                                classCache[className]
+                            } else {
+                                val newClassId = studentClassRepository.getOrCreateClassByName(className).getOrNull()
+                                if (newClassId != null) {
+                                    classCache[className] = newClassId
+                                }
+                                newClassId
+                            }
+                        } else null
+
                         val studentId =
-                            existingMap[studentData.name]?.id
-                            ?: run {
+                            existingMap[studentData.name]?.let { existingStudent ->
+                                if (existingStudent.classId != classId) {
+                                    studentRepository.updateStudent(existingStudent.copy(classId = classId))
+                                }
+                                existingStudent.id
+                            } ?: run {
                                 val newId =
                                     studentRepository
-                                        .insertStudent(Student(name = studentData.name))
+                                        .insertStudent(Student(name = studentData.name, classId = classId))
                                         .getOrDefault(0)
                                         .toInt()
                                 newCount++

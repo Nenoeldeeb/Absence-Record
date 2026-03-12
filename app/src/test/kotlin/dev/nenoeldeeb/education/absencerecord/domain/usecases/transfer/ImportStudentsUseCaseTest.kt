@@ -5,6 +5,7 @@ import dev.nenoeldeeb.education.absencerecord.domain.models.Student
 import dev.nenoeldeeb.education.absencerecord.domain.models.StudentExportData
 import dev.nenoeldeeb.education.absencerecord.domain.repositories.AttendanceRepository
 import dev.nenoeldeeb.education.absencerecord.domain.repositories.StorageRepository
+import dev.nenoeldeeb.education.absencerecord.domain.repositories.StudentClassRepository
 import dev.nenoeldeeb.education.absencerecord.domain.repositories.StudentRepository
 import dev.nenoeldeeb.education.absencerecord.domain.services.SerializationService
 import io.mockk.coEvery
@@ -27,6 +28,7 @@ class ImportStudentsUseCaseTest {
     private lateinit var attendanceRepository: AttendanceRepository
     private lateinit var storageRepository: StorageRepository
     private lateinit var serializationService: SerializationService
+    private lateinit var studentClassRepository: StudentClassRepository
     private lateinit var useCase: ImportStudentsUseCase
 
     @BeforeEach
@@ -35,13 +37,18 @@ class ImportStudentsUseCaseTest {
         attendanceRepository = mockk()
         storageRepository = mockk()
         serializationService = mockk()
+        studentClassRepository = mockk()
         useCase =
             ImportStudentsUseCase(
                 studentRepository,
                 attendanceRepository,
                 storageRepository,
-                serializationService
+                serializationService,
+                studentClassRepository
             )
+        // Default mocks
+        coEvery { studentClassRepository.getOrCreateClassByName(any()) } returns Result.success(1)
+        coEvery { studentRepository.updateStudent(any()) } returns Result.success(Unit)
     }
 
     @Nested
@@ -294,6 +301,54 @@ class ImportStudentsUseCaseTest {
                 // Assert
                 assertTrue(result.isFailure)
                 assertEquals("DB Error", result.exceptionOrNull()?.message)
+            }
+
+        @Test
+        fun `should import new student with class`() =
+            runTest {
+                // Arrange
+                val exportData = StudentExportData("John", emptyList(), "Class A")
+                val parsedData = listOf(ParsedStudentImportData(exportData))
+                val selectionMap = mapOf(parsedData[0].id to true)
+
+                every { studentRepository.getAllStudents() } returns
+                    flowOf(Result.success(emptyList()))
+                coEvery { studentClassRepository.getOrCreateClassByName("Class A") } returns
+                    Result.success(10)
+                coEvery { studentRepository.insertStudent(any()) } returns Result.success(1L)
+
+                // Act
+                useCase.performImport(parsedData, selectionMap)
+
+                // Assert
+                coVerify {
+                    studentRepository.insertStudent(match { it.name == "John" && it.classId == 10 })
+                }
+            }
+
+        @Test
+        fun `should update existing student class when merging`() =
+            runTest {
+                // Arrange
+                val exportData = StudentExportData("John", emptyList(), "Class B")
+                val parsedData = listOf(ParsedStudentImportData(exportData))
+                val selectionMap = mapOf(parsedData[0].id to true)
+                val existingStudent = Student(id = 1, name = "John", classId = null)
+
+                every { studentRepository.getAllStudents() } returns
+                    flowOf(Result.success(listOf(existingStudent)))
+                coEvery { studentClassRepository.getOrCreateClassByName("Class B") } returns
+                    Result.success(20)
+                coEvery { studentRepository.updateStudent(any()) } returns Result.success(Unit)
+                coEvery { attendanceRepository.insertAttendance(any()) } returns Result.success(1L)
+
+                // Act
+                useCase.performImport(parsedData, selectionMap)
+
+                // Assert
+                coVerify {
+                    studentRepository.updateStudent(match { it.id == 1 && it.classId == 20 })
+                }
             }
     }
 }

@@ -1,9 +1,11 @@
 package dev.nenoeldeeb.education.absencerecord.domain.usecases.transfer
 
 import dev.nenoeldeeb.education.absencerecord.domain.models.Student
+import dev.nenoeldeeb.education.absencerecord.domain.models.StudentClass
 import dev.nenoeldeeb.education.absencerecord.domain.models.StudentExportData
 import dev.nenoeldeeb.education.absencerecord.domain.repositories.AttendanceRepository
 import dev.nenoeldeeb.education.absencerecord.domain.repositories.StorageRepository
+import dev.nenoeldeeb.education.absencerecord.domain.repositories.StudentClassRepository
 import dev.nenoeldeeb.education.absencerecord.domain.repositories.StudentRepository
 import dev.nenoeldeeb.education.absencerecord.domain.services.SerializationService
 import io.mockk.coEvery
@@ -27,6 +29,7 @@ class ExportStudentsUseCaseTest {
     private lateinit var attendanceRepository: AttendanceRepository
     private lateinit var storageRepository: StorageRepository
     private lateinit var serializationService: SerializationService
+    private lateinit var studentClassRepository: StudentClassRepository
     private lateinit var useCase: ExportStudentsUseCase
 
     @BeforeEach
@@ -35,9 +38,12 @@ class ExportStudentsUseCaseTest {
         attendanceRepository = mockk()
         storageRepository = mockk()
         serializationService = mockk()
+        studentClassRepository = mockk()
         useCase = ExportStudentsUseCase(
-            attendanceRepository, storageRepository, serializationService
+            attendanceRepository, storageRepository, serializationService, studentClassRepository
         )
+        // Default mock for class repository to avoid breaking all existing tests
+        every { studentClassRepository.getAllClasses() } returns flowOf(Result.success(emptyList()))
     }
 
     @Test
@@ -193,5 +199,38 @@ class ExportStudentsUseCaseTest {
         // Assert
         assertTrue(result.isFailure)
         assertIs<RuntimeException>(result.exceptionOrNull())
+    }
+
+    @Test
+    fun `should include class name when student is associated with a class`() = runTest {
+        // Arrange
+        val uriString = "content://export"
+        val selectedIds = setOf(1)
+        val allStudents = listOf(Student(id = 1, name = "John", classId = 10))
+        val dates = listOf(LocalDate(2024, 1, 1))
+        val classes = listOf(StudentClass(id = 10, name = "Class A"))
+
+        every { studentClassRepository.getAllClasses() } returns flowOf(Result.success(classes))
+        every { attendanceRepository.getStudentAttendanceDates(1) } returns flowOf(Result.success(dates))
+        every {
+            serializationService.encodeToString<List<StudentExportData>>(
+                any(),
+                any()
+            )
+        } returns Result.success("json")
+        coEvery { storageRepository.writeTextToUri(any(), any()) } returns Result.success(Unit)
+
+        // Act
+        useCase(uriString, selectedIds, allStudents)
+
+        // Assert
+        val capturedList = slot<List<StudentExportData>>()
+        verify {
+            serializationService.encodeToString(
+                capture(capturedList), any()
+            )
+        }
+        assertEquals(1, capturedList.captured.size)
+        assertEquals("Class A", capturedList.captured[0].className)
     }
 }

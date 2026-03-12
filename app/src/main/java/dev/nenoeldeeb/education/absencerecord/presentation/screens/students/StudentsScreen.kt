@@ -1,22 +1,25 @@
+@file:OptIn(ExperimentalMaterial3Api::class)
+
 package dev.nenoeldeeb.education.absencerecord.presentation.screens.students
 
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.layout.Box
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.FloatingActionButton
+import androidx.compose.foundation.layout.size
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
@@ -27,11 +30,13 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import dev.nenoeldeeb.education.absencerecord.R
 import dev.nenoeldeeb.education.absencerecord.app.AppViewModelProvider
-import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.components.EmptyStateMessage
+import dev.nenoeldeeb.education.absencerecord.presentation.screens.components.ClassFilterDropdown
+import dev.nenoeldeeb.education.absencerecord.presentation.screens.components.EmptyStateMessage
+import dev.nenoeldeeb.education.absencerecord.presentation.screens.components.StudentList
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.components.MultiSelectionHeader
-import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.components.StudentList
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.dialogs.BulkDeleteConfirmationDialog
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.dialogs.ImportSelectionDialog
+import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.dialogs.ManageClassesDialog
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.dialogs.StudentDialog
 
 @Composable
@@ -73,100 +78,140 @@ fun StudentsScreen(
             viewModel.onEvent(StudentsScreenEvent.PrepareImportSelectionDialog(uri))
         })
 
-    Box(modifier = modifier) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(8.dp)
-        ) {
-            if (uiState.isMultiSelectionMode) {
-                MultiSelectionHeader(
+    Column(modifier = modifier) {
+        if (uiState.isMultiSelectionMode) {
+            MultiSelectionHeader(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 16.dp),
+                selectedStudentIds = uiState.selectedStudentIds,
+                onCloseSelectionMode = {
+                    viewModel.onEvent(StudentsScreenEvent.ToggleSelectionMode)
+                },
+                onToggleSelection = {
+                    viewModel.onEvent(StudentsScreenEvent.ToggleStudentsSelection)
+                },
+                onExport = { fileName -> exportLauncher.launch(fileName) },
+                onExportAndDelete = { fileName ->
+                    exportAndDeleteLauncher.launch(fileName)
+                },
+                onShowDeleteDialog = {
+                    viewModel.onEvent(StudentsScreenEvent.ShowBulkDeleteDialog)
+                })
+        }
+
+        if (!uiState.isMultiSelectionMode) {
+            TopAppBar(title = {
+                Text(stringResource(R.string.students_title, uiState.allStudents.size))
+            }, actions = {
+                IconButton(
+                    onClick = {
+                        viewModel.onEvent(
+                            StudentsScreenEvent.ToggleClassFilterVisibility
+                        )
+                    }) {
+                    Icon(
+                        imageVector = ImageVector.vectorResource(
+                            R.drawable.outline_filter_24
+                        ), contentDescription = stringResource(R.string.filter_description)
+                    )
+                }
+                IconButton(
+                    onClick = {
+                        viewModel.onEvent(
+                            StudentsScreenEvent.ShowStudentDialog(null, true)
+                        )
+                    }) {
+                    Icon(
+                        imageVector = ImageVector.vectorResource(
+                            R.drawable.outline_add_24
+                        ), contentDescription = stringResource(R.string.new_student_label)
+                    )
+                }
+            })
+
+            AnimatedVisibility(uiState.isClassFilterVisible) {
+                // Class filter row with edit icon
+                ClassFilterDropdown(
+                    selectedFilter = uiState.selectedClassFilter,
+                    availableClasses = uiState.availableClasses,
+                    expanded = uiState.classDropdownExpanded,
+                    onExpandedChange = {
+                        viewModel.onEvent(StudentsScreenEvent.ToggleClassDropdown(it))
+                    },
+                    onFilterSelected = {
+                        viewModel.onEvent(StudentsScreenEvent.SelectClassFilter(it))
+                    },
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(bottom = 16.dp),
-                    selectedStudentIds = uiState.selectedStudentIds,
-                    onCloseSelectionMode = {
-                        viewModel.onEvent(StudentsScreenEvent.ToggleSelectionMode)
-                    },
-                    onToggleSelection = {
-                        viewModel.onEvent(StudentsScreenEvent.ToggleStudentsSelection)
-                    },
-                    onExport = { fileName ->
-                        exportLauncher.launch(fileName)
-                    },
-                    onExportAndDelete = { fileName ->
-                        exportAndDeleteLauncher.launch(fileName)
-                    },
-                    onShowDeleteDialog = {
-                        viewModel.onEvent(StudentsScreenEvent.ShowBulkDeleteDialog)
-                    })
-            }
-            if (!uiState.isMultiSelectionMode) {
-                Text(
-                    stringResource(R.string.students_title, uiState.allStudents.size),
-                    style = MaterialTheme.typography.titleMedium,
-                    modifier = Modifier.padding(vertical = 8.dp)
-                )
-            }
-
-            if (uiState.allStudents.isEmpty()) {
-                EmptyStateMessage(modifier = Modifier.fillMaxWidth())
-            } else {
-                StudentList(
-                    allStudents = uiState.allStudents,
-                    selectedStudentIds = uiState.selectedStudentIds,
-                    onStudentClick = { student ->
-                        if (uiState.isMultiSelectionMode) {
-                            viewModel.onEvent(
-                                StudentsScreenEvent.ToggleStudentSelection(student.id)
-                            )
-                        } else {
-                            viewModel.onEvent(
-                                StudentsScreenEvent.ShowStudentDialog(student)
-                            )
-                        }
-                    },
-                    onStudentLongClick = { studentId ->
-                        if (!uiState.isMultiSelectionMode) {
-                            viewModel.onEvent(StudentsScreenEvent.ToggleSelectionMode)
-                            viewModel.onEvent(
-                                StudentsScreenEvent.ToggleStudentSelection(studentId)
+                        .padding(bottom = 8.dp),
+                    trailingIcon = {
+                        IconButton(
+                            onClick = {
+                                viewModel.onEvent(
+                                    StudentsScreenEvent.ShowManageClassesDialog(
+                                        true
+                                    )
+                                )
+                            }) {
+                            Icon(
+                                imageVector = ImageVector.vectorResource(
+                                    R.drawable.outline_edit_24
+                                ),
+                                contentDescription = stringResource(R.string.manage_classes_title),
+                                modifier = Modifier.size(24.dp)
                             )
                         }
                     })
             }
         }
 
-        FloatingActionButton(
-            onClick = { viewModel.onEvent(StudentsScreenEvent.ShowStudentDialog(null, true)) },
-            modifier = Modifier
-                .align(Alignment.BottomEnd)
-                .padding(16.dp)
-        ) {
-            Icon(
-                imageVector = ImageVector.vectorResource(id = R.drawable.outline_add_24),
-                contentDescription = stringResource(R.string.new_student_label)
+        if (uiState.allStudents.isEmpty()) {
+            EmptyStateMessage(
+                message = R.string.no_students_message, modifier = Modifier.fillMaxSize()
             )
+        } else {
+            StudentList(
+                allStudents = uiState.allStudents,
+                selectedStudentIds = uiState.selectedStudentIds,
+                onStudentClick = { student ->
+                    if (uiState.isMultiSelectionMode) {
+                        viewModel.onEvent(
+                            StudentsScreenEvent.ToggleStudentSelection(student.id)
+                        )
+                    } else {
+                        viewModel.onEvent(StudentsScreenEvent.ShowStudentDialog(student))
+                    }
+                },
+                onStudentLongClick = { studentId ->
+                    if (!uiState.isMultiSelectionMode) {
+                        viewModel.onEvent(StudentsScreenEvent.ToggleSelectionMode)
+                        viewModel.onEvent(
+                            StudentsScreenEvent.ToggleStudentSelection(studentId)
+                        )
+                    }
+                })
         }
     }
+
+    // ── Dialogs ──────────────────────────────────────────────────────────────
 
     if (uiState.showEditDialog != null || uiState.showAddStudentDialog) {
         StudentDialog(
             showEditDialog = uiState.showEditDialog,
             newStudentName = uiState.newStudentName,
-            onStudentNameChange = { name ->
-                viewModel.onEvent(StudentsScreenEvent.UpdateNewStudentName(name))
+            availableClasses = uiState.availableClasses,
+            onStudentNameChange = {
+                viewModel.onEvent(StudentsScreenEvent.UpdateNewStudentName(it))
             },
-            onSave = { student, name ->
+            onSave = { student, name, classId ->
                 if (student != null) {
-                    viewModel.onEvent(StudentsScreenEvent.UpdateStudent(student, name))
+                    viewModel.onEvent(StudentsScreenEvent.UpdateStudent(student, name, classId))
                 } else {
-                    viewModel.onEvent(StudentsScreenEvent.AddStudent(name))
+                    viewModel.onEvent(StudentsScreenEvent.AddStudent(name, classId))
                 }
             },
-            onImportClick = {
-                importLauncher.launch(arrayOf("application/json", "*/*"))
-            },
+            onImportClick = { importLauncher.launch(arrayOf("application/json", "*/*")) },
             onDismiss = {
                 viewModel.onEvent(StudentsScreenEvent.ShowStudentDialog(null, false))
             })
@@ -176,8 +221,8 @@ fun StudentsScreen(
         ImportSelectionDialog(
             parsedStudentsFromFile = uiState.parsedStudentsFromFile,
             importSelectionMap = uiState.importSelectionMap,
-            onToggleSelection = { itemId ->
-                viewModel.onEvent(StudentsScreenEvent.ToggleImportSelection(itemId))
+            onToggleSelection = {
+                viewModel.onEvent(StudentsScreenEvent.ToggleImportSelection(it))
             },
             onSelectAll = { shouldSelect ->
                 val items = uiState.parsedStudentsFromFile ?: emptyList()
@@ -191,16 +236,26 @@ fun StudentsScreen(
                 viewModel.onEvent(StudentsScreenEvent.PerformImport)
                 viewModel.onEvent(StudentsScreenEvent.ShowStudentDialog(null, false))
             },
-            onDismiss = {
-                viewModel.onEvent(StudentsScreenEvent.CloseImportSelectionDialog)
-            })
+            onDismiss = { viewModel.onEvent(StudentsScreenEvent.CloseImportSelectionDialog) })
     }
 
     if (uiState.showBulkDeleteDialog) {
-        BulkDeleteConfirmationDialog(selectedStudentIds = uiState.selectedStudentIds, onConfirmDelete = {
-            viewModel.onEvent(StudentsScreenEvent.DeleteSelectedStudents)
-        }, onDismiss = {
-            viewModel.onEvent(StudentsScreenEvent.DismissBulkDeleteDialog)
-        })
+        BulkDeleteConfirmationDialog(
+            selectedStudentIds = uiState.selectedStudentIds,
+            onConfirmDelete = { viewModel.onEvent(StudentsScreenEvent.DeleteSelectedStudents) },
+            onDismiss = { viewModel.onEvent(StudentsScreenEvent.DismissBulkDeleteDialog) })
+    }
+
+    if (uiState.showManageClassesDialog) {
+        ManageClassesDialog(
+            classes = uiState.availableClasses,
+            onAddClass = { viewModel.onEvent(StudentsScreenEvent.AddClass(it)) },
+            onRenameClass = { cls, name ->
+                viewModel.onEvent(StudentsScreenEvent.RenameClass(cls, name))
+            },
+            onDeleteClass = { viewModel.onEvent(StudentsScreenEvent.DeleteClass(it)) },
+            onDismiss = {
+                viewModel.onEvent(StudentsScreenEvent.ShowManageClassesDialog(false))
+            })
     }
 }

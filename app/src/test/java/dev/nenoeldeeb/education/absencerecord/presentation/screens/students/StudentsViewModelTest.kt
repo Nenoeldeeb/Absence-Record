@@ -7,6 +7,7 @@ import dev.nenoeldeeb.education.absencerecord.domain.models.ImportResult
 import dev.nenoeldeeb.education.absencerecord.domain.models.ParsedStudentImportData
 import dev.nenoeldeeb.education.absencerecord.domain.models.Student
 import dev.nenoeldeeb.education.absencerecord.domain.models.StudentExportData
+import dev.nenoeldeeb.education.absencerecord.domain.usecases.ClassManagementUseCases
 import dev.nenoeldeeb.education.absencerecord.domain.usecases.StudentManagementUseCases
 import dev.nenoeldeeb.education.absencerecord.domain.usecases.student.AddStudentUseCase
 import dev.nenoeldeeb.education.absencerecord.domain.usecases.student.DeleteStudentsUseCase
@@ -50,6 +51,7 @@ class StudentsViewModelTest {
     private lateinit var selectionDelegate: SelectionStateDelegate
     private lateinit var importExportDelegate: ImportExportDelegate
     private lateinit var viewModel: StudentsViewModel
+    private lateinit var classManagementUseCases: ClassManagementUseCases
 
     @BeforeEach
     fun setUp() {
@@ -70,12 +72,16 @@ class StudentsViewModelTest {
 
         selectionDelegate = SelectionStateDelegate()
         importExportDelegate = ImportExportDelegate()
+
+        classManagementUseCases = mockk<ClassManagementUseCases>(relaxed = true)
+        every { classManagementUseCases.getAllClassesUseCase() } returns flowOf(Result.success(emptyList()))
     }
 
     private fun createViewModel() {
         viewModel =
             StudentsViewModel(
                 studentManagementUseCases,
+                classManagementUseCases,
                 selectionDelegate,
                 importExportDelegate
             )
@@ -126,7 +132,12 @@ class StudentsViewModelTest {
             advanceUntilIdle()
 
             // When
-            viewModel.onEvent(StudentsScreenEvent.AddStudent("New Student"))
+            viewModel.onEvent(
+                StudentsScreenEvent.AddStudent(
+                    "New Student",
+                    classId = null
+                )
+            )
             advanceUntilIdle()
 
             // Then
@@ -146,7 +157,12 @@ class StudentsViewModelTest {
             advanceUntilIdle()
 
             // When
-            viewModel.onEvent(StudentsScreenEvent.AddStudent("  "))
+            viewModel.onEvent(
+                StudentsScreenEvent.AddStudent(
+                    "  ",
+                    classId = null
+                )
+            )
 
             // Then
             coVerify(exactly = 0) { addStudentUseCase(any()) }
@@ -168,7 +184,12 @@ class StudentsViewModelTest {
             advanceUntilIdle()
 
             // When
-            viewModel.onEvent(StudentsScreenEvent.UpdateStudent(student, "New Name"))
+            viewModel.onEvent(
+                StudentsScreenEvent.UpdateStudent(
+                    student, "New Name",
+                    newClassId = null
+                )
+            )
             advanceUntilIdle()
 
             // Then
@@ -190,7 +211,12 @@ class StudentsViewModelTest {
             advanceUntilIdle()
 
             // When
-            viewModel.onEvent(StudentsScreenEvent.UpdateStudent(student, "  "))
+            viewModel.onEvent(
+                StudentsScreenEvent.UpdateStudent(
+                    student, "  ",
+                    newClassId = null
+                )
+            )
             advanceUntilIdle()
 
             // Then
@@ -214,7 +240,12 @@ class StudentsViewModelTest {
             advanceUntilIdle()
 
             // When
-            viewModel.onEvent(StudentsScreenEvent.UpdateStudent(student, "New Name"))
+            viewModel.onEvent(
+                StudentsScreenEvent.UpdateStudent(
+                    student, "New Name",
+                    newClassId = null
+                )
+            )
             advanceUntilIdle()
 
             // Then

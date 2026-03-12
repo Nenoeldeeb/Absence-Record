@@ -4,6 +4,7 @@ import dev.nenoeldeeb.education.absencerecord.domain.models.Student
 import dev.nenoeldeeb.education.absencerecord.domain.models.StudentExportData
 import dev.nenoeldeeb.education.absencerecord.domain.repositories.AttendanceRepository
 import dev.nenoeldeeb.education.absencerecord.domain.repositories.StorageRepository
+import dev.nenoeldeeb.education.absencerecord.domain.repositories.StudentClassRepository
 import dev.nenoeldeeb.education.absencerecord.domain.services.SerializationService
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.first
@@ -15,11 +16,13 @@ import kotlinx.serialization.builtins.ListSerializer
  * @property attendanceRepository Repository for accessing attendance records
  * @property storageRepository Repository for writing data to storage
  * @property serializationService Service for JSON serialization
+ * @property studentClassRepository Repository for accessing class information
  */
 class ExportStudentsUseCase(
     private val attendanceRepository: AttendanceRepository,
     private val storageRepository: StorageRepository,
-    private val serializationService: SerializationService
+    private val serializationService: SerializationService,
+    private val studentClassRepository: StudentClassRepository
 ) {
     /**
      * Exports selected students with their attendance history to a JSON file.
@@ -39,6 +42,9 @@ class ExportStudentsUseCase(
         }
 
         return try {
+            val classes = studentClassRepository.getAllClasses().first().getOrDefault(emptyList())
+            val classMap = classes.associate { it.id to it.name }
+
             val exportList =
                 selectedStudentIds.mapNotNull { studentId ->
                     allStudents.find { it.id == studentId }?.let { student ->
@@ -47,7 +53,11 @@ class ExportStudentsUseCase(
                                 .getStudentAttendanceDates(studentId)
                                 .first()
                                 .getOrDefault(emptyList())
-                        StudentExportData(student.name, historyDates.map { it.toString() })
+                        StudentExportData(
+                            name = student.name,
+                            dates = historyDates.map { it.toString() },
+                            className = student.classId?.let { classMap[it] } ?: ""
+                        )
                     }
                 }
             val serializationResult =

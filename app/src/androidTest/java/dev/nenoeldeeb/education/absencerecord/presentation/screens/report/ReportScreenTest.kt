@@ -11,7 +11,6 @@ import dev.nenoeldeeb.education.absencerecord.R
 import dev.nenoeldeeb.education.absencerecord.domain.models.SortType
 import dev.nenoeldeeb.education.absencerecord.domain.models.Student
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.report.components.ReportControls
-import dev.nenoeldeeb.education.absencerecord.presentation.screens.report.components.StudentList
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.report.dialogs.CalendarPreviewDialog
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.report.dialogs.StudentHistoryDialog
 import dev.nenoeldeeb.education.absencerecord.presentation.theme.AbsenceRecordTheme
@@ -22,7 +21,8 @@ import org.junit.runner.RunWith
 
 @RunWith(AndroidJUnit4::class)
 class ReportScreenTest {
-    @get:Rule val composeTestRule = createComposeRule()
+    @get:Rule
+    val composeTestRule = createComposeRule()
 
     private val context = InstrumentationRegistry.getInstrumentation().targetContext
 
@@ -178,56 +178,6 @@ class ReportScreenTest {
 
     // endregion
 
-    // region StudentList Tests
-
-    @Test
-    fun studentList_displaysNoStudentsMessage_whenListEmpty() {
-        composeTestRule.setContent {
-            AbsenceRecordTheme {
-                StudentList(students = emptyList(), onStudentClick = {})
-            }
-        }
-
-        composeTestRule.onNodeWithText(getString(R.string.no_students_found)).assertIsDisplayed()
-    }
-
-    @Test
-    fun studentList_displaysStudentNames() {
-        val students = listOf(
-            Student(id = 1, name = "Alice"),
-            Student(id = 2, name = "Bob")
-        )
-
-        composeTestRule.setContent {
-            AbsenceRecordTheme {
-                StudentList(students = students, onStudentClick = {})
-            }
-        }
-
-        composeTestRule.onNodeWithText("Alice").assertIsDisplayed()
-        composeTestRule.onNodeWithText("Bob").assertIsDisplayed()
-    }
-
-    @Test
-    fun studentList_clickingStudentInvokesCallback() {
-        var clickedStudent: Student? = null
-        val student = Student(id = 1, name = "Alice")
-
-        composeTestRule.setContent {
-            AbsenceRecordTheme {
-                StudentList(
-                    students = listOf(student),
-                    onStudentClick = { clickedStudent = it }
-                )
-            }
-        }
-
-        composeTestRule.onNodeWithText("Alice").performClick()
-
-        assert(clickedStudent == student)
-    }
-
-    // endregion
 
     // region StudentHistoryDialog Tests
 

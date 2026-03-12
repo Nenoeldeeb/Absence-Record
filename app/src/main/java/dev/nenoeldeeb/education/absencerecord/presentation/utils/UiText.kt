@@ -1,5 +1,3 @@
-@file:Suppress("unused")
-
 package dev.nenoeldeeb.education.absencerecord.presentation.utils
 
 import android.content.Context

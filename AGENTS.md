@@ -159,8 +159,8 @@ app/src/main/java/dev/nenoeldeeb/education/absencerecord/
 
 ```kotlin
 result.onFailure { e ->
-    // Assert error state is set correctly
-    assert(uiState.value.error != null)
+  // Assert error state is set correctly
+  assert(uiState.value.error != null)
 }
 ```
 
