@@ -1,6 +1,7 @@
 package dev.nenoeldeeb.education.absencerecord.data.repositories
 
 import dev.nenoeldeeb.education.absencerecord.data.datasources.local.daos.StudentClassDao
+import dev.nenoeldeeb.education.absencerecord.data.datasources.local.entities.StudentClassEntity
 import dev.nenoeldeeb.education.absencerecord.data.mappers.toStudentClass
 import dev.nenoeldeeb.education.absencerecord.data.mappers.toStudentClassEntity
 import dev.nenoeldeeb.education.absencerecord.domain.models.StudentClass
@@ -38,5 +39,16 @@ class StudentClassRepositoryImpl(private val studentClassDao: StudentClassDao) :
 
     override suspend fun deleteClass(studentClass: StudentClass): Result<Unit> {
         return runCatching { studentClassDao.deleteClass(studentClass.toStudentClassEntity()) }
+    }
+
+    override suspend fun getOrCreateClassByName(name: String): Result<Int> {
+        return runCatching {
+            val existing = studentClassDao.getClassByName(name)
+            if (existing != null) {
+                existing.id
+            } else {
+                studentClassDao.insertClass(StudentClassEntity(name = name)).toInt()
+            }
+        }
     }
 }

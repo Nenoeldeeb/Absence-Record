@@ -58,7 +58,8 @@ class DefaultAppContainer(private val context: Context) : AppContainer {
             studentRepository = studentRepository,
             attendanceRepository = attendanceRepository,
             storageRepository = storageRepository,
-            serializationService = serializationService
+            serializationService = serializationService,
+            studentClassRepository = studentClassRepository
         )
     }
 

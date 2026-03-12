@@ -16,14 +16,29 @@ class StudentExportDataTest {
         }
 
     @Test
-    fun `should create StudentExportData with name and dates`() {
+    fun `should create StudentExportData with name, dates and className`() {
         // Arrange & Act
         val exportData =
-            StudentExportData(name = "John Doe", dates = listOf("2024-12-23", "2024-12-24"))
+            StudentExportData(
+                name = "John Doe",
+                dates = listOf("2024-12-23", "2024-12-24"),
+                className = "Class A"
+            )
 
         // Assert
         assertEquals("John Doe", exportData.name)
         assertEquals(listOf("2024-12-23", "2024-12-24"), exportData.dates)
+        assertEquals("Class A", exportData.className)
+    }
+
+    @Test
+    fun `should handle missing className in constructor`() {
+        // Arrange & Act
+        val exportData =
+            StudentExportData(name = "John Doe", dates = listOf("2024-12-23"))
+
+        // Assert
+        assertEquals("", exportData.className)
     }
 
     @Test
@@ -55,7 +70,7 @@ class StudentExportDataTest {
     @Test
     fun `should deserialize from JSON correctly`() {
         // Arrange
-        val jsonString = """{"name":"Jane Smith","dates":["2024-01-01","2024-01-02"]}"""
+        val jsonString = """{"name":"Jane Smith","dates":["2024-01-01","2024-01-02"],"className":"Class B"}"""
 
         // Act
         val exportData = json.decodeFromString(StudentExportData.serializer(), jsonString)
@@ -63,6 +78,20 @@ class StudentExportDataTest {
         // Assert
         assertEquals("Jane Smith", exportData.name)
         assertEquals(listOf("2024-01-01", "2024-01-02"), exportData.dates)
+        assertEquals("Class B", exportData.className)
+    }
+
+    @Test
+    fun `should support backward compatibility when className is missing in JSON`() {
+        // Arrange
+        val jsonString = """{"name":"Jane Smith","dates":["2024-01-01"]}"""
+
+        // Act
+        val exportData = json.decodeFromString(StudentExportData.serializer(), jsonString)
+
+        // Assert
+        assertEquals("Jane Smith", exportData.name)
+        assertEquals("", exportData.className)
     }
 
     @Test

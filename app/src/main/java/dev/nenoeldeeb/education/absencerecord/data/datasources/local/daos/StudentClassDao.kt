@@ -17,6 +17,9 @@ interface StudentClassDao {
     @Query("SELECT EXISTS(SELECT 1 FROM classes WHERE name = :name COLLATE NOCASE)")
     suspend fun classNameExists(name: String): Boolean
 
+    @Query("SELECT * FROM classes WHERE name = :name COLLATE NOCASE LIMIT 1")
+    suspend fun getClassByName(name: String): StudentClassEntity?
+
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insertClass(studentClass: StudentClassEntity): Long
 

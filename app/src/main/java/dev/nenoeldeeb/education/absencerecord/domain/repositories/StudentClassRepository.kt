@@ -11,4 +11,6 @@ interface StudentClassRepository {
     suspend fun updateClass(studentClass: StudentClass): Result<Unit>
 
     suspend fun deleteClass(studentClass: StudentClass): Result<Unit>
+
+    suspend fun getOrCreateClassByName(name: String): Result<Int>
 }

@@ -2,6 +2,7 @@ package dev.nenoeldeeb.education.absencerecord.domain.usecases
 
 import dev.nenoeldeeb.education.absencerecord.domain.repositories.AttendanceRepository
 import dev.nenoeldeeb.education.absencerecord.domain.repositories.StorageRepository
+import dev.nenoeldeeb.education.absencerecord.domain.repositories.StudentClassRepository
 import dev.nenoeldeeb.education.absencerecord.domain.repositories.StudentRepository
 import dev.nenoeldeeb.education.absencerecord.domain.services.SerializationService
 import dev.nenoeldeeb.education.absencerecord.domain.usecases.student.AddStudentUseCase
@@ -15,7 +16,8 @@ data class StudentManagementUseCases(
     private val studentRepository: StudentRepository,
     private val attendanceRepository: AttendanceRepository,
     private val storageRepository: StorageRepository,
-    private val serializationService: SerializationService
+    private val serializationService: SerializationService,
+    private val studentClassRepository: StudentClassRepository
 ) {
     val addStudentUseCase: AddStudentUseCase = AddStudentUseCase(studentRepository)
     val updateStudentUseCase: UpdateStudentUseCase = UpdateStudentUseCase(studentRepository)
@@ -26,12 +28,14 @@ data class StudentManagementUseCases(
             studentRepository,
             attendanceRepository,
             storageRepository,
-            serializationService
+            serializationService,
+            studentClassRepository
         )
     val exportStudentsUseCase: ExportStudentsUseCase =
         ExportStudentsUseCase(
             attendanceRepository,
             storageRepository,
-            serializationService
+            serializationService,
+            studentClassRepository
         )
 }
