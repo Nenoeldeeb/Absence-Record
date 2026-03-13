@@ -29,6 +29,7 @@ This project leverages the latest tools and libraries in the Android ecosystem t
 - **[Room Database](https://developer.android.com/training/data-storage/room)**: An abstraction layer over SQLite to allow fluent database access and robust local data storage.
 - **[Kotlinx Serialization](https://kotlinlang.org/docs/serialization.html)**: Provides accurate and efficient JSON serialization/deserialization for import/export features.
 - **[Kotlinx Datetime](https://github.com/Kotlin/kotlinx-datetime)**: A multiplatform library for working with date and time.
+- **[Accompanist](https://github.com/google/accompanist)**: A collection of extension libraries for Jetpack Compose.
 
 ### Architecture & Design Principles
 
@@ -116,13 +117,25 @@ app/src/main/java/dev/nenoeldeeb/education/absencerecord/
 ├── domain/
 │   ├── models/           # Domain models (Student, Attendance, etc.)
 │   ├── repositories/     # Repository interfaces
-│   └── usecases/         # Use case classes
+│   ├── usecases/         # Use case classes
+│   └── services/         # Service interfaces (Serialization, Dispatchers)
 ├── data/
 │   ├── datasources/      # Room DAOs, local data sources
+│   │   └── local/        # Room entities, DAOs, database
 │   ├── repositories/     # Repository implementations
+│   ├── mappers/          # Entity to domain mappers
 │   └── utils/            # Data utilities
 └── presentation/
     ├── screens/          # Screen composables, ViewModels, state, events
+    │   ├── components/   # Shared UI components
+    │   └── [feature]/
+    │       ├── Screen.kt
+    │       ├── ViewModel.kt
+    │       ├── ScreenState.kt
+    │       ├── ScreenEvent.kt
+    │       ├── components/   # Screen-specific components
+    │       ├── dialogs/      # Dialog components
+    │       └── delegates/    # State management delegates
     ├── theme/            # Material3 theme (Color, Type, Theme)
     └── utils/            # UI utilities (UiText, DateFormatter, etc.)
 ```
