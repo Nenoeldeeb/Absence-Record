@@ -60,7 +60,7 @@ class ImportStudentsUseCaseTest {
                 // Arrange
                 val uriString = "content://file"
                 val jsonString = "[{\"name\":\"John\",\"dates\":[\"2024-01-01\"]}]"
-                val exportDataList = listOf(StudentExportData("John", listOf("2024-01-01")))
+                val exportDataList = listOf(StudentExportData("John", "", listOf("2024-01-01")))
 
                 coEvery { storageRepository.readTextFromUri(uriString) } returns
                     Result.success(jsonString)
@@ -147,7 +147,7 @@ class ImportStudentsUseCaseTest {
         fun `should fail if no students selected`() =
             runTest {
                 // Arrange
-                val parsedData = listOf(ParsedStudentImportData(StudentExportData("John", emptyList())))
+                val parsedData = listOf(ParsedStudentImportData(StudentExportData("John", "", emptyList())))
                 val selectionMap = mapOf(parsedData[0].id to false)
 
                 // Act
@@ -162,7 +162,7 @@ class ImportStudentsUseCaseTest {
         fun `should import new student with attendance`() =
             runTest {
                 // Arrange
-                val exportData = StudentExportData("John", listOf("2024-01-01"))
+                val exportData = StudentExportData("John", "", listOf("2024-01-01"))
                 val parsedData = listOf(ParsedStudentImportData(exportData))
                 val selectionMap = mapOf(parsedData[0].id to true)
 
@@ -200,7 +200,7 @@ class ImportStudentsUseCaseTest {
         fun `should merge with existing student`() =
             runTest {
                 // Arrange
-                val exportData = StudentExportData("John", listOf("2024-01-01"))
+                val exportData = StudentExportData("John", "", listOf("2024-01-01"))
                 val parsedData = listOf(ParsedStudentImportData(exportData))
                 val selectionMap = mapOf(parsedData[0].id to true)
                 val existingStudent = Student(id = 1, name = "John")
@@ -236,7 +236,7 @@ class ImportStudentsUseCaseTest {
         fun `should handle invalid dates in import`() =
             runTest {
                 // Arrange
-                val exportData = StudentExportData("John", listOf("invalid-date"))
+                val exportData = StudentExportData("John", "", listOf("invalid-date"))
                 val parsedData = listOf(ParsedStudentImportData(exportData))
                 val selectionMap = mapOf(parsedData[0].id to true)
 
@@ -260,8 +260,8 @@ class ImportStudentsUseCaseTest {
         fun `should handle mixed selection`() =
             runTest {
                 // Arrange
-                val data1 = ParsedStudentImportData(StudentExportData("John", emptyList()))
-                val data2 = ParsedStudentImportData(StudentExportData("Jane", emptyList()))
+                val data1 = ParsedStudentImportData(StudentExportData("John", "", emptyList()))
+                val data2 = ParsedStudentImportData(StudentExportData("Jane", "", emptyList()))
                 val parsedData = listOf(data1, data2)
                 val selectionMap = mapOf(data1.id to true, data2.id to false)
 
@@ -287,7 +287,7 @@ class ImportStudentsUseCaseTest {
         fun `should return failure when exception occurs during import`() =
             runTest {
                 // Arrange
-                val parsedData = listOf(ParsedStudentImportData(StudentExportData("John", emptyList())))
+                val parsedData = listOf(ParsedStudentImportData(StudentExportData("John", "", emptyList())))
                 val selectionMap = mapOf(parsedData[0].id to true)
 
                 every { studentRepository.getAllStudents() } answers
@@ -307,7 +307,7 @@ class ImportStudentsUseCaseTest {
         fun `should import new student with class`() =
             runTest {
                 // Arrange
-                val exportData = StudentExportData("John", emptyList(), "Class A")
+                val exportData = StudentExportData("John", "Class A", emptyList())
                 val parsedData = listOf(ParsedStudentImportData(exportData))
                 val selectionMap = mapOf(parsedData[0].id to true)
 
@@ -330,7 +330,7 @@ class ImportStudentsUseCaseTest {
         fun `should update existing student class when merging`() =
             runTest {
                 // Arrange
-                val exportData = StudentExportData("John", emptyList(), "Class B")
+                val exportData = StudentExportData("John", "Class B", emptyList())
                 val parsedData = listOf(ParsedStudentImportData(exportData))
                 val selectionMap = mapOf(parsedData[0].id to true)
                 val existingStudent = Student(id = 1, name = "John", classId = null)
