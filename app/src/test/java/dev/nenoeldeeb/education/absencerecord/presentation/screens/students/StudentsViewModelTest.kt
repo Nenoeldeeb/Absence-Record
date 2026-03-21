@@ -116,7 +116,7 @@ class StudentsViewModelTest {
             advanceUntilIdle()
 
             // Then
-            assertEquals(emptyList<Student>(), viewModel.uiState.value.allStudents)
+            assertEquals(emptyList(), viewModel.uiState.value.allStudents)
             val expectedError = UiText.StringResource(R.string.error_loading_students, errorMsg)
             assertEquals(expectedError, viewModel.uiState.value.error)
         }
@@ -308,7 +308,7 @@ class StudentsViewModelTest {
     fun `PrepareImportSelectionDialog with valid Uri parses file`() =
         runTest {
             // Given
-            val parsedData = listOf(ParsedStudentImportData(StudentExportData("S1", emptyList()), 1))
+            val parsedData = listOf(ParsedStudentImportData(StudentExportData("S1", "", emptyList()), 1))
             every { getAllStudentsUseCase(any(), any()) } returns flowOf(Result.success(emptyList()))
             coEvery { importStudentsUseCase.parseFile(any()) } returns Result.success(parsedData)
             createViewModel()
@@ -371,7 +371,7 @@ class StudentsViewModelTest {
     fun `PerformImport calls use case`() =
         runTest {
             // Given
-            val parsedData = listOf(ParsedStudentImportData(StudentExportData("S1", emptyList()), 1))
+            val parsedData = listOf(ParsedStudentImportData(StudentExportData("S1", "", emptyList()), 1))
 
             // Mock import result
             val importResult =
@@ -407,7 +407,7 @@ class StudentsViewModelTest {
     fun `PerformImport failure sets error`() =
         runTest {
             // Given
-            val parsedData = listOf(ParsedStudentImportData(StudentExportData("S1", emptyList()), 1))
+            val parsedData = listOf(ParsedStudentImportData(StudentExportData("S1", "", emptyList()), 1))
             val errorMsg = "Import failed"
 
             coEvery { importStudentsUseCase.parseFile(any()) } returns Result.success(parsedData)

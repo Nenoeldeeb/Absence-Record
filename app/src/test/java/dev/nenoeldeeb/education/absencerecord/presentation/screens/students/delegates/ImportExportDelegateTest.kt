@@ -23,7 +23,7 @@ class ImportExportDelegateTest {
 
     @Test
     fun `prepareImportDialog returns initialized data for valid input`() {
-        val input = listOf(ParsedStudentImportData(StudentExportData("S1", emptyList()), 1))
+        val input = listOf(ParsedStudentImportData(StudentExportData("S1", "", emptyList()), 1))
         val (data, map, show) = delegate.prepareImportDialog(input)
 
         assertEquals(input, data)

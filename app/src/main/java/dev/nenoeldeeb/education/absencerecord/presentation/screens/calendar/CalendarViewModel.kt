@@ -9,8 +9,8 @@ import dev.nenoeldeeb.education.absencerecord.domain.models.StudentAttendance
 import dev.nenoeldeeb.education.absencerecord.domain.usecases.AttendanceUseCases
 import dev.nenoeldeeb.education.absencerecord.domain.usecases.ClassManagementUseCases
 import dev.nenoeldeeb.education.absencerecord.domain.usecases.StudentManagementUseCases
-import dev.nenoeldeeb.education.absencerecord.presentation.screens.components.ClassFilter
 import dev.nenoeldeeb.education.absencerecord.presentation.utils.UiText
+import dev.nenoeldeeb.education.absencerecord.presentation.utils.applyClassFilter
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -49,7 +49,7 @@ class CalendarViewModel(
                         _uiState.update { state ->
                             state.copy(
                                 allStudents =
-                                    applyFilter(students, state.selectedClassFilter)
+                                    students.applyClassFilter(state.selectedClassFilter)
                             )
                         }
                     }
@@ -78,12 +78,6 @@ class CalendarViewModel(
         }
     }
 
-    private fun applyFilter(students: List<Student>, filter: ClassFilter): List<Student> =
-        when (filter) {
-            ClassFilter.All -> students
-            ClassFilter.Unassigned -> students.filter { it.classId == null }
-            is ClassFilter.ByClass -> students.filter { it.classId == filter.studentClass.id }
-        }
 
     fun onEvent(event: CalendarScreenEvent) {
         when (event) {
@@ -111,7 +105,7 @@ class CalendarViewModel(
                     state.copy(
                         selectedClassFilter = event.filter,
                         classDropdownExpanded = false,
-                        allStudents = applyFilter(_rawStudents, event.filter)
+                        allStudents = _rawStudents.applyClassFilter(event.filter)
                     )
                 }
 
