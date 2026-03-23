@@ -35,15 +35,18 @@ fun ClassFilterDropdown(
     modifier: Modifier = Modifier,
     trailingIcon: (@Composable () -> Unit)? = null
 ) {
-    val label = when (selectedFilter) {
-        ClassFilter.All -> stringResource(R.string.class_filter_all)
-        ClassFilter.Unassigned -> stringResource(R.string.class_filter_unassigned)
-        is ClassFilter.ByClass -> selectedFilter.studentClass.name
-    }
+    val label =
+        when (selectedFilter) {
+            ClassFilter.All -> stringResource(R.string.class_filter_all)
+            ClassFilter.Unassigned -> stringResource(R.string.class_filter_unassigned)
+            is ClassFilter.ByClass -> selectedFilter.studentClass.name
+        }
 
     Row(modifier = modifier, verticalAlignment = Alignment.CenterVertically) {
         ExposedDropdownMenuBox(
-            expanded = expanded, onExpandedChange = onExpandedChange, modifier = Modifier.weight(1f)
+            expanded = expanded,
+            onExpandedChange = onExpandedChange,
+            modifier = Modifier.weight(1f)
         ) {
             OutlinedTextField(
                 value = label,
@@ -54,63 +57,81 @@ fun ClassFilterDropdown(
                     ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
                 },
                 textStyle = TextStyle(textDirection = TextDirection.Content),
-                modifier = Modifier
-                    .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable)
-                    .fillMaxWidth()
+                modifier =
+                    Modifier
+                        .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable)
+                        .fillMaxWidth()
             )
 
             ExposedDropdownMenu(
-                expanded = expanded, onDismissRequest = { onExpandedChange(false) }) {
+                expanded = expanded,
+                onDismissRequest = { onExpandedChange(false) }
+            ) {
                 // All
                 DropdownMenuItem(
                     text = { Text(stringResource(R.string.class_filter_all)) },
                     onClick = { onFilterSelected(ClassFilter.All) },
-                    leadingIcon = if (selectedFilter == ClassFilter.All) {
-                        {
-                            Icon(
-                                imageVector = ImageVector.vectorResource(
-                                    R.drawable.outline_check_24
-                                ),
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.primary,
-                                modifier = Modifier.size(18.dp)
-                            )
+                    leadingIcon =
+                        if (selectedFilter == ClassFilter.All) {
+                            {
+                                Icon(
+                                    imageVector =
+                                        ImageVector.vectorResource(
+                                            R.drawable.outline_check_24
+                                        ),
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier.size(18.dp)
+                                )
+                            }
+                        } else {
+                            null
                         }
-                    } else null)
+                )
                 // Unassigned
                 DropdownMenuItem(
                     text = { Text(stringResource(R.string.class_filter_unassigned)) },
                     onClick = { onFilterSelected(ClassFilter.Unassigned) },
-                    leadingIcon = if (selectedFilter == ClassFilter.Unassigned) {
-                        {
-                            Icon(
-                                imageVector = ImageVector.vectorResource(
-                                    R.drawable.outline_check_24
-                                ),
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.primary,
-                                modifier = Modifier.size(18.dp)
-                            )
+                    leadingIcon =
+                        if (selectedFilter == ClassFilter.Unassigned) {
+                            {
+                                Icon(
+                                    imageVector =
+                                        ImageVector.vectorResource(
+                                            R.drawable.outline_check_24
+                                        ),
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier.size(18.dp)
+                                )
+                            }
+                        } else {
+                            null
                         }
-                    } else null)
+                )
                 // Named classes
                 availableClasses.forEach { cls ->
                     val isSelected = selectedFilter is ClassFilter.ByClass && selectedFilter.studentClass.id == cls.id
                     DropdownMenuItem(
                         text = { Text(text = cls.name) },
                         onClick = { onFilterSelected(ClassFilter.ByClass(cls)) },
-                        leadingIcon = if (isSelected) {
-                            {
-                                Icon(
-                                    imageVector = ImageVector.vectorResource(
-                                        R.drawable.outline_check_24
-                                    ),
-                                    contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.primary,
-                                    modifier = Modifier.size(18.dp)
-                                )
+                        leadingIcon =
+                            if (isSelected) {
+                                {
+                                    Icon(
+                                        imageVector =
+                                            ImageVector.vectorResource(
+                                                R.drawable.outline_check_24
+                                            ),
+                                        contentDescription = null,
+                                        tint = MaterialTheme.colorScheme.primary,
+                                        modifier = Modifier.size(18.dp)
+                                    )
+                                }
+                            } else {
+                                null
                             }
-                        } else null)
+                    )
                 }
             }
         }

@@ -9,45 +9,50 @@ import java.io.File
 import kotlin.coroutines.cancellation.CancellationException
 
 class StorageRepositoryImpl(
-    private val context: Context, private val dispatcherProvider: DispatcherProvider
+    private val context: Context,
+    private val dispatcherProvider: DispatcherProvider
 ) : StorageRepository {
-    override suspend fun readTextFromUri(uriString: String): Result<String> = withContext(dispatcherProvider.io) {
-        try {
-            val uri = uriString.toUri()
-            val content = context.contentResolver.openInputStream(uri)?.use { inputStream ->
-                inputStream.readBytes().decodeToString()
+    override suspend fun readTextFromUri(uriString: String): Result<String> =
+        withContext(dispatcherProvider.io) {
+            try {
+                val uri = uriString.toUri()
+                val content =
+                    context.contentResolver.openInputStream(uri)?.use { inputStream ->
+                        inputStream.readBytes().decodeToString()
+                    }
+                if (content != null) {
+                    Result.success(content)
+                } else {
+                    Result.failure(Exception())
+                }
+            } catch (e: Exception) {
+                if (e is CancellationException) throw e
+                Result.failure(e)
             }
-            if (content != null) {
-                Result.success(content)
-            } else {
-                Result.failure(Exception())
-            }
-        } catch (e: Exception) {
-            if (e is CancellationException) throw e
-            Result.failure(e)
         }
-    }
 
     override suspend fun writeTextToUri(
-        uriString: String, text: String
-    ): Result<Unit> = withContext(dispatcherProvider.io) {
-        try {
-            val uri = uriString.toUri()
-            // For file URIs, convert to File and use FileOutputStream to ensure truncation
-            if (uri.scheme == "file") {
-                val file = File(uri.path ?: return@withContext Result.failure(Exception()))
-                file.writeText(text)
-                Result.success(Unit)
-            } else {
-                // For other URI schemes (content://, etc.), use ContentResolver
-                context.contentResolver.openOutputStream(uri, "w")?.use { outputStream ->
-                    outputStream.write(text.toByteArray())
+        uriString: String,
+        text: String
+    ): Result<Unit> =
+        withContext(dispatcherProvider.io) {
+            try {
+                val uri = uriString.toUri()
+                // For file URIs, convert to File and use FileOutputStream to ensure truncation
+                if (uri.scheme == "file") {
+                    val file = File(uri.path ?: return@withContext Result.failure(Exception()))
+                    file.writeText(text)
+                    Result.success(Unit)
+                } else {
+                    // For other URI schemes (content://, etc.), use ContentResolver
+                    context.contentResolver.openOutputStream(uri, "w")?.use { outputStream ->
+                        outputStream.write(text.toByteArray())
+                    }
+                    Result.success(Unit)
                 }
-                Result.success(Unit)
+            } catch (e: Exception) {
+                if (e is CancellationException) throw e
+                Result.failure(e)
             }
-        } catch (e: Exception) {
-            if (e is CancellationException) throw e
-            Result.failure(e)
         }
-    }
 }

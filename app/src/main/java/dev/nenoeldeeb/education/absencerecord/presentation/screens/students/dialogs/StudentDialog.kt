@@ -50,11 +50,12 @@ internal fun StudentDialog(
     onDismiss: () -> Unit
 ) {
     val isEditMode = showEditDialog != null
-    val dialogTitle = if (isEditMode) {
-        stringResource(R.string.edit_student)
-    } else {
-        stringResource(R.string.new_student_label)
-    }
+    val dialogTitle =
+        if (isEditMode) {
+            stringResource(R.string.edit_student)
+        } else {
+            stringResource(R.string.new_student_label)
+        }
 
     // Initialize class selection from the student being edited (or null = unassigned)
     var selectedClass by remember(showEditDialog) {
@@ -65,16 +66,20 @@ internal fun StudentDialog(
     val classLabel = selectedClass?.name ?: stringResource(R.string.class_unassigned_label)
 
     AlertDialog(
-        onDismissRequest = onDismiss, title = { Text(dialogTitle) }, text = {
+        onDismissRequest = onDismiss,
+        title = { Text(dialogTitle) },
+        text = {
             Column {
                 OutlinedTextField(
                     value = newStudentName,
                     onValueChange = onStudentNameChange,
                     label = { Text(stringResource(R.string.student_name_label)) },
                     singleLine = true,
-                    keyboardOptions = KeyboardOptions(
-                        capitalization = KeyboardCapitalization.Words, imeAction = ImeAction.Done
-                    ),
+                    keyboardOptions =
+                        KeyboardOptions(
+                            capitalization = KeyboardCapitalization.Words,
+                            imeAction = ImeAction.Done
+                        ),
                     textStyle = TextStyle(textDirection = TextDirection.Content),
                     modifier = Modifier.fillMaxWidth()
                 )
@@ -84,9 +89,10 @@ internal fun StudentDialog(
                     ExposedDropdownMenuBox(
                         expanded = classDropdownExpanded,
                         onExpandedChange = { classDropdownExpanded = it },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(top = 12.dp)
+                        modifier =
+                            Modifier
+                                .fillMaxWidth()
+                                .padding(top = 12.dp)
                     ) {
                         OutlinedTextField(
                             value = classLabel,
@@ -98,48 +104,65 @@ internal fun StudentDialog(
                                     expanded = classDropdownExpanded
                                 )
                             },
-                            modifier = Modifier
-                                .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable)
-                                .fillMaxWidth()
+                            modifier =
+                                Modifier
+                                    .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable)
+                                    .fillMaxWidth()
                         )
                         ExposedDropdownMenu(
-                            expanded = classDropdownExpanded, onDismissRequest = { classDropdownExpanded = false }) {
+                            expanded = classDropdownExpanded,
+                            onDismissRequest = { classDropdownExpanded = false }
+                        ) {
                             // Unassigned option
                             DropdownMenuItem(
                                 text = {
                                     Text(stringResource(R.string.class_unassigned_label))
-                                }, onClick = {
+                                },
+                                onClick = {
                                     selectedClass = null
                                     classDropdownExpanded = false
-                                }, leadingIcon = if (selectedClass == null) {
-                                    {
-                                        Icon(
-                                            imageVector = ImageVector.vectorResource(
-                                                R.drawable.outline_check_24
-                                            ),
-                                            contentDescription = null,
-                                            tint = MaterialTheme.colorScheme.primary,
-                                            modifier = Modifier.size(18.dp)
-                                        )
-                                    }
-                                } else null)
-                            availableClasses.forEach { cls ->
-                                DropdownMenuItem(
-                                    text = { Text(cls.name) }, onClick = {
-                                        selectedClass = cls
-                                        classDropdownExpanded = false
-                                    }, leadingIcon = if (selectedClass?.id == cls.id) {
+                                },
+                                leadingIcon =
+                                    if (selectedClass == null) {
                                         {
                                             Icon(
-                                                imageVector = ImageVector.vectorResource(
-                                                    R.drawable.outline_check_24
-                                                ),
+                                                imageVector =
+                                                    ImageVector.vectorResource(
+                                                        R.drawable.outline_check_24
+                                                    ),
                                                 contentDescription = null,
                                                 tint = MaterialTheme.colorScheme.primary,
                                                 modifier = Modifier.size(18.dp)
                                             )
                                         }
-                                    } else null)
+                                    } else {
+                                        null
+                                    }
+                            )
+                            availableClasses.forEach { cls ->
+                                DropdownMenuItem(
+                                    text = { Text(cls.name) },
+                                    onClick = {
+                                        selectedClass = cls
+                                        classDropdownExpanded = false
+                                    },
+                                    leadingIcon =
+                                        if (selectedClass?.id == cls.id) {
+                                            {
+                                                Icon(
+                                                    imageVector =
+                                                        ImageVector.vectorResource(
+                                                            R.drawable.outline_check_24
+                                                        ),
+                                                    contentDescription = null,
+                                                    tint = MaterialTheme.colorScheme.primary,
+                                                    modifier = Modifier.size(18.dp)
+                                                )
+                                            }
+                                        } else {
+                                            null
+                                        }
+                                )
                             }
                         }
                     }
@@ -147,32 +170,41 @@ internal fun StudentDialog(
 
                 if (!isEditMode) {
                     Button(
-                        onClick = onImportClick, modifier = Modifier
-                            .padding(top = 16.dp)
-                            .fillMaxWidth()
-                            .wrapContentWidth()
+                        onClick = onImportClick,
+                        modifier =
+                            Modifier
+                                .padding(top = 16.dp)
+                                .fillMaxWidth()
+                                .wrapContentWidth()
                     ) {
                         Icon(
-                            imageVector = ImageVector.vectorResource(
-                                id = R.drawable.outline_file_upload_24
-                            ), contentDescription = null, modifier = Modifier.padding(end = 8.dp)
+                            imageVector =
+                                ImageVector.vectorResource(
+                                    id = R.drawable.outline_file_upload_24
+                                ),
+                            contentDescription = null,
+                            modifier = Modifier.padding(end = 8.dp)
                         )
                         Text(stringResource(R.string.import_students_action))
                     }
                 }
             }
-        }, confirmButton = {
+        },
+        confirmButton = {
             Button(
                 enabled = newStudentName.isNotBlank(),
-                onClick = { onSave(showEditDialog, newStudentName, selectedClass?.id) }) {
+                onClick = { onSave(showEditDialog, newStudentName, selectedClass?.id) }
+            ) {
                 Text(
                     stringResource(
                         if (isEditMode) R.string.action_save else R.string.action_add
                     )
                 )
             }
-        }, dismissButton = {
+        },
+        dismissButton = {
             TextButton(onClick = onDismiss) { Text(stringResource(R.string.action_cancel)) }
-        }, modifier = modifier
+        },
+        modifier = modifier
     )
 }

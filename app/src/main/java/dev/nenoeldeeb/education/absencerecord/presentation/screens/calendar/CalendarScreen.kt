@@ -85,16 +85,17 @@ fun CalendarScreen(
                 onFilterSelected = {
                     viewModel.onEvent(CalendarScreenEvent.SelectClassFilter(it))
                 },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 8.dp, vertical = 4.dp)
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 8.dp, vertical = 4.dp)
             )
         }
         ComposeCalendar(
             modifier = Modifier.weight(1f),
             onDateSelected = { date ->
                 viewModel.onEvent(CalendarScreenEvent.SelectDateForDialog(date))
-            },
+            }
         )
     }
 
@@ -159,7 +160,11 @@ internal fun AttendanceDialog(
 }
 
 @Composable
-internal fun DialogTitle(selectedDate: LocalDate, totalStudents: Int, presentCount: Int) {
+internal fun DialogTitle(
+    selectedDate: LocalDate,
+    totalStudents: Int,
+    presentCount: Int
+) {
     val month = selectedDate.month.toUiText(fullName = false).asString()
     val dayName = selectedDate.dayOfWeek.toUiText(fullName = true).asString()
 
@@ -223,7 +228,11 @@ internal fun DialogContent(
 }
 
 @Composable
-internal fun StudentListItem(modifier: Modifier = Modifier, student: Student, isPresent: Boolean) {
+internal fun StudentListItem(
+    modifier: Modifier = Modifier,
+    student: Student,
+    isPresent: Boolean
+) {
     val contentDescription =
         stringResource(
             if (isPresent) {
@@ -251,9 +260,10 @@ internal fun StudentListItem(modifier: Modifier = Modifier, student: Student, is
                     MaterialTheme.typography.bodyLarge.copy(
                         textDirection = TextDirection.Content
                     ),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .wrapContentWidth()
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .wrapContentWidth()
             )
         },
         colors = listItemColors,

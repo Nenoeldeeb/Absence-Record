@@ -33,25 +33,33 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun MainScreen(contentPadding: PaddingValues) {
     // 0: Students, 1: Calendar, 2: Report
-    val pagerState = rememberPagerState(
-        initialPage = 1, pageCount = { 3 })
+    val pagerState =
+        rememberPagerState(
+            initialPage = 1,
+            pageCount = { 3 }
+        )
 
     HorizontalPager(
-        state = pagerState, contentPadding = contentPadding
+        state = pagerState,
+        contentPadding = contentPadding
     ) { page ->
         when (page) {
             0 -> StudentsScreen(modifier = Modifier.fillMaxSize())
-            1 -> CalendarScreen(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(8.dp)
-            )
+            1 ->
+                CalendarScreen(
+                    modifier =
+                        Modifier
+                            .fillMaxSize()
+                            .padding(8.dp)
+                )
 
-            2 -> ReportScreen(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(8.dp)
-            )
+            2 ->
+                ReportScreen(
+                    modifier =
+                        Modifier
+                            .fillMaxSize()
+                            .padding(8.dp)
+                )
         }
     }
 }

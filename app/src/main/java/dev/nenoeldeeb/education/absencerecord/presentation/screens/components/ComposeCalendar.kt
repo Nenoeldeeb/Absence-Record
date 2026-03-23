@@ -61,10 +61,11 @@ fun ComposeCalendar(
     initialMonth: LocalDate? = null,
     markedDates: Set<LocalDate> = emptySet()
 ) {
-    val today = rememberSaveable {
-        val curr = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault())
-        LocalDate(curr.year, curr.month, curr.day)
-    }
+    val today =
+        rememberSaveable {
+            val curr = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault())
+            LocalDate(curr.year, curr.month, curr.day)
+        }
     var displayedMonth by rememberSaveable {
         mutableStateOf(
             initialMonth ?: today
@@ -81,19 +82,21 @@ fun ComposeCalendar(
             modifier = modifier
         ) {
             val isLandscape = maxWidth > maxHeight
-            val optimalWidth = if (isLandscape) {
-                // In landscape, use a size that's proportional to the height
-                minOf(maxWidth, maxHeight * 2f)
-            } else {
-                // In portrait, use full width but ensure cells aren't too big
-                minOf(maxWidth, 400.dp)
-            }
+            val optimalWidth =
+                if (isLandscape) {
+                    // In landscape, use a size that's proportional to the height
+                    minOf(maxWidth, maxHeight * 2f)
+                } else {
+                    // In portrait, use full width but ensure cells aren't too big
+                    minOf(maxWidth, 400.dp)
+                }
 
             Column(
-                modifier = Modifier
-                    .width(optimalWidth)
-                    .padding(8.dp)
-                    .align(Alignment.Center)
+                modifier =
+                    Modifier
+                        .width(optimalWidth)
+                        .padding(8.dp)
+                        .align(Alignment.Center)
             ) {
                 CalendarHeader(
                     displayedMonth = displayedMonth,
@@ -101,9 +104,10 @@ fun ComposeCalendar(
                         displayedMonth = displayedMonth.minus(1, DateTimeUnit.MONTH)
                     },
                     onNextMonth = { displayedMonth = displayedMonth.plus(1, DateTimeUnit.MONTH) },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 8.dp)
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 8.dp)
                 )
                 DaysOfWeekHeader(modifier = Modifier.fillMaxWidth())
                 Spacer(modifier = Modifier.height(8.dp))
@@ -121,7 +125,10 @@ fun ComposeCalendar(
 
 @Composable
 private fun CalendarHeader(
-    displayedMonth: LocalDate, onPreviousMonth: () -> Unit, onNextMonth: () -> Unit, modifier: Modifier = Modifier
+    displayedMonth: LocalDate,
+    onPreviousMonth: () -> Unit,
+    onNextMonth: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
     // Force LTR layout for header
     CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
@@ -159,16 +166,18 @@ private fun DaysOfWeekHeader(modifier: Modifier = Modifier) {
     // Force LTR layout for days header
     CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
         Row(
-            modifier = modifier, horizontalArrangement = Arrangement.SpaceAround
+            modifier = modifier,
+            horizontalArrangement = Arrangement.SpaceAround
         ) {
             // Use device locale for day names, starting from Saturday as per original logic
             // If strict Sat-Fri order is needed regardless of locale, hardcode or adjust DayOfWeek.values()
-            val daysOfWeek = rememberSaveable {
-                // DayOfWeek enum starts with MONDAY. Adjust to start with Saturday for this calendar.
-                val weekDays = DayOfWeek.entries.toTypedArray() // MONDAY to SUNDAY
-                // Rotate to SATURDAY, SUNDAY, MONDAY ... FRIDAY
-                weekDays.drop(DayOfWeek.SATURDAY.isoDayNumber - 1) + weekDays.take(DayOfWeek.SATURDAY.isoDayNumber - 1)
-            }
+            val daysOfWeek =
+                rememberSaveable {
+                    // DayOfWeek enum starts with MONDAY. Adjust to start with Saturday for this calendar.
+                    val weekDays = DayOfWeek.entries.toTypedArray() // MONDAY to SUNDAY
+                    // Rotate to SATURDAY, SUNDAY, MONDAY ... FRIDAY
+                    weekDays.drop(DayOfWeek.SATURDAY.isoDayNumber - 1) + weekDays.take(DayOfWeek.SATURDAY.isoDayNumber - 1)
+                }
 
             daysOfWeek.forEach { day ->
                 Text(
@@ -200,17 +209,20 @@ private fun CalendarGrid(
             modifier = modifier
         ) {
             items(
-                days.size, key = { index -> days[index]?.toString() ?: "empty-$index" }) { index ->
+                days.size,
+                key = { index -> days[index]?.toString() ?: "empty-$index" }
+            ) { index ->
                 val day = days[index]
                 DayCell(
                     day = day,
                     isCurrentDay = day == today,
                     isMarked = markedDates.contains(day),
                     onDateSelected = onDateSelected,
-                    modifier = Modifier
-                        .aspectRatio(1f)
-                        .padding(2.dp)
-                        .clip(CircleShape)
+                    modifier =
+                        Modifier
+                            .aspectRatio(1f)
+                            .padding(2.dp)
+                            .clip(CircleShape)
                 )
             }
         }
@@ -225,47 +237,56 @@ private fun DayCell(
     onDateSelected: (LocalDate) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val dayContentDescription = if (isMarked) {
-        stringResource(R.string.content_description_present)
-    } else if (isCurrentDay) {
-        stringResource(R.string.content_description_today)
-    } else {
-        ""
-    }
+    val dayContentDescription =
+        if (isMarked) {
+            stringResource(R.string.content_description_present)
+        } else if (isCurrentDay) {
+            stringResource(R.string.content_description_today)
+        } else {
+            ""
+        }
     Box(
-        modifier = modifier
-            .then(
-                if (day != null) {
-                    Modifier.clickable { onDateSelected(day) }
-                } else {
-                    Modifier
-                })
-            .then(
-                when {
-                    isMarked -> Modifier.background(
-                        MaterialTheme.colorScheme.secondary
-                    )
+        modifier =
+            modifier
+                .then(
+                    if (day != null) {
+                        Modifier.clickable { onDateSelected(day) }
+                    } else {
+                        Modifier
+                    }
+                )
+                .then(
+                    when {
+                        isMarked ->
+                            Modifier.background(
+                                MaterialTheme.colorScheme.secondary
+                            )
 
-                    isCurrentDay && day != null -> Modifier.background(
-                        MaterialTheme.colorScheme.primary
-                    )
+                        isCurrentDay && day != null ->
+                            Modifier.background(
+                                MaterialTheme.colorScheme.primary
+                            )
 
-                    else -> Modifier
-                }
-            )
-            .semantics {
-                day?.let {
-                    contentDescription = dayContentDescription
-                }
-            }, contentAlignment = Alignment.Center
+                        else -> Modifier
+                    }
+                )
+                .semantics {
+                    day?.let {
+                        contentDescription = dayContentDescription
+                    }
+                },
+        contentAlignment = Alignment.Center
     ) {
         day?.let {
             Text(
-                text = it.day.toString(), style = MaterialTheme.typography.bodyMedium, color = when {
-                    isMarked -> MaterialTheme.colorScheme.onSecondary
-                    isCurrentDay -> MaterialTheme.colorScheme.onPrimary
-                    else -> MaterialTheme.colorScheme.onSurface
-                }
+                text = it.day.toString(),
+                style = MaterialTheme.typography.bodyMedium,
+                color =
+                    when {
+                        isMarked -> MaterialTheme.colorScheme.onSecondary
+                        isCurrentDay -> MaterialTheme.colorScheme.onPrimary
+                        else -> MaterialTheme.colorScheme.onSurface
+                    }
             )
         }
     }

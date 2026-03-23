@@ -29,11 +29,12 @@ internal fun StudentList(
         items(allStudents, key = { it.id }) { student ->
             val isSelected = selectedStudentIds.contains(student.id)
             ListItem(
-                modifier = Modifier
-                    .combinedClickable(
-                        onClick = { onStudentClick(student) },
-                        onLongClick = { onStudentLongClick(student.id) }
-                    ),
+                modifier =
+                    Modifier
+                        .combinedClickable(
+                            onClick = { onStudentClick(student) },
+                            onLongClick = { onStudentLongClick(student.id) }
+                        ),
                 headlineContent = {
                     Text(
                         student.name,
@@ -41,9 +42,10 @@ internal fun StudentList(
                         textAlign = TextAlign.Start,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .wrapContentWidth()
+                        modifier =
+                            Modifier
+                                .fillMaxWidth()
+                                .wrapContentWidth()
                     )
                 },
                 colors =

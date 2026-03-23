@@ -17,34 +17,48 @@ import dev.nenoeldeeb.education.absencerecord.R
 
 @Composable
 internal fun BulkDeleteConfirmationDialog(
-    selectedStudentIds: Set<Int>, modifier: Modifier = Modifier, onConfirmDelete: () -> Unit, onDismiss: () -> Unit
+    selectedStudentIds: Set<Int>,
+    modifier: Modifier = Modifier,
+    onConfirmDelete: () -> Unit,
+    onDismiss: () -> Unit
 ) {
     AlertDialog(
-        onDismissRequest = onDismiss, icon = {
+        onDismissRequest = onDismiss,
+        icon = {
             Icon(
                 ImageVector.vectorResource(id = R.drawable.outline_warning_24),
                 stringResource(R.string.bulk_delete_confirmation_title)
             )
-        }, title = { Text(stringResource(R.string.bulk_delete_confirmation_title)) }, text = {
+        },
+        title = { Text(stringResource(R.string.bulk_delete_confirmation_title)) },
+        text = {
             Text(
                 pluralStringResource(
-                    R.plurals.bulk_delete_confirmation_message, selectedStudentIds.size, selectedStudentIds.size
+                    R.plurals.bulk_delete_confirmation_message,
+                    selectedStudentIds.size,
+                    selectedStudentIds.size
                 )
             )
-        }, confirmButton = {
+        },
+        confirmButton = {
             Button(
-                onClick = onConfirmDelete, colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.error
-                )
+                onClick = onConfirmDelete,
+                colors =
+                    ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.error
+                    )
             ) {
                 Text(
-                    stringResource(R.string.action_delete), color = MaterialTheme.colorScheme.onError
+                    stringResource(R.string.action_delete),
+                    color = MaterialTheme.colorScheme.onError
                 )
             }
-        }, dismissButton = {
+        },
+        dismissButton = {
             TextButton(onClick = onDismiss) {
                 Text(stringResource(R.string.action_cancel))
             }
-        }, modifier = modifier
+        },
+        modifier = modifier
     )
 }

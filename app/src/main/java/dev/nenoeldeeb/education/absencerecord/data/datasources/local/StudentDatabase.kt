@@ -33,20 +33,27 @@ abstract class AppDatabase : RoomDatabase() {
         @Volatile
         private var instance: AppDatabase? = null
 
-        private val MIGRATION_1_2 = object : Migration(1, 2) {
-            override fun migrate(db: SupportSQLiteDatabase) {
-                db.execSQL(
-                    "CREATE TABLE IF NOT EXISTS `classes` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `name` TEXT NOT NULL)"
-                )
-                db.execSQL("ALTER TABLE `students` ADD COLUMN `classId` INTEGER")
+        private val MIGRATION_1_2 =
+            object : Migration(1, 2) {
+                override fun migrate(db: SupportSQLiteDatabase) {
+                    db.execSQL(
+                        """
+                        CREATE TABLE IF NOT EXISTS `classes` (
+                            `id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                            `name` TEXT NOT NULL
+                        )
+                        """.trimIndent()
+                    )
+                    db.execSQL("ALTER TABLE `students` ADD COLUMN `classId` INTEGER")
+                }
             }
-        }
 
-        fun getDatabase(context: Context): AppDatabase = instance ?: synchronized(this) {
-            instance ?: Room.databaseBuilder(
-                context.applicationContext, AppDatabase::class.java, "students.db"
-            ).addMigrations(MIGRATION_1_2).build().also { instance = it }
-        }
+        fun getDatabase(context: Context): AppDatabase =
+            instance ?: synchronized(this) {
+                instance ?: Room.databaseBuilder(
+                    context.applicationContext, AppDatabase::class.java, "students.db"
+                ).addMigrations(MIGRATION_1_2).build().also { instance = it }
+            }
     }
 }
 

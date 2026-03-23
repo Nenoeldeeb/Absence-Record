@@ -49,11 +49,12 @@ internal fun ImportSelectionDialog(
         text = {
             Column {
                 Text(
-                    text = pluralStringResource(
-                        R.plurals.import_preview_message,
-                        items.size,
-                        items.size
-                    ),
+                    text =
+                        pluralStringResource(
+                            R.plurals.import_preview_message,
+                            items.size,
+                            items.size
+                        ),
                     style = MaterialTheme.typography.bodyMedium,
                     modifier = Modifier.padding(bottom = 8.dp)
                 )
@@ -62,9 +63,10 @@ internal fun ImportSelectionDialog(
                     SelectAllRow(
                         allSelected = allSelected,
                         onSelectAll = onSelectAll,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 4.dp)
+                        modifier =
+                            Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 4.dp)
                     )
                     HorizontalDivider()
                 }
@@ -74,9 +76,10 @@ internal fun ImportSelectionDialog(
                         item {
                             Text(
                                 text = stringResource(R.string.no_items_available),
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(16.dp),
+                                modifier =
+                                    Modifier
+                                        .fillMaxWidth()
+                                        .padding(16.dp),
                                 textAlign = TextAlign.Center
                             )
                         }
@@ -86,9 +89,10 @@ internal fun ImportSelectionDialog(
                                 item = item,
                                 isSelected = importSelectionMap[item.id] == true,
                                 onToggle = { onToggleSelection(item.id) },
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(vertical = 8.dp)
+                                modifier =
+                                    Modifier
+                                        .fillMaxWidth()
+                                        .padding(vertical = 8.dp)
                             )
                             HorizontalDivider()
                         }
@@ -120,8 +124,9 @@ private fun SelectAllRow(
     modifier: Modifier = Modifier
 ) {
     Row(
-        modifier = modifier
-            .clickable { onSelectAll(!allSelected) },
+        modifier =
+            modifier
+                .clickable { onSelectAll(!allSelected) },
         verticalAlignment = Alignment.CenterVertically
     ) {
         Checkbox(
@@ -143,8 +148,9 @@ private fun StudentImportItemRow(
     modifier: Modifier = Modifier
 ) {
     Row(
-        modifier = modifier
-            .clickable(onClick = onToggle),
+        modifier =
+            modifier
+                .clickable(onClick = onToggle),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Checkbox(
@@ -159,9 +165,11 @@ private fun StudentImportItemRow(
         )
         Spacer(Modifier.width(8.dp))
         Text(
-            text = stringResource(
-                R.string.imported_dates_count, item.originalData.dates.size
-            ),
+            text =
+                stringResource(
+                    R.string.imported_dates_count,
+                    item.originalData.dates.size
+                ),
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.outline
         )

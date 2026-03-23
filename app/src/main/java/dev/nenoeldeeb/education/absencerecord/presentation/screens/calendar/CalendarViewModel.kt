@@ -32,7 +32,7 @@ class CalendarViewModel(
     private val _uiState = MutableStateFlow(CalendarScreenState())
     val uiState: StateFlow<CalendarScreenState> = _uiState.asStateFlow()
 
-    private var _rawStudents: List<Student> = emptyList()
+    private var rawStudents: List<Student> = emptyList()
 
     init {
         initializeStudents()
@@ -45,7 +45,7 @@ class CalendarViewModel(
             studentManagementUseCases.getAllStudentsUseCase().collectLatest { result ->
                 result
                     .onSuccess { students ->
-                        _rawStudents = students
+                        rawStudents = students
                         _uiState.update { state ->
                             state.copy(
                                 allStudents =
@@ -78,7 +78,6 @@ class CalendarViewModel(
         }
     }
 
-
     fun onEvent(event: CalendarScreenEvent) {
         when (event) {
             is CalendarScreenEvent.MarkStudentAttendance ->
@@ -105,7 +104,7 @@ class CalendarViewModel(
                     state.copy(
                         selectedClassFilter = event.filter,
                         classDropdownExpanded = false,
-                        allStudents = _rawStudents.applyClassFilter(event.filter)
+                        allStudents = rawStudents.applyClassFilter(event.filter)
                     )
                 }
 
@@ -146,7 +145,10 @@ class CalendarViewModel(
         }
     }
 
-    private fun markStudentAttendance(studentId: Int, date: LocalDate) {
+    private fun markStudentAttendance(
+        studentId: Int,
+        date: LocalDate
+    ) {
         viewModelScope.launch {
             attendanceUseCases.recordStudentAttendanceUseCase(
                 StudentAttendance(studentId = studentId, date = date)
@@ -165,7 +167,10 @@ class CalendarViewModel(
         }
     }
 
-    private fun deleteStudentAttendance(studentId: Int, date: LocalDate) {
+    private fun deleteStudentAttendance(
+        studentId: Int,
+        date: LocalDate
+    ) {
         viewModelScope.launch {
             attendanceUseCases.deleteStudentAttendanceUseCase(studentId, date).onFailure { e ->
                 _uiState.update {

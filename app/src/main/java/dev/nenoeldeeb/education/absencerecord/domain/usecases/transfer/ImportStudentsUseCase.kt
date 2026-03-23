@@ -79,17 +79,20 @@ class ImportStudentsUseCase(
 
                     studentsToImport.forEach { studentData ->
                         val className = studentData.className.trim()
-                        val classId = if (className.isNotBlank()) {
-                            if (classCache.containsKey(className)) {
-                                classCache[className]
-                            } else {
-                                val newClassId = studentClassRepository.getOrCreateClassByName(className).getOrNull()
-                                if (newClassId != null) {
-                                    classCache[className] = newClassId
+                        val classId =
+                            if (className.isNotBlank()) {
+                                if (classCache.containsKey(className)) {
+                                    classCache[className]
+                                } else {
+                                    val newClassId = studentClassRepository.getOrCreateClassByName(className).getOrNull()
+                                    if (newClassId != null) {
+                                        classCache[className] = newClassId
+                                    }
+                                    newClassId
                                 }
-                                newClassId
+                            } else {
+                                null
                             }
-                        } else null
 
                         val studentId =
                             existingMap[studentData.name]?.let { existingStudent ->

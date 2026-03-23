@@ -30,7 +30,8 @@ class StudentsScreenTest {
     private val context = InstrumentationRegistry.getInstrumentation().targetContext
 
     private fun getString(
-        resId: Int, vararg formatArgs: Any
+        resId: Int,
+        vararg formatArgs: Any
     ): String {
         return context.getString(resId, *formatArgs)
     }
@@ -61,7 +62,8 @@ class StudentsScreenTest {
                     onStudentNameChange = {},
                     onSave = { _, _, _ -> },
                     onImportClick = {},
-                    onDismiss = {})
+                    onDismiss = {}
+                )
             }
         }
 
@@ -84,7 +86,8 @@ class StudentsScreenTest {
                     onStudentNameChange = {},
                     onSave = { _, _, _ -> },
                     onImportClick = {},
-                    onDismiss = {})
+                    onDismiss = {}
+                )
             }
         }
 
@@ -107,7 +110,8 @@ class StudentsScreenTest {
                     onStudentNameChange = {},
                     onSave = { _, _, _ -> },
                     onImportClick = {},
-                    onDismiss = {})
+                    onDismiss = {}
+                )
             }
         }
 
@@ -120,9 +124,11 @@ class StudentsScreenTest {
 
     @Test
     fun multiSelectionHeader_displaysSelectedCount() {
-        val uiState = StudentsScreenState(
-            isMultiSelectionMode = true, selectedStudentIds = setOf(1, 2, 3)
-        )
+        val uiState =
+            StudentsScreenState(
+                isMultiSelectionMode = true,
+                selectedStudentIds = setOf(1, 2, 3)
+            )
 
         composeTestRule.setContent {
             AbsenceRecordTheme {
@@ -132,7 +138,8 @@ class StudentsScreenTest {
                     onToggleSelection = {},
                     onExport = {},
                     onExportAndDelete = {},
-                    onShowDeleteDialog = {})
+                    onShowDeleteDialog = {}
+                )
             }
         }
 
@@ -152,7 +159,8 @@ class StudentsScreenTest {
                     onToggleSelection = {},
                     onExport = {},
                     onExportAndDelete = {},
-                    onShowDeleteDialog = {})
+                    onShowDeleteDialog = {}
+                )
             }
         }
 
@@ -174,7 +182,8 @@ class StudentsScreenTest {
                 BulkDeleteConfirmationDialog(
                     selectedStudentIds = uiState.selectedStudentIds,
                     onConfirmDelete = {},
-                    onDismiss = {})
+                    onDismiss = {}
+                )
             }
         }
 
@@ -188,18 +197,23 @@ class StudentsScreenTest {
 
     @Test
     fun importSelectionDialog_displaysParsedStudents() {
-        val parsedStudents = listOf(
-            ParsedStudentImportData(
-                id = 1, originalData = StudentExportData(name = "Alice", dates = emptyList())
-            ), ParsedStudentImportData(
-                id = 2, originalData = StudentExportData(name = "Bob", dates = emptyList())
+        val parsedStudents =
+            listOf(
+                ParsedStudentImportData(
+                    id = 1,
+                    originalData = StudentExportData(name = "Alice", dates = emptyList())
+                ),
+                ParsedStudentImportData(
+                    id = 2,
+                    originalData = StudentExportData(name = "Bob", dates = emptyList())
+                )
             )
-        )
-        val uiState = StudentsScreenState(
-            showImportSelectionDialog = true,
-            parsedStudentsFromFile = parsedStudents,
-            importSelectionMap = mapOf(1 to true, 2 to false)
-        )
+        val uiState =
+            StudentsScreenState(
+                showImportSelectionDialog = true,
+                parsedStudentsFromFile = parsedStudents,
+                importSelectionMap = mapOf(1 to true, 2 to false)
+            )
 
         composeTestRule.setContent {
             AbsenceRecordTheme {
@@ -209,7 +223,8 @@ class StudentsScreenTest {
                     onToggleSelection = {},
                     onSelectAll = {},
                     onImport = {},
-                    onDismiss = {})
+                    onDismiss = {}
+                )
             }
         }
 
@@ -219,14 +234,19 @@ class StudentsScreenTest {
 
     @Test
     fun importSelectionDialog_importButtonDisabled_whenNoneSelected() {
-        val parsedStudents = listOf(
-            ParsedStudentImportData(
-                id = 1, originalData = StudentExportData(name = "Alice", dates = emptyList())
+        val parsedStudents =
+            listOf(
+                ParsedStudentImportData(
+                    id = 1,
+                    originalData = StudentExportData(name = "Alice", dates = emptyList())
+                )
             )
-        )
-        val uiState = StudentsScreenState(
-            showImportSelectionDialog = true, parsedStudentsFromFile = parsedStudents, importSelectionMap = mapOf(1 to false)
-        )
+        val uiState =
+            StudentsScreenState(
+                showImportSelectionDialog = true,
+                parsedStudentsFromFile = parsedStudents,
+                importSelectionMap = mapOf(1 to false)
+            )
 
         composeTestRule.setContent {
             AbsenceRecordTheme {
@@ -236,7 +256,8 @@ class StudentsScreenTest {
                     onToggleSelection = {},
                     onSelectAll = {},
                     onImport = {},
-                    onDismiss = {})
+                    onDismiss = {}
+                )
             }
         }
 
