@@ -72,12 +72,13 @@ class ReportViewModelTest {
     }
 
     private fun createViewModel() {
-        viewModel = ReportViewModel(
-            studentManagementUseCases,
-            attendanceUseCases,
-            reportUseCases,
-            mockk<ClassManagementUseCases>(relaxed = true)
-        )
+        viewModel =
+            ReportViewModel(
+                studentManagementUseCases,
+                attendanceUseCases,
+                reportUseCases,
+                mockk<ClassManagementUseCases>(relaxed = true)
+            )
     }
 
     @Test

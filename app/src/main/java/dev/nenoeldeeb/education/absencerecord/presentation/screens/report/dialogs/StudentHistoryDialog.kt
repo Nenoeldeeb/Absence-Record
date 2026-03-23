@@ -44,9 +44,10 @@ internal fun StudentHistoryDialog(
                 Text(
                     stringResource(R.string.no_attendance_records),
                     textAlign = TextAlign.Center,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp)
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp)
                 )
             } else {
                 LazyColumn(modifier = Modifier.heightIn(max = 400.dp)) {
@@ -70,12 +71,14 @@ internal fun StudentHistoryDialog(
                             trailingContent = {
                                 IconButton(onClick = { onShareMonth(month) }) {
                                     Icon(
-                                        imageVector = ImageVector.vectorResource(
-                                            id = R.drawable.outline_share_24
-                                        ),
-                                        contentDescription = stringResource(
-                                            R.string.share_calendar_image
-                                        )
+                                        imageVector =
+                                            ImageVector.vectorResource(
+                                                id = R.drawable.outline_share_24
+                                            ),
+                                        contentDescription =
+                                            stringResource(
+                                                R.string.share_calendar_image
+                                            )
                                     )
                                 }
                             },

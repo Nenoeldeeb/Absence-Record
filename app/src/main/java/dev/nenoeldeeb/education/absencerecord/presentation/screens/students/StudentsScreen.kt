@@ -41,7 +41,8 @@ import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.dial
 
 @Composable
 fun StudentsScreen(
-    modifier: Modifier = Modifier, viewModel: StudentsViewModel = viewModel(factory = AppViewModelProvider.factory)
+    modifier: Modifier = Modifier,
+    viewModel: StudentsViewModel = viewModel(factory = AppViewModelProvider.factory)
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
@@ -57,33 +58,43 @@ fun StudentsScreen(
         viewModel.onEvent(StudentsScreenEvent.ToggleSelectionMode)
     }
 
-    val exportLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.CreateDocument("application/json"), onResult = { uri ->
-            uri?.let {
-                viewModel.onEvent(StudentsScreenEvent.ExportSelectedStudents(it))
+    val exportLauncher =
+        rememberLauncherForActivityResult(
+            contract = ActivityResultContracts.CreateDocument("application/json"),
+            onResult = { uri ->
+                uri?.let {
+                    viewModel.onEvent(StudentsScreenEvent.ExportSelectedStudents(it))
+                }
             }
-        })
+        )
 
-    val exportAndDeleteLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.CreateDocument("application/json"), onResult = { uri ->
-            if (uri != null) {
-                viewModel.onEvent(
-                    StudentsScreenEvent.ExportAndDeleteSelectedStudents(uri)
-                )
+    val exportAndDeleteLauncher =
+        rememberLauncherForActivityResult(
+            contract = ActivityResultContracts.CreateDocument("application/json"),
+            onResult = { uri ->
+                if (uri != null) {
+                    viewModel.onEvent(
+                        StudentsScreenEvent.ExportAndDeleteSelectedStudents(uri)
+                    )
+                }
             }
-        })
+        )
 
-    val importLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.OpenDocument(), onResult = { uri ->
-            viewModel.onEvent(StudentsScreenEvent.PrepareImportSelectionDialog(uri))
-        })
+    val importLauncher =
+        rememberLauncherForActivityResult(
+            contract = ActivityResultContracts.OpenDocument(),
+            onResult = { uri ->
+                viewModel.onEvent(StudentsScreenEvent.PrepareImportSelectionDialog(uri))
+            }
+        )
 
     Column(modifier = modifier) {
         if (uiState.isMultiSelectionMode) {
             MultiSelectionHeader(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(bottom = 16.dp),
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 16.dp),
                 selectedStudentIds = uiState.selectedStudentIds,
                 onCloseSelectionMode = {
                     viewModel.onEvent(StudentsScreenEvent.ToggleSelectionMode)
@@ -97,7 +108,8 @@ fun StudentsScreen(
                 },
                 onShowDeleteDialog = {
                     viewModel.onEvent(StudentsScreenEvent.ShowBulkDeleteDialog)
-                })
+                }
+            )
         }
 
         if (!uiState.isMultiSelectionMode) {
@@ -109,11 +121,14 @@ fun StudentsScreen(
                         viewModel.onEvent(
                             StudentsScreenEvent.ToggleClassFilterVisibility
                         )
-                    }) {
+                    }
+                ) {
                     Icon(
-                        imageVector = ImageVector.vectorResource(
-                            R.drawable.outline_filter_24
-                        ), contentDescription = stringResource(R.string.filter_description)
+                        imageVector =
+                            ImageVector.vectorResource(
+                                R.drawable.outline_filter_24
+                            ),
+                        contentDescription = stringResource(R.string.filter_description)
                     )
                 }
                 IconButton(
@@ -121,11 +136,14 @@ fun StudentsScreen(
                         viewModel.onEvent(
                             StudentsScreenEvent.ShowStudentDialog(null, true)
                         )
-                    }) {
+                    }
+                ) {
                     Icon(
-                        imageVector = ImageVector.vectorResource(
-                            R.drawable.outline_add_24
-                        ), contentDescription = stringResource(R.string.new_student_label)
+                        imageVector =
+                            ImageVector.vectorResource(
+                                R.drawable.outline_add_24
+                            ),
+                        contentDescription = stringResource(R.string.new_student_label)
                     )
                 }
             })
@@ -142,9 +160,10 @@ fun StudentsScreen(
                     onFilterSelected = {
                         viewModel.onEvent(StudentsScreenEvent.SelectClassFilter(it))
                     },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(bottom = 8.dp),
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 8.dp),
                     trailingIcon = {
                         IconButton(
                             onClick = {
@@ -153,22 +172,26 @@ fun StudentsScreen(
                                         true
                                     )
                                 )
-                            }) {
+                            }
+                        ) {
                             Icon(
-                                imageVector = ImageVector.vectorResource(
-                                    R.drawable.outline_edit_24
-                                ),
+                                imageVector =
+                                    ImageVector.vectorResource(
+                                        R.drawable.outline_edit_24
+                                    ),
                                 contentDescription = stringResource(R.string.manage_classes_title),
                                 modifier = Modifier.size(24.dp)
                             )
                         }
-                    })
+                    }
+                )
             }
         }
 
         if (uiState.allStudents.isEmpty()) {
             EmptyStateMessage(
-                message = R.string.no_students_message, modifier = Modifier.fillMaxSize()
+                message = R.string.no_students_message,
+                modifier = Modifier.fillMaxSize()
             )
         } else {
             StudentList(
@@ -190,7 +213,8 @@ fun StudentsScreen(
                             StudentsScreenEvent.ToggleStudentSelection(studentId)
                         )
                     }
-                })
+                }
+            )
         }
     }
 
@@ -214,7 +238,8 @@ fun StudentsScreen(
             onImportClick = { importLauncher.launch(arrayOf("application/json", "*/*")) },
             onDismiss = {
                 viewModel.onEvent(StudentsScreenEvent.ShowStudentDialog(null, false))
-            })
+            }
+        )
     }
 
     if (uiState.showImportSelectionDialog) {
@@ -236,14 +261,16 @@ fun StudentsScreen(
                 viewModel.onEvent(StudentsScreenEvent.PerformImport)
                 viewModel.onEvent(StudentsScreenEvent.ShowStudentDialog(null, false))
             },
-            onDismiss = { viewModel.onEvent(StudentsScreenEvent.CloseImportSelectionDialog) })
+            onDismiss = { viewModel.onEvent(StudentsScreenEvent.CloseImportSelectionDialog) }
+        )
     }
 
     if (uiState.showBulkDeleteDialog) {
         BulkDeleteConfirmationDialog(
             selectedStudentIds = uiState.selectedStudentIds,
             onConfirmDelete = { viewModel.onEvent(StudentsScreenEvent.DeleteSelectedStudents) },
-            onDismiss = { viewModel.onEvent(StudentsScreenEvent.DismissBulkDeleteDialog) })
+            onDismiss = { viewModel.onEvent(StudentsScreenEvent.DismissBulkDeleteDialog) }
+        )
     }
 
     if (uiState.showManageClassesDialog) {
@@ -256,6 +283,7 @@ fun StudentsScreen(
             onDeleteClass = { viewModel.onEvent(StudentsScreenEvent.DeleteClass(it)) },
             onDismiss = {
                 viewModel.onEvent(StudentsScreenEvent.ShowManageClassesDialog(false))
-            })
+            }
+        )
     }
 }

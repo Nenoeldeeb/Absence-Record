@@ -39,198 +39,210 @@ class ExportStudentsUseCaseTest {
         storageRepository = mockk()
         serializationService = mockk()
         studentClassRepository = mockk()
-        useCase = ExportStudentsUseCase(
-            attendanceRepository, storageRepository, serializationService, studentClassRepository
-        )
+        useCase =
+            ExportStudentsUseCase(
+                attendanceRepository, storageRepository, serializationService, studentClassRepository
+            )
         // Default mock for class repository to avoid breaking all existing tests
         every { studentClassRepository.getAllClasses() } returns flowOf(Result.success(emptyList()))
     }
 
     @Test
-    fun `should successfully export selected students`() = runTest {
-        // Arrange
-        val uriString = "content://export"
-        val selectedIds = setOf(1)
-        val allStudents = listOf(Student(id = 1, name = "John"))
-        val dates = listOf(LocalDate(2024, 1, 1))
-        val expectedJson = "[{\"name\":\"John\",\"dates\":[\"2024-01-01\"]}]"
+    fun `should successfully export selected students`() =
+        runTest {
+            // Arrange
+            val uriString = "content://export"
+            val selectedIds = setOf(1)
+            val allStudents = listOf(Student(id = 1, name = "John"))
+            val dates = listOf(LocalDate(2024, 1, 1))
+            val expectedJson = "[{\"name\":\"John\",\"dates\":[\"2024-01-01\"]}]"
 
-        every { attendanceRepository.getStudentAttendanceDates(1) } returns flowOf(Result.success(dates))
-        every {
-            serializationService.encodeToString<List<StudentExportData>>(
-                any(),
-                any()
-            )
-        } returns Result.success(expectedJson)
-        coEvery { storageRepository.writeTextToUri(uriString, expectedJson) } returns Result.success(Unit)
+            every { attendanceRepository.getStudentAttendanceDates(1) } returns flowOf(Result.success(dates))
+            every {
+                serializationService.encodeToString<List<StudentExportData>>(
+                    any(), any()
+                )
+            } returns Result.success(expectedJson)
+            coEvery { storageRepository.writeTextToUri(uriString, expectedJson) } returns Result.success(Unit)
 
-        // Act
-        val result = useCase(uriString, selectedIds, allStudents)
+            // Act
+            val result = useCase(uriString, selectedIds, allStudents)
 
-        // Assert
-        assertTrue(result.isSuccess)
+            // Assert
+            assertTrue(result.isSuccess)
 
-        // Verify data passed to serializer
-        val capturedList = slot<List<StudentExportData>>()
-        verify {
-            serializationService.encodeToString(
-                capture(capturedList), any()
-            )
+            // Verify data passed to serializer
+            val capturedList = slot<List<StudentExportData>>()
+            verify {
+                serializationService.encodeToString(
+                    capture(capturedList),
+                    any()
+                )
+            }
+            assertEquals(1, capturedList.captured.size)
+            assertEquals("John", capturedList.captured[0].name)
+            assertEquals(listOf("2024-01-01"), capturedList.captured[0].dates)
         }
-        assertEquals(1, capturedList.captured.size)
-        assertEquals("John", capturedList.captured[0].name)
-        assertEquals(listOf("2024-01-01"), capturedList.captured[0].dates)
-    }
 
     @Test
-    fun `should fail if no students selected`() = runTest {
-        // Arrange
-        val result = useCase("uri", emptySet(), emptyList())
+    fun `should fail if no students selected`() =
+        runTest {
+            // Arrange
+            val result = useCase("uri", emptySet(), emptyList())
 
-        // Assert
-        assertTrue(result.isFailure)
-        assertIs<IllegalArgumentException>(result.exceptionOrNull())
-    }
-
-    @Test
-    fun `should ignore students not found in list`() = runTest {
-        // Arrange
-        val uriString = "content://export"
-        val selectedIds = setOf(999) // ID not in allStudents
-        val allStudents = listOf(Student(id = 1, name = "John"))
-        val expectedJson = "[]"
-
-        every {
-            serializationService.encodeToString<List<StudentExportData>>(
-                any(),
-                any()
-            )
-        } returns Result.success(expectedJson)
-        coEvery { storageRepository.writeTextToUri(uriString, expectedJson) } returns Result.success(Unit)
-
-        // Act
-        val result = useCase(uriString, selectedIds, allStudents)
-
-        // Assert
-        assertTrue(result.isSuccess)
-        val capturedList = slot<List<StudentExportData>>()
-        verify {
-            serializationService.encodeToString(
-                capture(capturedList), any()
-            )
+            // Assert
+            assertTrue(result.isFailure)
+            assertIs<IllegalArgumentException>(result.exceptionOrNull())
         }
-        assertTrue(capturedList.captured.isEmpty())
-    }
 
     @Test
-    fun `should handle empty attendance history`() = runTest {
-        // Arrange
-        val uriString = "content://export"
-        val selectedIds = setOf(1)
-        val allStudents = listOf(Student(id = 1, name = "John"))
+    fun `should ignore students not found in list`() =
+        runTest {
+            // Arrange
+            val uriString = "content://export"
+            val selectedIds = setOf(999) // ID not in allStudents
+            val allStudents = listOf(Student(id = 1, name = "John"))
+            val expectedJson = "[]"
 
-        every { attendanceRepository.getStudentAttendanceDates(1) } returns flowOf(Result.success(emptyList()))
-        every { serializationService.encodeToString<List<StudentExportData>>(any(), any()) } returns Result.success("json")
-        coEvery { storageRepository.writeTextToUri(any(), any()) } returns Result.success(Unit)
+            every {
+                serializationService.encodeToString<List<StudentExportData>>(
+                    any(), any()
+                )
+            } returns Result.success(expectedJson)
+            coEvery { storageRepository.writeTextToUri(uriString, expectedJson) } returns Result.success(Unit)
 
-        // Act
-        val result = useCase(uriString, selectedIds, allStudents)
+            // Act
+            val result = useCase(uriString, selectedIds, allStudents)
 
-        // Assert
-        assertTrue(result.isSuccess)
-        val capturedList = slot<List<StudentExportData>>()
-        verify {
-            serializationService.encodeToString(
-                capture(capturedList), any()
-            )
+            // Assert
+            assertTrue(result.isSuccess)
+            val capturedList = slot<List<StudentExportData>>()
+            verify {
+                serializationService.encodeToString(
+                    capture(capturedList),
+                    any()
+                )
+            }
+            assertTrue(capturedList.captured.isEmpty())
         }
-        assertTrue(capturedList.captured[0].dates.isEmpty())
-    }
 
     @Test
-    fun `should handle serialization failure`() = runTest {
-        // Arrange
-        val exception = Exception("Serialization error")
-        val selectedIds = setOf(1)
-        val allStudents = listOf(Student(id = 1, name = "John"))
+    fun `should handle empty attendance history`() =
+        runTest {
+            // Arrange
+            val uriString = "content://export"
+            val selectedIds = setOf(1)
+            val allStudents = listOf(Student(id = 1, name = "John"))
 
-        every { attendanceRepository.getStudentAttendanceDates(1) } returns flowOf(Result.success(emptyList()))
-        every { serializationService.encodeToString<List<StudentExportData>>(any(), any()) } returns Result.failure(exception)
+            every { attendanceRepository.getStudentAttendanceDates(1) } returns flowOf(Result.success(emptyList()))
+            every { serializationService.encodeToString<List<StudentExportData>>(any(), any()) } returns Result.success("json")
+            coEvery { storageRepository.writeTextToUri(any(), any()) } returns Result.success(Unit)
 
-        // Act
-        val result = useCase("uri", selectedIds, allStudents)
+            // Act
+            val result = useCase(uriString, selectedIds, allStudents)
 
-        // Assert
-        assertTrue(result.isFailure)
-        assertEquals(exception, result.exceptionOrNull())
-    }
-
-    @Test
-    fun `should handle storage failure`() = runTest {
-        // Arrange
-        val exception = Exception("Write error")
-        val selectedIds = setOf(1)
-        val allStudents = listOf(Student(id = 1, name = "John"))
-
-        every { attendanceRepository.getStudentAttendanceDates(1) } returns flowOf(Result.success(emptyList()))
-        every { serializationService.encodeToString<List<StudentExportData>>(any(), any()) } returns Result.success("json")
-        coEvery { storageRepository.writeTextToUri(any(), any()) } returns Result.failure(exception)
-
-        // Act
-        val result = useCase("uri", selectedIds, allStudents)
-
-        // Assert
-        assertTrue(result.isFailure)
-        assertEquals(exception, result.exceptionOrNull())
-    }
-
-    @Test
-    fun `should handle exception during data gathering`() = runTest {
-        // Arrange - Force exception during finding/mapping
-        val selectedIds = setOf(1)
-        val allStudents = listOf(Student(id = 1, name = "John"))
-
-        // Mock repo to throw exception
-        every { attendanceRepository.getStudentAttendanceDates(1) } throws RuntimeException("Unexpected error")
-
-        // Act
-        val result = useCase("uri", selectedIds, allStudents)
-
-        // Assert
-        assertTrue(result.isFailure)
-        assertIs<RuntimeException>(result.exceptionOrNull())
-    }
-
-    @Test
-    fun `should include class name when student is associated with a class`() = runTest {
-        // Arrange
-        val uriString = "content://export"
-        val selectedIds = setOf(1)
-        val allStudents = listOf(Student(id = 1, name = "John", classId = 10))
-        val dates = listOf(LocalDate(2024, 1, 1))
-        val classes = listOf(StudentClass(id = 10, name = "Class A"))
-
-        every { studentClassRepository.getAllClasses() } returns flowOf(Result.success(classes))
-        every { attendanceRepository.getStudentAttendanceDates(1) } returns flowOf(Result.success(dates))
-        every {
-            serializationService.encodeToString<List<StudentExportData>>(
-                any(),
-                any()
-            )
-        } returns Result.success("json")
-        coEvery { storageRepository.writeTextToUri(any(), any()) } returns Result.success(Unit)
-
-        // Act
-        useCase(uriString, selectedIds, allStudents)
-
-        // Assert
-        val capturedList = slot<List<StudentExportData>>()
-        verify {
-            serializationService.encodeToString(
-                capture(capturedList), any()
-            )
+            // Assert
+            assertTrue(result.isSuccess)
+            val capturedList = slot<List<StudentExportData>>()
+            verify {
+                serializationService.encodeToString(
+                    capture(capturedList),
+                    any()
+                )
+            }
+            assertTrue(capturedList.captured[0].dates.isEmpty())
         }
-        assertEquals(1, capturedList.captured.size)
-        assertEquals("Class A", capturedList.captured[0].className)
-    }
+
+    @Test
+    fun `should handle serialization failure`() =
+        runTest {
+            // Arrange
+            val exception = Exception("Serialization error")
+            val selectedIds = setOf(1)
+            val allStudents = listOf(Student(id = 1, name = "John"))
+
+            every { attendanceRepository.getStudentAttendanceDates(1) } returns flowOf(Result.success(emptyList()))
+            every {
+                serializationService.encodeToString<List<StudentExportData>>(any(), any())
+            } returns Result.failure(exception)
+
+            // Act
+            val result = useCase("uri", selectedIds, allStudents)
+
+            // Assert
+            assertTrue(result.isFailure)
+            assertEquals(exception, result.exceptionOrNull())
+        }
+
+    @Test
+    fun `should handle storage failure`() =
+        runTest {
+            // Arrange
+            val exception = Exception("Write error")
+            val selectedIds = setOf(1)
+            val allStudents = listOf(Student(id = 1, name = "John"))
+
+            every { attendanceRepository.getStudentAttendanceDates(1) } returns flowOf(Result.success(emptyList()))
+            every { serializationService.encodeToString<List<StudentExportData>>(any(), any()) } returns Result.success("json")
+            coEvery { storageRepository.writeTextToUri(any(), any()) } returns Result.failure(exception)
+
+            // Act
+            val result = useCase("uri", selectedIds, allStudents)
+
+            // Assert
+            assertTrue(result.isFailure)
+            assertEquals(exception, result.exceptionOrNull())
+        }
+
+    @Test
+    fun `should handle exception during data gathering`() =
+        runTest {
+            // Arrange - Force exception during finding/mapping
+            val selectedIds = setOf(1)
+            val allStudents = listOf(Student(id = 1, name = "John"))
+
+            // Mock repo to throw exception
+            every { attendanceRepository.getStudentAttendanceDates(1) } throws RuntimeException("Unexpected error")
+
+            // Act
+            val result = useCase("uri", selectedIds, allStudents)
+
+            // Assert
+            assertTrue(result.isFailure)
+            assertIs<RuntimeException>(result.exceptionOrNull())
+        }
+
+    @Test
+    fun `should include class name when student is associated with a class`() =
+        runTest {
+            // Arrange
+            val uriString = "content://export"
+            val selectedIds = setOf(1)
+            val allStudents = listOf(Student(id = 1, name = "John", classId = 10))
+            val dates = listOf(LocalDate(2024, 1, 1))
+            val classes = listOf(StudentClass(id = 10, name = "Class A"))
+
+            every { studentClassRepository.getAllClasses() } returns flowOf(Result.success(classes))
+            every { attendanceRepository.getStudentAttendanceDates(1) } returns flowOf(Result.success(dates))
+            every {
+                serializationService.encodeToString<List<StudentExportData>>(
+                    any(), any()
+                )
+            } returns Result.success("json")
+            coEvery { storageRepository.writeTextToUri(any(), any()) } returns Result.success(Unit)
+
+            // Act
+            useCase(uriString, selectedIds, allStudents)
+
+            // Assert
+            val capturedList = slot<List<StudentExportData>>()
+            verify {
+                serializationService.encodeToString(
+                    capture(capturedList),
+                    any()
+                )
+            }
+            assertEquals(1, capturedList.captured.size)
+            assertEquals("Class A", capturedList.captured[0].className)
+        }
 }

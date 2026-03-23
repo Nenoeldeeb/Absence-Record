@@ -186,7 +186,8 @@ class StudentsViewModelTest {
             // When
             viewModel.onEvent(
                 StudentsScreenEvent.UpdateStudent(
-                    student, "New Name",
+                    student,
+                    "New Name",
                     newClassId = null
                 )
             )
@@ -213,7 +214,8 @@ class StudentsViewModelTest {
             // When
             viewModel.onEvent(
                 StudentsScreenEvent.UpdateStudent(
-                    student, "  ",
+                    student,
+                    "  ",
                     newClassId = null
                 )
             )
@@ -242,7 +244,8 @@ class StudentsViewModelTest {
             // When
             viewModel.onEvent(
                 StudentsScreenEvent.UpdateStudent(
-                    student, "New Name",
+                    student,
+                    "New Name",
                     newClassId = null
                 )
             )

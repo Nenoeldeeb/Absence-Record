@@ -178,7 +178,6 @@ class ReportScreenTest {
 
     // endregion
 
-
     // region StudentHistoryDialog Tests
 
     @Test

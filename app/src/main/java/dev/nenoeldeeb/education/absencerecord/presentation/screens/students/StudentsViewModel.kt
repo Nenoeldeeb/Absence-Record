@@ -57,7 +57,7 @@ open class StudentsViewModel(
     val uiState: StateFlow<StudentsScreenState> = _uiState.asStateFlow()
 
     /** Unfiltered student list; used to cheaply re-apply filters without a new DB query. */
-    private var _rawStudents: List<Student> = emptyList()
+    private var rawStudents: List<Student> = emptyList()
 
     init {
         loadData()
@@ -66,7 +66,8 @@ open class StudentsViewModel(
     private fun loadData() {
         viewModelScope.launch {
             combine(
-                studentManagementUseCases.getAllStudentsUseCase(), classManagementUseCases.getAllClassesUseCase()
+                studentManagementUseCases.getAllStudentsUseCase(),
+                classManagementUseCases.getAllClassesUseCase()
             ) { studentsResult, classesResult ->
                 Pair(
                     studentsResult,
@@ -74,20 +75,23 @@ open class StudentsViewModel(
                 )
             }.collectLatest { (studentsResult, classesResult) ->
                 studentsResult.onSuccess { students ->
-                    _rawStudents = students
+                    rawStudents = students
                     _uiState.update { state ->
                         state.copy(
-                            allStudents = students.applyClassFilter(
-                                state.selectedClassFilter
-                            )
+                            allStudents =
+                                students.applyClassFilter(
+                                    state.selectedClassFilter
+                                )
                         )
                     }
                 }.onFailure { e ->
                     _uiState.update {
                         it.copy(
-                            error = UiText.StringResource(
-                                R.string.error_loading_students, e.message ?: "Unknown error"
-                            )
+                            error =
+                                UiText.StringResource(
+                                    R.string.error_loading_students,
+                                    e.message ?: "Unknown error"
+                                )
                         )
                     }
                 }
@@ -98,62 +102,80 @@ open class StudentsViewModel(
         }
     }
 
-
     open fun onEvent(event: StudentsScreenEvent) {
         when (event) {
             is UpdateNewStudentName -> _uiState.update { it.copy(newStudentName = event.name) }
             is AddStudent -> addStudent(event.name, event.classId)
             is UpdateStudent -> updateStudent(event.student, event.newName, event.newClassId)
             is PrepareImportSelectionDialog -> prepareImportSelectionDialog(event.uri)
-            is CloseImportSelectionDialog -> _uiState.update {
-                it.copy(
-                    showImportSelectionDialog = false, parsedStudentsFromFile = null, importSelectionMap = emptyMap()
-                )
-            }
-
-            is ToggleImportSelection -> _uiState.update {
-                it.copy(
-                    importSelectionMap = importExportDelegate.toggleImportSelection(
-                        it.importSelectionMap, event.parsedStudentId
+            is CloseImportSelectionDialog ->
+                _uiState.update {
+                    it.copy(
+                        showImportSelectionDialog = false,
+                        parsedStudentsFromFile = null,
+                        importSelectionMap = emptyMap()
                     )
-                )
-            }
+                }
+
+            is ToggleImportSelection ->
+                _uiState.update {
+                    it.copy(
+                        importSelectionMap =
+                            importExportDelegate.toggleImportSelection(
+                                it.importSelectionMap,
+                                event.parsedStudentId
+                            )
+                    )
+                }
 
             is PerformImport -> performImport()
             is ConsumeToastMessage -> _uiState.update { it.copy(toastMessage = null) }
-            is ShowStudentDialog -> _uiState.update {
-                it.copy(
-                    showEditDialog = event.student,
-                    showAddStudentDialog = event.show,
-                    newStudentName = event.student?.name ?: ""
-                )
-            }
-
-            is ToggleStudentSelection -> _uiState.update { state ->
-                state.copy(
-                    selectedStudentIds = selectionDelegate.toggleSelection(
-                        state.selectedStudentIds, event.studentId
+            is ShowStudentDialog ->
+                _uiState.update {
+                    it.copy(
+                        showEditDialog = event.student,
+                        showAddStudentDialog = event.show,
+                        newStudentName = event.student?.name ?: ""
                     )
-                )
-            }
+                }
 
-            is ToggleSelectionMode -> _uiState.update { state ->
-                val (newMode, newSelection) = selectionDelegate.toggleMode(
-                    state.isMultiSelectionMode, state.selectedStudentIds
-                )
-                state.copy(
-                    isMultiSelectionMode = newMode, selectedStudentIds = newSelection
-                )
-            }
-
-            is ToggleStudentsSelection -> _uiState.update { state ->
-                state.copy(
-                    selectedStudentIds = if (state.selectedStudentIds.size < state.allStudents.size) selectionDelegate.selectAll(
-                        state.allStudents
+            is ToggleStudentSelection ->
+                _uiState.update { state ->
+                    state.copy(
+                        selectedStudentIds =
+                            selectionDelegate.toggleSelection(
+                                state.selectedStudentIds,
+                                event.studentId
+                            )
                     )
-                    else selectionDelegate.clearSelection()
-                )
-            }
+                }
+
+            is ToggleSelectionMode ->
+                _uiState.update { state ->
+                    val (newMode, newSelection) =
+                        selectionDelegate.toggleMode(
+                            state.isMultiSelectionMode,
+                            state.selectedStudentIds
+                        )
+                    state.copy(
+                        isMultiSelectionMode = newMode,
+                        selectedStudentIds = newSelection
+                    )
+                }
+
+            is ToggleStudentsSelection ->
+                _uiState.update { state ->
+                    state.copy(
+                        selectedStudentIds =
+                            if (state.selectedStudentIds.size < state.allStudents.size) {
+                                selectionDelegate.selectAll(
+                                    state.allStudents
+                                )
+                            } else {
+                                selectionDelegate.clearSelection()
+                            }
+                    )
+                }
 
             is DeleteSelectedStudents -> deleteSelectedStudents()
             is ExportSelectedStudents -> exportSelectedStudents(event.uri)
@@ -161,13 +183,14 @@ open class StudentsViewModel(
             is ShowBulkDeleteDialog -> _uiState.update { it.copy(showBulkDeleteDialog = true) }
             is DismissBulkDeleteDialog -> _uiState.update { it.copy(showBulkDeleteDialog = false) }
             // Class filter events
-            is SelectClassFilter -> _uiState.update { state ->
-                state.copy(
-                    selectedClassFilter = event.filter,
-                    classDropdownExpanded = false,
-                    allStudents = _rawStudents.applyClassFilter(event.filter)
-                )
-            }
+            is SelectClassFilter ->
+                _uiState.update { state ->
+                    state.copy(
+                        selectedClassFilter = event.filter,
+                        classDropdownExpanded = false,
+                        allStudents = rawStudents.applyClassFilter(event.filter)
+                    )
+                }
 
             is ToggleClassFilterVisibility -> _uiState.update { it.copy(isClassFilterVisible = !it.isClassFilterVisible) }
 
@@ -183,7 +206,10 @@ open class StudentsViewModel(
 
     // ── Student CRUD ─────────────────────────────────────────────────────────
 
-    private fun addStudent(name: String, classId: Int?) {
+    private fun addStudent(
+        name: String,
+        classId: Int?
+    ) {
         val trimmed = name.trim()
         if (trimmed.isBlank()) {
             _uiState.update {
@@ -203,16 +229,22 @@ open class StudentsViewModel(
             }.onFailure { e ->
                 _uiState.update {
                     it.copy(
-                        error = UiText.StringResource(
-                            R.string.error_adding_student, e.message ?: "Unknown error"
-                        )
+                        error =
+                            UiText.StringResource(
+                                R.string.error_adding_student,
+                                e.message ?: "Unknown error"
+                            )
                     )
                 }
             }
         }
     }
 
-    private fun updateStudent(student: Student, newName: String, newClassId: Int?) {
+    private fun updateStudent(
+        student: Student,
+        newName: String,
+        newClassId: Int?
+    ) {
         val trimmed = newName.trim()
         if (trimmed.isBlank()) {
             _uiState.update {
@@ -224,15 +256,18 @@ open class StudentsViewModel(
             studentManagementUseCases.updateStudentUseCase(student.copy(name = trimmed, classId = newClassId)).onSuccess {
                 _uiState.update {
                     it.copy(
-                        showEditDialog = null, toastMessage = UiText.StringResource(R.string.student_updated, trimmed)
+                        showEditDialog = null,
+                        toastMessage = UiText.StringResource(R.string.student_updated, trimmed)
                     )
                 }
             }.onFailure { e ->
                 _uiState.update {
                     it.copy(
-                        error = UiText.StringResource(
-                            R.string.error_updating_student, e.message ?: "Unknown error"
-                        )
+                        error =
+                            UiText.StringResource(
+                                R.string.error_updating_student,
+                                e.message ?: "Unknown error"
+                            )
                     )
                 }
             }
@@ -256,9 +291,10 @@ open class StudentsViewModel(
                         it.copy(
                             parsedStudentsFromFile = null,
                             importSelectionMap = emptyMap(),
-                            toastMessage = UiText.StringResource(
-                                R.string.no_students_found_in_file
-                            )
+                            toastMessage =
+                                UiText.StringResource(
+                                    R.string.no_students_found_in_file
+                                )
                         )
                     } else {
                         it.copy(
@@ -271,9 +307,11 @@ open class StudentsViewModel(
             }.onFailure { e ->
                 _uiState.update {
                     it.copy(
-                        error = UiText.StringResource(
-                            R.string.error_reading_or_parsing_file, e.message ?: "Unknown error"
-                        )
+                        error =
+                            UiText.StringResource(
+                                R.string.error_reading_or_parsing_file,
+                                e.message ?: "Unknown error"
+                            )
                     )
                 }
             }
@@ -288,17 +326,21 @@ open class StudentsViewModel(
                 .onSuccess { importResult ->
                     _uiState.update {
                         it.copy(
-                            showImportSelectionDialog = false, toastMessage = importExportDelegate.buildImportResultMessage(
-                                importResult
-                            )
+                            showImportSelectionDialog = false,
+                            toastMessage =
+                                importExportDelegate.buildImportResultMessage(
+                                    importResult
+                                )
                         )
                     }
                 }.onFailure { e ->
                     _uiState.update {
                         it.copy(
-                            error = UiText.StringResource(
-                                R.string.error_during_import, e.message ?: "Unknown error"
-                            )
+                            error =
+                                UiText.StringResource(
+                                    R.string.error_during_import,
+                                    e.message ?: "Unknown error"
+                                )
                         )
                     }
                 }
@@ -318,17 +360,20 @@ open class StudentsViewModel(
                         showBulkDeleteDialog = false,
                         isMultiSelectionMode = false,
                         selectedStudentIds = emptySet(),
-                        toastMessage = UiText.StringResource(
-                            R.string.students_deleted_successfully
-                        )
+                        toastMessage =
+                            UiText.StringResource(
+                                R.string.students_deleted_successfully
+                            )
                     )
                 }
             }.onFailure { e ->
                 _uiState.update {
                     it.copy(
-                        error = UiText.StringResource(
-                            R.string.error_deleting_student, e.message ?: "Unknown error"
-                        )
+                        error =
+                            UiText.StringResource(
+                                R.string.error_deleting_student,
+                                e.message ?: "Unknown error"
+                            )
                     )
                 }
             }
@@ -342,17 +387,22 @@ open class StudentsViewModel(
             studentManagementUseCases.exportStudentsUseCase(uri.toString(), selectedIds, _uiState.value.allStudents).onSuccess {
                 _uiState.update {
                     it.copy(
-                        isMultiSelectionMode = false, selectedStudentIds = emptySet(), toastMessage = UiText.StringResource(
-                            R.string.data_exported_successfully
-                        )
+                        isMultiSelectionMode = false,
+                        selectedStudentIds = emptySet(),
+                        toastMessage =
+                            UiText.StringResource(
+                                R.string.data_exported_successfully
+                            )
                     )
                 }
             }.onFailure { e ->
                 _uiState.update {
                     it.copy(
-                        error = UiText.StringResource(
-                            R.string.error_creating_export_data, e.message ?: "Unknown error"
-                        )
+                        error =
+                            UiText.StringResource(
+                                R.string.error_creating_export_data,
+                                e.message ?: "Unknown error"
+                            )
                     )
                 }
             }
@@ -372,26 +422,31 @@ open class StudentsViewModel(
                             showBulkDeleteDialog = false,
                             isMultiSelectionMode = false,
                             selectedStudentIds = emptySet(),
-                            toastMessage = UiText.StringResource(
-                                R.string.data_exported_and_deleted_successfully
-                            )
+                            toastMessage =
+                                UiText.StringResource(
+                                    R.string.data_exported_and_deleted_successfully
+                                )
                         )
                     }
                 }.onFailure { e ->
                     _uiState.update {
                         it.copy(
-                            error = UiText.StringResource(
-                                R.string.error_deleting_student, e.message ?: "Unknown error"
-                            )
+                            error =
+                                UiText.StringResource(
+                                    R.string.error_deleting_student,
+                                    e.message ?: "Unknown error"
+                                )
                         )
                     }
                 }
             }.onFailure { e ->
                 _uiState.update {
                     it.copy(
-                        error = UiText.StringResource(
-                            R.string.error_creating_export_data, e.message ?: "Unknown error"
-                        )
+                        error =
+                            UiText.StringResource(
+                                R.string.error_creating_export_data,
+                                e.message ?: "Unknown error"
+                            )
                     )
                 }
             }
@@ -416,19 +471,24 @@ open class StudentsViewModel(
                     )
                 }
             }.onFailure { e ->
-                val message = if (e.message == "DUPLICATE_CLASS_NAME") {
-                    UiText.StringResource(R.string.error_class_name_already_exists)
-                } else {
-                    UiText.StringResource(
-                        R.string.error_adding_class, e.message ?: "Unknown error"
-                    )
-                }
+                val message =
+                    if (e.message == "DUPLICATE_CLASS_NAME") {
+                        UiText.StringResource(R.string.error_class_name_already_exists)
+                    } else {
+                        UiText.StringResource(
+                            R.string.error_adding_class,
+                            e.message ?: "Unknown error"
+                        )
+                    }
                 _uiState.update { it.copy(toastMessage = message) }
             }
         }
     }
 
-    private fun renameClass(studentClass: StudentClass, newName: String) {
+    private fun renameClass(
+        studentClass: StudentClass,
+        newName: String
+    ) {
         val trimmed = newName.trim()
         if (trimmed.isBlank()) {
             _uiState.update {
@@ -442,30 +502,38 @@ open class StudentsViewModel(
                 if (filter is ClassFilter.ByClass && filter.studentClass.id == studentClass.id) {
                     _uiState.update {
                         it.copy(
-                            selectedClassFilter = ClassFilter.ByClass(
-                                studentClass.copy(name = trimmed)
-                            ), toastMessage = UiText.StringResource(
-                                R.string.class_updated, trimmed
-                            )
+                            selectedClassFilter =
+                                ClassFilter.ByClass(
+                                    studentClass.copy(name = trimmed)
+                                ),
+                            toastMessage =
+                                UiText.StringResource(
+                                    R.string.class_updated,
+                                    trimmed
+                                )
                         )
                     }
                 } else {
                     _uiState.update {
                         it.copy(
-                            toastMessage = UiText.StringResource(
-                                R.string.class_updated, trimmed
-                            )
+                            toastMessage =
+                                UiText.StringResource(
+                                    R.string.class_updated,
+                                    trimmed
+                                )
                         )
                     }
                 }
             }.onFailure { e ->
-                val message = if (e.message == "DUPLICATE_CLASS_NAME") {
-                    UiText.StringResource(R.string.error_class_name_already_exists)
-                } else {
-                    UiText.StringResource(
-                        R.string.error_updating_class, e.message ?: "Unknown error"
-                    )
-                }
+                val message =
+                    if (e.message == "DUPLICATE_CLASS_NAME") {
+                        UiText.StringResource(R.string.error_class_name_already_exists)
+                    } else {
+                        UiText.StringResource(
+                            R.string.error_updating_class,
+                            e.message ?: "Unknown error"
+                        )
+                    }
                 _uiState.update { it.copy(toastMessage = message) }
             }
         }
@@ -479,7 +547,7 @@ open class StudentsViewModel(
                     _uiState.update {
                         it.copy(
                             selectedClassFilter = ClassFilter.All,
-                            allStudents = _rawStudents.applyClassFilter(ClassFilter.All),
+                            allStudents = rawStudents.applyClassFilter(ClassFilter.All),
                             toastMessage = UiText.StringResource(R.string.class_deleted)
                         )
                     }
@@ -493,9 +561,11 @@ open class StudentsViewModel(
             }.onFailure { e ->
                 _uiState.update {
                     it.copy(
-                        toastMessage = UiText.StringResource(
-                            R.string.error_deleting_class, e.message ?: "Unknown error"
-                        )
+                        toastMessage =
+                            UiText.StringResource(
+                                R.string.error_deleting_class,
+                                e.message ?: "Unknown error"
+                            )
                     )
                 }
             }

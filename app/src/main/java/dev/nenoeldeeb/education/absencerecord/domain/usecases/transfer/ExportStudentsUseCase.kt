@@ -66,9 +66,10 @@ class ExportStudentsUseCase(
 
             when {
                 serializationResult.isSuccess -> {
-                    val jsonString = serializationResult.getOrNull() ?: return Result.failure(
-                        IllegalStateException("Serialization succeeded but returned null")
-                    )
+                    val jsonString =
+                        serializationResult.getOrNull() ?: return Result.failure(
+                            IllegalStateException("Serialization succeeded but returned null")
+                        )
                     storageRepository.writeTextToUri(uriString, jsonString)
                 }
 

@@ -41,7 +41,7 @@ class ReportViewModel(
     val uiState: StateFlow<ReportScreenState> = _uiState.asStateFlow()
 
     /** Unfiltered student list; re-filtered cheaply on class selection. */
-    private var _rawStudents: List<Student> = emptyList()
+    private var rawStudents: List<Student> = emptyList()
 
     init {
         initializeStudents()
@@ -56,24 +56,28 @@ class ReportViewModel(
                 Pair(type, month)
             }.flatMapLatest { (currentSortType, currentSelectedMonth) ->
                 studentManagementUseCases.getAllStudentsUseCase(
-                    currentSortType, currentSelectedMonth
+                    currentSortType,
+                    currentSelectedMonth
                 )
             }.collectLatest { result ->
                 result.onSuccess { students ->
-                    _rawStudents = students
+                    rawStudents = students
                     _uiState.update { state ->
                         state.copy(
-                            allStudents = students.applyClassFilter(
-                                state.selectedClassFilter
-                            )
+                            allStudents =
+                                students.applyClassFilter(
+                                    state.selectedClassFilter
+                                )
                         )
                     }
                 }.onFailure { e ->
                     _uiState.update {
                         it.copy(
-                            error = UiText.StringResource(
-                                R.string.error_loading_students, e.message ?: "Unknown error"
-                            )
+                            error =
+                                UiText.StringResource(
+                                    R.string.error_loading_students,
+                                    e.message ?: "Unknown error"
+                                )
                         )
                     }
                 }
@@ -91,7 +95,6 @@ class ReportViewModel(
         }
     }
 
-
     private fun initializeAvailableMonths() {
         viewModelScope.launch {
             attendanceUseCases.getAvailableMonthsUseCase().collectLatest { result ->
@@ -100,9 +103,11 @@ class ReportViewModel(
                 }.onFailure { e ->
                     _uiState.update {
                         it.copy(
-                            error = UiText.StringResource(
-                                R.string.error_loading_available_months, e.message ?: "Unknown error"
-                            )
+                            error =
+                                UiText.StringResource(
+                                    R.string.error_loading_available_months,
+                                    e.message ?: "Unknown error"
+                                )
                         )
                     }
                 }
@@ -116,16 +121,19 @@ class ReportViewModel(
                 attendanceUseCases.getStudentAttendanceDatesUseCase(student.id)
             }.collectLatest { result ->
                 result.onSuccess { historyDates ->
-                    val history = historyDates.groupBy { LocalDate(it.year, it.month, 1) }.map { entry ->
-                        Pair(entry.key, entry.value.sorted())
-                    }.sortedByDescending { it.first }
+                    val history =
+                        historyDates.groupBy { LocalDate(it.year, it.month, 1) }.map { entry ->
+                            Pair(entry.key, entry.value.sorted())
+                        }.sortedByDescending { it.first }
                     _uiState.update { it.copy(studentHistory = history) }
                 }.onFailure { e ->
                     _uiState.update {
                         it.copy(
-                            error = UiText.StringResource(
-                                R.string.error_loading_student_history, e.message ?: "Unknown error"
-                            )
+                            error =
+                                UiText.StringResource(
+                                    R.string.error_loading_student_history,
+                                    e.message ?: "Unknown error"
+                                )
                         )
                     }
                 }
@@ -139,11 +147,12 @@ class ReportViewModel(
             is ReportScreenEvent.ToggleSortType -> toggleSortType()
             is ReportScreenEvent.ClearMonthFilter -> clearMonthFilter()
             is ReportScreenEvent.SelectStudentForHistory -> selectStudentForHistory(event.student)
-            is ReportScreenEvent.PrepareCalendarImageForSharing -> prepareCalendarImageForSharing(
-                event.month,
-                event.studentId,
-                event.studentName
-            )
+            is ReportScreenEvent.PrepareCalendarImageForSharing ->
+                prepareCalendarImageForSharing(
+                    event.month,
+                    event.studentId,
+                    event.studentName
+                )
 
             is ReportScreenEvent.ConsumeShareFileUri -> _uiState.update { it.copy(shareFileUri = null) }
 
@@ -152,29 +161,42 @@ class ReportViewModel(
 
             is ReportScreenEvent.ShowHistoryDialog -> _uiState.update { it.copy(showHistoryDialog = event.show) }
 
-            is ReportScreenEvent.ShowCalendarPreviewDialog -> _uiState.update { it.copy(showCalendarPreviewDialog = event.show) }
+            is ReportScreenEvent.ShowCalendarPreviewDialog ->
+                _uiState.update {
+                    it.copy(
+                        showCalendarPreviewDialog = event.show
+                    )
+                }
 
-            is ReportScreenEvent.SelectMonthYearForCalendarPreview -> _uiState.update {
-                it.copy(
-                    selectedMonthYearForCalendarPreview = event.month
-                )
-            }
+            is ReportScreenEvent.SelectMonthYearForCalendarPreview ->
+                _uiState.update {
+                    it.copy(
+                        selectedMonthYearForCalendarPreview = event.month
+                    )
+                }
 
             is ReportScreenEvent.ToggleMonthDropdown -> _uiState.update { it.copy(monthDropdownExpanded = event.expanded) }
 
-            is ReportScreenEvent.SelectClassFilter -> _uiState.update { state ->
-                state.copy(
-                    selectedClassFilter = event.filter,
-                    classDropdownExpanded = false,
-                    allStudents = _rawStudents.applyClassFilter(event.filter)
-                )
-            }
+            is ReportScreenEvent.SelectClassFilter ->
+                _uiState.update { state ->
+                    state.copy(
+                        selectedClassFilter = event.filter,
+                        classDropdownExpanded = false,
+                        allStudents = rawStudents.applyClassFilter(event.filter)
+                    )
+                }
 
-            is ReportScreenEvent.ToggleClassFilterVisibility -> _uiState.update { it.copy(isClassFilterVisible = !it.isClassFilterVisible) }
+            is ReportScreenEvent.ToggleClassFilterVisibility ->
+                _uiState.update {
+                    it.copy(
+                        isClassFilterVisible = !it.isClassFilterVisible
+                    )
+                }
 
-            is ReportScreenEvent.ToggleSortComponentsVisibility -> _uiState.update {
-                it.copy(isSortComponentsVisible = !it.isSortComponentsVisible)
-            }
+            is ReportScreenEvent.ToggleSortComponentsVisibility ->
+                _uiState.update {
+                    it.copy(isSortComponentsVisible = !it.isSortComponentsVisible)
+                }
 
             is ReportScreenEvent.ToggleClassDropdown -> _uiState.update { it.copy(classDropdownExpanded = event.expanded) }
         }
@@ -187,8 +209,12 @@ class ReportViewModel(
     private fun toggleSortType() {
         _uiState.update {
             it.copy(
-                sortType = if (it.sortType == SortType.ByName) SortType.ByAttendance
-                else SortType.ByName
+                sortType =
+                    if (it.sortType == SortType.ByName) {
+                        SortType.ByAttendance
+                    } else {
+                        SortType.ByName
+                    }
             )
         }
     }
@@ -206,7 +232,9 @@ class ReportViewModel(
     }
 
     private fun prepareCalendarImageForSharing(
-        month: LocalDate, studentId: Int, studentName: String
+        month: LocalDate,
+        studentId: Int,
+        studentName: String
     ) {
         if (_uiState.value.selectedStudentForHistory?.id != studentId) {
             onEvent(
@@ -222,11 +250,16 @@ class ReportViewModel(
                 val endOfMonth = startOfMonth.plus(1, DateTimeUnit.MONTH).minus(1, DateTimeUnit.DAY)
 
                 attendanceUseCases.getAttendanceHistoryForDateRangeUseCase(
-                    studentId, startOfMonth, endOfMonth
+                    studentId,
+                    startOfMonth,
+                    endOfMonth
                 ).collectLatest { result ->
                     result.onSuccess { items ->
                         reportUseCases.shareReportUseCase(
-                            studentName, month, items.map { it.date }).onSuccess { uri ->
+                            studentName,
+                            month,
+                            items.map { it.date }
+                        ).onSuccess { uri ->
                             _uiState.update {
                                 it.copy(shareFileUri = uri.toUri())
                             }
@@ -234,7 +267,8 @@ class ReportViewModel(
                             onEvent(
                                 ReportScreenEvent.ShowToast(
                                     UiText.StringResource(
-                                        R.string.error_preparing_image, e.message ?: ""
+                                        R.string.error_preparing_image,
+                                        e.message ?: ""
                                     )
                                 )
                             )
@@ -243,7 +277,8 @@ class ReportViewModel(
                         onEvent(
                             ReportScreenEvent.ShowToast(
                                 UiText.StringResource(
-                                    R.string.error_fetching_history, e.message ?: ""
+                                    R.string.error_fetching_history,
+                                    e.message ?: ""
                                 )
                             )
                         )
@@ -253,7 +288,8 @@ class ReportViewModel(
                 onEvent(
                     ReportScreenEvent.ShowToast(
                         UiText.StringResource(
-                            R.string.error_preparing_image, e.message ?: ""
+                            R.string.error_preparing_image,
+                            e.message ?: ""
                         )
                     )
                 )

@@ -17,10 +17,8 @@ import org.junit.runner.RunWith
 
 @RunWith(AndroidJUnit4::class)
 class StudentsListTest {
-
     @get:Rule
     val composeTestRule = createComposeRule()
-
 
     @Test
     fun studentList_clickingStudentInvokesCallback() {
@@ -57,7 +55,6 @@ class StudentsListTest {
         composeTestRule.onNodeWithText("Alice").assertIsDisplayed()
         composeTestRule.onNodeWithText("Bob").assertIsDisplayed()
     }
-
 
     @SuppressLint("CheckResult")
     @Test

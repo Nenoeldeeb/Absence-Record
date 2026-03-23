@@ -45,9 +45,10 @@ internal fun ReportControls(
 ) {
     Column(modifier = modifier) {
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(bottom = 8.dp),
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 8.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
@@ -57,7 +58,8 @@ internal fun ReportControls(
                 modifier = Modifier.weight(1.6f)
             ) {
                 OutlinedTextField(
-                    value = selectedMonth?.toMonthYearUiText(fullName = true)?.asString()
+                    value =
+                        selectedMonth?.toMonthYearUiText(fullName = true)?.asString()
                             ?: stringResource(R.string.all_months),
                     onValueChange = {},
                     readOnly = true,
@@ -75,9 +77,10 @@ internal fun ReportControls(
                             }
                         } ?: ExposedDropdownMenuDefaults.TrailingIcon(expanded = monthDropdownExpanded)
                     },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .menuAnchor(type = ExposedDropdownMenuAnchorType.PrimaryNotEditable)
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .menuAnchor(type = ExposedDropdownMenuAnchorType.PrimaryNotEditable)
                 )
                 ExposedDropdownMenu(
                     expanded = monthDropdownExpanded,
@@ -106,25 +109,27 @@ internal fun ReportControls(
                 onClick = onSortTypeToggled,
                 modifier = Modifier.weight(1f)
             ) {
-                val sortActionText = if (sortType == SortType.ByName) {
-                    stringResource(R.string.sort_action_rate)
-                } else {
-                    stringResource(R.string.sort_action_name)
-                }
+                val sortActionText =
+                    if (sortType == SortType.ByName) {
+                        stringResource(R.string.sort_action_rate)
+                    } else {
+                        stringResource(R.string.sort_action_name)
+                    }
                 Text(sortActionText)
             }
         }
         Text(
-            text = stringResource(
-                R.string.students_sort_title,
+            text =
                 stringResource(
-                    if (sortType == SortType.ByName) {
-                        R.string.sort_by_name
-                    } else {
-                        R.string.sort_by_attendance
-                    }
-                )
-            ),
+                    R.string.students_sort_title,
+                    stringResource(
+                        if (sortType == SortType.ByName) {
+                            R.string.sort_by_name
+                        } else {
+                            R.string.sort_by_attendance
+                        }
+                    )
+                ),
             style = MaterialTheme.typography.titleMedium,
             color = MaterialTheme.colorScheme.primary,
             modifier = Modifier.padding(vertical = 8.dp)

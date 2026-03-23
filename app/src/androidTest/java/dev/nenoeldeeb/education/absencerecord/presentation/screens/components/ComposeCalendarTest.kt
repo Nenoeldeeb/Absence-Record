@@ -36,7 +36,8 @@ class ComposeCalendarTest {
     // region Helper functions
 
     private fun getString(
-        resId: Int, vararg formatArgs: Any
+        resId: Int,
+        vararg formatArgs: Any
     ): String = context.getString(resId, *formatArgs)
 
     private fun getToday(): LocalDate {
@@ -104,7 +105,9 @@ class ComposeCalendarTest {
         composeTestRule.setContent {
             AbsenceRecordTheme {
                 ComposeCalendar(
-                    onDateSelected = {}, initialMonth = today, markedDates = setOf(markedDate)
+                    onDateSelected = {},
+                    initialMonth = today,
+                    markedDates = setOf(markedDate)
                 )
             }
         }
@@ -160,7 +163,8 @@ class ComposeCalendarTest {
         composeTestRule.setContent {
             AbsenceRecordTheme {
                 ComposeCalendar(
-                    onDateSelected = { date -> selectedDate = date }, initialMonth = getToday()
+                    onDateSelected = { date -> selectedDate = date },
+                    initialMonth = getToday()
                 )
             }
         }

@@ -9,11 +9,9 @@ import dev.nenoeldeeb.education.absencerecord.domain.models.Student
 import dev.nenoeldeeb.education.absencerecord.domain.models.StudentAttendance
 import dev.nenoeldeeb.education.absencerecord.domain.models.StudentClass
 
-fun StudentEntity.toStudent(): Student =
-    Student(id = this.id, name = this.name, classId = this.classId)
+fun StudentEntity.toStudent(): Student = Student(id = this.id, name = this.name, classId = this.classId)
 
-fun Student.toStudentEntity(): StudentEntity =
-    StudentEntity(id = this.id, name = this.name, classId = this.classId)
+fun Student.toStudentEntity(): StudentEntity = StudentEntity(id = this.id, name = this.name, classId = this.classId)
 
 fun StudentAttendanceEntity.toStudentAttendance(): StudentAttendance =
     StudentAttendance(id = this.id, studentId = this.studentId, date = this.date)
@@ -26,5 +24,4 @@ fun AttendanceHistoryItemEntity.toAttendanceHistoryItem(): AttendanceHistoryItem
 
 fun StudentClassEntity.toStudentClass(): StudentClass = StudentClass(id = this.id, name = this.name)
 
-fun StudentClass.toStudentClassEntity(): StudentClassEntity =
-    StudentClassEntity(id = this.id, name = this.name)
+fun StudentClass.toStudentClassEntity(): StudentClassEntity = StudentClassEntity(id = this.id, name = this.name)

@@ -135,24 +135,27 @@ fun ReportScreen(
                 onFilterSelected = {
                     viewModel.onEvent(ReportScreenEvent.SelectClassFilter(it))
                 },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 8.dp, vertical = 4.dp)
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 8.dp, vertical = 4.dp)
             )
         }
 
         if (uiState.allStudents.isEmpty()) {
             EmptyStateMessage(
                 message = R.string.no_students_found,
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(16.dp)
+                modifier =
+                    Modifier
+                        .fillMaxSize()
+                        .padding(16.dp)
             )
         } else {
             StudentList(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 16.dp),
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .padding(top = 16.dp),
                 allStudents = uiState.allStudents,
                 onStudentClick = { student ->
                     viewModel.onEvent(ReportScreenEvent.SelectStudentForHistory(student))

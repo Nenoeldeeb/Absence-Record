@@ -33,7 +33,9 @@ internal fun MultiSelectionHeader(
 ) {
     val res = LocalResources.current
     Row(
-        modifier = modifier, verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween
+        modifier = modifier,
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             IconButton(onClick = onCloseSelectionMode) {
@@ -58,39 +60,56 @@ internal fun MultiSelectionHeader(
                 )
             }
             IconButton(
-                enabled = selectedStudentIds.isNotEmpty(), onClick = {
-                    val defaultFileName = res.getString(
-                        R.string.absencerecord_export_json, timestamp()
-                    )
+                enabled = selectedStudentIds.isNotEmpty(),
+                onClick = {
+                    val defaultFileName =
+                        res.getString(
+                            R.string.absencerecord_export_json,
+                            timestamp()
+                        )
                     onExport(defaultFileName)
-                }) {
+                }
+            ) {
                 Icon(
                     imageVector = ImageVector.vectorResource(id = R.drawable.outline_file_upload_24),
                     contentDescription = stringResource(R.string.action_export)
                 )
             }
             IconButton(
-                enabled = selectedStudentIds.isNotEmpty(), onClick = {
-                    val defaultFileName = res.getString(
-                        R.string.absencerecord_export_json, timestamp()
-                    )
+                enabled = selectedStudentIds.isNotEmpty(),
+                onClick = {
+                    val defaultFileName =
+                        res.getString(
+                            R.string.absencerecord_export_json,
+                            timestamp()
+                        )
                     onExportAndDelete(defaultFileName)
-                }) {
+                }
+            ) {
                 Icon(
                     imageVector = ImageVector.vectorResource(id = R.drawable.outline_file_upload_24),
                     contentDescription = stringResource(R.string.action_export_delete),
-                    tint = if (selectedStudentIds.isNotEmpty()) MaterialTheme.colorScheme.error
-                    else MaterialTheme.colorScheme.errorContainer
+                    tint =
+                        if (selectedStudentIds.isNotEmpty()) {
+                            MaterialTheme.colorScheme.error
+                        } else {
+                            MaterialTheme.colorScheme.errorContainer
+                        }
                 )
             }
             IconButton(
-                enabled = selectedStudentIds.isNotEmpty(), onClick = onShowDeleteDialog
+                enabled = selectedStudentIds.isNotEmpty(),
+                onClick = onShowDeleteDialog
             ) {
                 Icon(
                     imageVector = ImageVector.vectorResource(id = R.drawable.outline_delete_24),
                     contentDescription = stringResource(R.string.action_delete),
-                    tint = if (selectedStudentIds.isNotEmpty()) MaterialTheme.colorScheme.error
-                    else MaterialTheme.colorScheme.errorContainer
+                    tint =
+                        if (selectedStudentIds.isNotEmpty()) {
+                            MaterialTheme.colorScheme.error
+                        } else {
+                            MaterialTheme.colorScheme.errorContainer
+                        }
                 )
             }
         }

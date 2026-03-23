@@ -61,9 +61,11 @@ internal fun ManageClassesDialog(
                     onClick = {
                         onDeleteClass(classToDelete!!)
                         classToDelete = null
-                    }) {
+                    }
+                ) {
                     Text(
-                        text = stringResource(R.string.action_delete), color = MaterialTheme.colorScheme.error
+                        text = stringResource(R.string.action_delete),
+                        color = MaterialTheme.colorScheme.error
                     )
                 }
             },
@@ -71,7 +73,8 @@ internal fun ManageClassesDialog(
                 TextButton(onClick = { classToDelete = null }) {
                     Text(stringResource(R.string.action_cancel))
                 }
-            })
+            }
+        )
     }
 
     AlertDialog(onDismissRequest = onDismiss, title = { Text(stringResource(R.string.manage_classes_title)) }, text = {
@@ -87,9 +90,11 @@ internal fun ManageClassesDialog(
                     onValueChange = { newClassName = it },
                     label = { Text(stringResource(R.string.new_class_label)) },
                     singleLine = true,
-                    keyboardOptions = KeyboardOptions(
-                        capitalization = KeyboardCapitalization.Words, imeAction = ImeAction.Done
-                    ),
+                    keyboardOptions =
+                        KeyboardOptions(
+                            capitalization = KeyboardCapitalization.Words,
+                            imeAction = ImeAction.Done
+                        ),
                     textStyle = TextStyle(textDirection = TextDirection.Content),
                     modifier = Modifier.weight(1f)
                 )
@@ -99,7 +104,8 @@ internal fun ManageClassesDialog(
                             onAddClass(newClassName.trim())
                             newClassName = ""
                         }
-                    }, enabled = newClassName.isNotBlank()
+                    },
+                    enabled = newClassName.isNotBlank()
                 ) {
                     Icon(
                         imageVector = ImageVector.vectorResource(R.drawable.outline_add_24),
@@ -121,17 +127,20 @@ internal fun ManageClassesDialog(
                             Row(
                                 verticalAlignment = Alignment.CenterVertically,
                                 horizontalArrangement = Arrangement.spacedBy(4.dp),
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(vertical = 2.dp)
+                                modifier =
+                                    Modifier
+                                        .fillMaxWidth()
+                                        .padding(vertical = 2.dp)
                             ) {
                                 OutlinedTextField(
                                     value = renameText,
                                     onValueChange = { renameText = it },
                                     singleLine = true,
-                                    keyboardOptions = KeyboardOptions(
-                                        capitalization = KeyboardCapitalization.Words, imeAction = ImeAction.Done
-                                    ),
+                                    keyboardOptions =
+                                        KeyboardOptions(
+                                            capitalization = KeyboardCapitalization.Words,
+                                            imeAction = ImeAction.Done
+                                        ),
                                     textStyle = TextStyle(textDirection = TextDirection.Content),
                                     modifier = Modifier.weight(1f)
                                 )
@@ -142,24 +151,31 @@ internal fun ManageClassesDialog(
                                             onRenameClass(cls, renameText.trim())
                                         }
                                         renamingClassId = null
-                                    }, enabled = renameText.isNotBlank()
+                                    },
+                                    enabled = renameText.isNotBlank()
                                 ) {
                                     Icon(
-                                        imageVector = ImageVector.vectorResource(
-                                            R.drawable.outline_check_24
-                                        ),
+                                        imageVector =
+                                            ImageVector.vectorResource(
+                                                R.drawable.outline_check_24
+                                            ),
                                         contentDescription = stringResource(R.string.action_save),
-                                        tint = if (renameText.isNotBlank()) MaterialTheme.colorScheme.primary
-                                        else MaterialTheme.colorScheme.primaryContainer,
+                                        tint =
+                                            if (renameText.isNotBlank()) {
+                                                MaterialTheme.colorScheme.primary
+                                            } else {
+                                                MaterialTheme.colorScheme.primaryContainer
+                                            },
                                         modifier = Modifier.size(20.dp)
                                     )
                                 }
                                 // Cancel rename
                                 IconButton(onClick = { renamingClassId = null }) {
                                     Icon(
-                                        imageVector = ImageVector.vectorResource(
-                                            R.drawable.outline_close_24
-                                        ),
+                                        imageVector =
+                                            ImageVector.vectorResource(
+                                                R.drawable.outline_close_24
+                                            ),
                                         contentDescription = stringResource(R.string.action_cancel),
                                         modifier = Modifier.size(20.dp)
                                     )
@@ -168,9 +184,10 @@ internal fun ManageClassesDialog(
                         } else {
                             Row(
                                 verticalAlignment = Alignment.CenterVertically,
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(vertical = 2.dp)
+                                modifier =
+                                    Modifier
+                                        .fillMaxWidth()
+                                        .padding(vertical = 2.dp)
                             ) {
                                 Text(
                                     text = cls.name,
@@ -182,11 +199,13 @@ internal fun ManageClassesDialog(
                                     onClick = {
                                         renamingClassId = cls.id
                                         renameText = cls.name
-                                    }) {
+                                    }
+                                ) {
                                     Icon(
-                                        imageVector = ImageVector.vectorResource(
-                                            R.drawable.outline_edit_24
-                                        ),
+                                        imageVector =
+                                            ImageVector.vectorResource(
+                                                R.drawable.outline_edit_24
+                                            ),
                                         contentDescription = stringResource(R.string.action_edit),
                                         modifier = Modifier.size(20.dp)
                                     )
@@ -194,9 +213,10 @@ internal fun ManageClassesDialog(
                                 // Delete button
                                 IconButton(onClick = { classToDelete = cls }) {
                                     Icon(
-                                        imageVector = ImageVector.vectorResource(
-                                            R.drawable.outline_delete_24
-                                        ),
+                                        imageVector =
+                                            ImageVector.vectorResource(
+                                                R.drawable.outline_delete_24
+                                            ),
                                         contentDescription = stringResource(R.string.action_delete),
                                         tint = MaterialTheme.colorScheme.error,
                                         modifier = Modifier.size(20.dp)

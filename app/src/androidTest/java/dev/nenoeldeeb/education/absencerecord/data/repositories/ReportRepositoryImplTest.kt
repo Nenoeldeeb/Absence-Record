@@ -45,195 +45,206 @@ class ReportRepositoryImplTest {
     private fun createRepository(scheduler: TestCoroutineScheduler): ReportRepository {
         val testDispatcher = StandardTestDispatcher(scheduler)
         return ReportRepositoryImpl(
-            context = context, dispatcherProvider = TestDispatcherProvider(testDispatcher)
+            context = context,
+            dispatcherProvider = TestDispatcherProvider(testDispatcher)
         )
     }
 
     // region generateAndSaveReport tests
 
     @Test
-    fun generateAndSaveReport_createsValidPngFile() = runTest {
-        val repository = createRepository(testScheduler)
+    fun generateAndSaveReport_createsValidPngFile() =
+        runTest {
+            val repository = createRepository(testScheduler)
 
-        // Arrange
-        val studentName = "Test Student"
-        val month = LocalDate(2023, 10, 1)
-        val attendance = listOf(LocalDate(2023, 10, 5), LocalDate(2023, 10, 15), LocalDate(2023, 10, 25))
+            // Arrange
+            val studentName = "Test Student"
+            val month = LocalDate(2023, 10, 1)
+            val attendance = listOf(LocalDate(2023, 10, 5), LocalDate(2023, 10, 15), LocalDate(2023, 10, 25))
 
-        // Act
-        val result = repository.generateAndSaveReport(studentName, month, attendance)
+            // Act
+            val result = repository.generateAndSaveReport(studentName, month, attendance)
 
-        // Assert
-        assertTrue("Result should be success", result.isSuccess)
+            // Assert
+            assertTrue("Result should be success", result.isSuccess)
 
-        val uriString = result.getOrNull()
-        assertNotNull("URI should not be null", uriString)
-        assertTrue("URI should be content:// scheme", uriString!!.startsWith("content://"))
+            val uriString = result.getOrNull()
+            assertNotNull("URI should not be null", uriString)
+            assertTrue("URI should be content:// scheme", uriString!!.startsWith("content://"))
 
-        // Verify file exists
-        val expectedFileName = "calendar_${studentName}_$month.png"
-        val file = File(cacheDir, expectedFileName)
-        assertTrue("File should exist", file.exists())
-        assertTrue("File should have content", file.length() > 0)
-    }
-
-    @Test
-    fun generateAndSaveReport_generatesValidBitmap() = runTest {
-        val repository = createRepository(testScheduler)
-
-        // Arrange
-        val studentName = "Student"
-        val month = LocalDate(2023, 10, 1)
-        val attendance = listOf(LocalDate(2023, 10, 10))
-
-        // Act
-        val result = repository.generateAndSaveReport(studentName, month, attendance)
-        assertTrue(result.isSuccess)
-
-        // Read the generated file and verify it's a valid bitmap
-        val expectedFileName = "calendar_${studentName}_$month.png"
-        val file = File(cacheDir, expectedFileName)
-
-        val bitmap = BitmapFactory.decodeFile(file.absolutePath)
-
-        // Assert
-        assertNotNull("Should decode to valid bitmap", bitmap)
-        assertEquals("Width should be 1080", 1080, bitmap.width)
-        assertEquals("Height should be 1920", 1920, bitmap.height)
-    }
+            // Verify file exists
+            val expectedFileName = "calendar_${studentName}_$month.png"
+            val file = File(cacheDir, expectedFileName)
+            assertTrue("File should exist", file.exists())
+            assertTrue("File should have content", file.length() > 0)
+        }
 
     @Test
-    fun generateAndSaveReport_handlesEmptyAttendance() = runTest {
-        val repository = createRepository(testScheduler)
+    fun generateAndSaveReport_generatesValidBitmap() =
+        runTest {
+            val repository = createRepository(testScheduler)
 
-        // Arrange
-        val studentName = "No Attendance"
-        val month = LocalDate(2023, 11, 1)
-        val attendance = emptyList<LocalDate>()
+            // Arrange
+            val studentName = "Student"
+            val month = LocalDate(2023, 10, 1)
+            val attendance = listOf(LocalDate(2023, 10, 10))
 
-        // Act
-        val result = repository.generateAndSaveReport(studentName, month, attendance)
+            // Act
+            val result = repository.generateAndSaveReport(studentName, month, attendance)
+            assertTrue(result.isSuccess)
 
-        // Assert
-        assertTrue("Should succeed with empty attendance", result.isSuccess)
-        assertNotNull(result.getOrNull())
-    }
+            // Read the generated file and verify it's a valid bitmap
+            val expectedFileName = "calendar_${studentName}_$month.png"
+            val file = File(cacheDir, expectedFileName)
 
-    @Test
-    fun generateAndSaveReport_handlesAllDaysMarked() = runTest {
-        val repository = createRepository(testScheduler)
+            val bitmap = BitmapFactory.decodeFile(file.absolutePath)
 
-        // Arrange - October 2023 has 31 days
-        val studentName = "Full Attendance"
-        val month = LocalDate(2023, 10, 1)
-        val attendance = (1..31).map { LocalDate(2023, 10, it) }
-
-        // Act
-        val result = repository.generateAndSaveReport(studentName, month, attendance)
-
-        // Assert
-        assertTrue("Should succeed with all days marked", result.isSuccess)
-        assertNotNull(result.getOrNull())
-    }
+            // Assert
+            assertNotNull("Should decode to valid bitmap", bitmap)
+            assertEquals("Width should be 1080", 1080, bitmap.width)
+            assertEquals("Height should be 1920", 1920, bitmap.height)
+        }
 
     @Test
-    fun generateAndSaveReport_handlesFebruary28Days() = runTest {
-        val repository = createRepository(testScheduler)
+    fun generateAndSaveReport_handlesEmptyAttendance() =
+        runTest {
+            val repository = createRepository(testScheduler)
 
-        // Arrange - February 2023 has 28 days (non-leap year)
-        val studentName = "February Student"
-        val month = LocalDate(2023, 2, 1)
-        val attendance = listOf(LocalDate(2023, 2, 14), LocalDate(2023, 2, 28))
+            // Arrange
+            val studentName = "No Attendance"
+            val month = LocalDate(2023, 11, 1)
+            val attendance = emptyList<LocalDate>()
 
-        // Act
-        val result = repository.generateAndSaveReport(studentName, month, attendance)
+            // Act
+            val result = repository.generateAndSaveReport(studentName, month, attendance)
 
-        // Assert
-        assertTrue("Should succeed for February", result.isSuccess)
-        assertNotNull(result.getOrNull())
-    }
-
-    @Test
-    fun generateAndSaveReport_handlesLeapYearFebruary() = runTest {
-        val repository = createRepository(testScheduler)
-
-        // Arrange - February 2024 has 29 days (leap year)
-        val studentName = "Leap Year Student"
-        val month = LocalDate(2024, 2, 1)
-        val attendance = listOf(LocalDate(2024, 2, 29))
-
-        // Act
-        val result = repository.generateAndSaveReport(studentName, month, attendance)
-
-        // Assert
-        assertTrue("Should succeed for leap year February", result.isSuccess)
-        assertNotNull(result.getOrNull())
-    }
+            // Assert
+            assertTrue("Should succeed with empty attendance", result.isSuccess)
+            assertNotNull(result.getOrNull())
+        }
 
     @Test
-    fun generateAndSaveReport_handlesSpecialCharactersInName() = runTest {
-        val repository = createRepository(testScheduler)
+    fun generateAndSaveReport_handlesAllDaysMarked() =
+        runTest {
+            val repository = createRepository(testScheduler)
 
-        // Arrange
-        val studentName = "محمد أحمد"
-        val month = LocalDate(2023, 10, 1)
-        val attendance = listOf(LocalDate(2023, 10, 1))
+            // Arrange - October 2023 has 31 days
+            val studentName = "Full Attendance"
+            val month = LocalDate(2023, 10, 1)
+            val attendance = (1..31).map { LocalDate(2023, 10, it) }
 
-        // Act
-        val result = repository.generateAndSaveReport(studentName, month, attendance)
+            // Act
+            val result = repository.generateAndSaveReport(studentName, month, attendance)
 
-        // Assert
-        assertTrue("Should handle Arabic names", result.isSuccess)
-        assertNotNull(result.getOrNull())
-    }
-
-    @Test
-    fun generateAndSaveReport_overwritesExistingFile() = runTest {
-        val repository = createRepository(testScheduler)
-
-        // Arrange
-        val studentName = "Overwrite Test"
-        val month = LocalDate(2023, 10, 1)
-        val attendance1 = listOf(LocalDate(2023, 10, 1))
-        val attendance2 = listOf(LocalDate(2023, 10, 15), LocalDate(2023, 10, 16))
-
-        // Act - Generate first report
-        val result1 = repository.generateAndSaveReport(studentName, month, attendance1)
-        assertTrue(result1.isSuccess)
-
-        val expectedFileName = "calendar_${studentName}_$month.png"
-        val file = File(cacheDir, expectedFileName)
-
-        // Act - Generate second report (should overwrite)
-        val result2 = repository.generateAndSaveReport(studentName, month, attendance2)
-
-        // Assert
-        assertTrue(result2.isSuccess)
-        assertTrue("File should still exist after overwrite", file.exists())
-    }
+            // Assert
+            assertTrue("Should succeed with all days marked", result.isSuccess)
+            assertNotNull(result.getOrNull())
+        }
 
     @Test
-    fun generateAndSaveReport_returnsContentUri() = runTest {
-        val repository = createRepository(testScheduler)
+    fun generateAndSaveReport_handlesFebruary28Days() =
+        runTest {
+            val repository = createRepository(testScheduler)
 
-        // Arrange
-        val studentName = "URI Test"
-        val month = LocalDate(2023, 10, 1)
-        val attendance = listOf(LocalDate(2023, 10, 1))
+            // Arrange - February 2023 has 28 days (non-leap year)
+            val studentName = "February Student"
+            val month = LocalDate(2023, 2, 1)
+            val attendance = listOf(LocalDate(2023, 2, 14), LocalDate(2023, 2, 28))
 
-        // Act
-        val result = repository.generateAndSaveReport(studentName, month, attendance)
+            // Act
+            val result = repository.generateAndSaveReport(studentName, month, attendance)
 
-        // Assert
-        assertTrue(result.isSuccess)
-        val uriString = result.getOrNull()!!
-        val uri = uriString.toUri()
+            // Assert
+            assertTrue("Should succeed for February", result.isSuccess)
+            assertNotNull(result.getOrNull())
+        }
 
-        assertEquals("Scheme should be content", "content", uri.scheme)
-        assertTrue(
-            "Authority should contain fileprovider", uri.authority?.contains("fileprovider") == true
-        )
-    }
+    @Test
+    fun generateAndSaveReport_handlesLeapYearFebruary() =
+        runTest {
+            val repository = createRepository(testScheduler)
+
+            // Arrange - February 2024 has 29 days (leap year)
+            val studentName = "Leap Year Student"
+            val month = LocalDate(2024, 2, 1)
+            val attendance = listOf(LocalDate(2024, 2, 29))
+
+            // Act
+            val result = repository.generateAndSaveReport(studentName, month, attendance)
+
+            // Assert
+            assertTrue("Should succeed for leap year February", result.isSuccess)
+            assertNotNull(result.getOrNull())
+        }
+
+    @Test
+    fun generateAndSaveReport_handlesSpecialCharactersInName() =
+        runTest {
+            val repository = createRepository(testScheduler)
+
+            // Arrange
+            val studentName = "محمد أحمد"
+            val month = LocalDate(2023, 10, 1)
+            val attendance = listOf(LocalDate(2023, 10, 1))
+
+            // Act
+            val result = repository.generateAndSaveReport(studentName, month, attendance)
+
+            // Assert
+            assertTrue("Should handle Arabic names", result.isSuccess)
+            assertNotNull(result.getOrNull())
+        }
+
+    @Test
+    fun generateAndSaveReport_overwritesExistingFile() =
+        runTest {
+            val repository = createRepository(testScheduler)
+
+            // Arrange
+            val studentName = "Overwrite Test"
+            val month = LocalDate(2023, 10, 1)
+            val attendance1 = listOf(LocalDate(2023, 10, 1))
+            val attendance2 = listOf(LocalDate(2023, 10, 15), LocalDate(2023, 10, 16))
+
+            // Act - Generate first report
+            val result1 = repository.generateAndSaveReport(studentName, month, attendance1)
+            assertTrue(result1.isSuccess)
+
+            val expectedFileName = "calendar_${studentName}_$month.png"
+            val file = File(cacheDir, expectedFileName)
+
+            // Act - Generate second report (should overwrite)
+            val result2 = repository.generateAndSaveReport(studentName, month, attendance2)
+
+            // Assert
+            assertTrue(result2.isSuccess)
+            assertTrue("File should still exist after overwrite", file.exists())
+        }
+
+    @Test
+    fun generateAndSaveReport_returnsContentUri() =
+        runTest {
+            val repository = createRepository(testScheduler)
+
+            // Arrange
+            val studentName = "URI Test"
+            val month = LocalDate(2023, 10, 1)
+            val attendance = listOf(LocalDate(2023, 10, 1))
+
+            // Act
+            val result = repository.generateAndSaveReport(studentName, month, attendance)
+
+            // Assert
+            assertTrue(result.isSuccess)
+            val uriString = result.getOrNull()!!
+            val uri = uriString.toUri()
+
+            assertEquals("Scheme should be content", "content", uri.scheme)
+            assertTrue(
+                "Authority should contain fileprovider",
+                uri.authority?.contains("fileprovider") == true
+            )
+        }
 
     // endregion
 }
