@@ -1,50 +1,73 @@
-# [PROJECT_NAME] Constitution
-<!-- Example: Spec Constitution, TaskFlow Constitution, etc. -->
+<!--
+SYNC IMPACT REPORT
+==================
+- Version change: Template Placeholders -> 1.0.0
+- List of modified principles:
+  * Principle I: Clean Architecture & Unidirectional Data Flow (Ratified)
+  * Principle II: MVI Pattern & Stable State Management (Ratified)
+  * Principle III: Androidx & Jetpack-First Architecture (Ratified)
+  * Principle IV: Verification & Test Discipline (Ratified)
+  * Principle V: Simplicity, Performance, & Code Consistency (Ratified)
+- Added sections:
+  * Core Technologies & Constraints (Section 2)
+  * Development Quality Gates (Section 3)
+- Templates requiring updates:
+  * .specify/templates/plan-template.md (✅ updated)
+  * .specify/templates/spec-template.md (✅ updated)
+  * .specify/templates/tasks-template.md (✅ updated)
+- Follow-up TODOs: None.
+-->
+
+# Absence Record Constitution
 
 ## Core Principles
 
-### [PRINCIPLE_1_NAME]
-<!-- Example: I. Library-First -->
-[PRINCIPLE_1_DESCRIPTION]
-<!-- Example: Every feature starts as a standalone library; Libraries must be self-contained, independently testable, documented; Clear purpose required - no organizational-only libraries -->
+### I. Clean Architecture & Layer Partitioning
 
-### [PRINCIPLE_2_NAME]
-<!-- Example: II. CLI Interface -->
-[PRINCIPLE_2_DESCRIPTION]
-<!-- Example: Every library exposes functionality via CLI; Text in/out protocol: stdin/args → stdout, errors → stderr; Support JSON + human-readable formats -->
+The codebase MUST strictly partition into three clean layers: Domain, Data, and Presentation. Domain holds business logic (models, repository interfaces, usecases, services). Data handles local storage via Room Entities/DAOs, repository implementations, and mappers. Presentation handles the UI using Jetpack Compose.
+All use cases MUST be single-action classes implementing `operator fun invoke`. Standardize return types to Kotlin's built-in `Result<T>`. NO `try-catch` blocks may escape to the Domain or Presentation layers; they must be caught and handled at the Data layer or boundaries using `onSuccess`/`onFailure`.
 
-### [PRINCIPLE_3_NAME]
-<!-- Example: III. Test-First (NON-NEGOTIABLE) -->
-[PRINCIPLE_3_DESCRIPTION]
-<!-- Example: TDD mandatory: Tests written → User approved → Tests fail → Then implement; Red-Green-Refactor cycle strictly enforced -->
+### II. MVI Pattern & Stable State Management
 
-### [PRINCIPLE_4_NAME]
-<!-- Example: IV. Integration Testing -->
-[PRINCIPLE_4_DESCRIPTION]
-<!-- Example: Focus areas requiring integration tests: New library contract tests, Contract changes, Inter-service communication, Shared schemas -->
+The UI state must be a single immutable data class annotated with `@Stable`. Mutation must occur strictly through `_uiState.update { it.copy(...) }`. Derived state properties MUST use Jetpack Compose's `derivedStateOf` to prevent redundant recompositions. User intents must be modeled via a `sealed interface ScreenEvent`. Collect UI state in composables ONLY via `collectAsStateWithLifecycle()` to respect the lifecycle. All async operations must run in `viewModelScope.launch`, and developers must never manually create raw `Job` instances.
 
-### [PRINCIPLE_5_NAME]
-<!-- Example: V. Observability, VI. Versioning & Breaking Changes, VII. Simplicity -->
-[PRINCIPLE_5_DESCRIPTION]
-<!-- Example: Text I/O ensures debuggability; Structured logging required; Or: MAJOR.MINOR.BUILD format; Or: Start simple, YAGNI principles -->
+### III. Androidx & Jetpack-First Architecture
 
-## [SECTION_2_NAME]
-<!-- Example: Additional Constraints, Security Requirements, Performance Standards, etc. -->
+Prioritize Jetpack Compose for UI, Room Database for persistent storage, Kotlinx Serialization (`@Serializable`) for data serialization (e.g., import/export functionality), and `kotlinx-datetime` for all date/time operations. We strictly prohibit the use of `java.time`. We prohibit hardcoding user-facing strings; all strings must reside in `strings.xml` (with Arabic translations supported in `values-ar/`) and be wrapped via the `UiText` utility. Dependency injection is manual, utilizing `AppContainer` and `AppViewModelProvider`.
 
-[SECTION_2_CONTENT]
-<!-- Example: Technology stack requirements, compliance standards, deployment policies, etc. -->
+### IV. Verification & Test Discipline
 
-## [SECTION_3_NAME]
-<!-- Example: Development Workflow, Review Process, Quality Gates, etc. -->
+Testability is a first-class citizen. Both unit and UI tests must be written to verify functional code. We MUST explicitly test both `onSuccess` and `onFailure` paths for UseCases and ViewModels, ensuring error states bind correctly to the UI. Unit tests must use JUnit and MockK (e.g. `mockk(relaxed = true)` for ViewModels in Compose tests). Advance virtual time with `runTest` for asynchronous testing.
 
-[SECTION_3_CONTENT]
-<!-- Example: Code review requirements, testing gates, deployment approval process, etc. -->
+### V. Simplicity, Performance, & Code Consistency
+
+Follow the SOLID principles and prioritize simple, maintainable approaches. Optimize for performance: CPU-intensive operations (such as serialization, collection processing, and date parsing) MUST NOT run on the Main thread. They must be offloaded to background threads using `withContext` with a dedicated default or IO dispatcher. Maintain code consistency by enforcing formatting via `./gradlew ktlintFormat` and full validation (ktlint + lint + tests) via `./gradlew check` before committing any code.
+
+## Core Technologies & Constraints
+
+- **Jetpack Compose**: All screens and UI components must be built natively using Jetpack Compose, respecting the Unidirectional Data Flow pattern.
+- **Room Database**: Local persistence layer using Room DAOs and Entities. All DAO methods returning results must be suspend functions or return flows.
+- **Kotlinx Serialization**: JSON import/export flows must use kotlinx.serialization to serialize and deserialize data.
+- **Kotlinx Datetime**: Date representation must exclusively use kotlinx-datetime types.
+- **Manual Dependency Injection**: Manage dependencies via `AppContainer` and provide ViewModels through `AppViewModelProvider` to keep the DI model simple and transparent.
+- **Main Safety**: Offload complex computations and database operations to background threads using Kotlin Coroutine dispatchers.
+
+## Development Quality Gates
+
+- **Code Style Compliance**: Run `./gradlew ktlintFormat` to keep formatting aligned with the style guide.
+- **Verification Gates**: Run `./gradlew check` to run formatting checks, Android lints, and all unit tests.
+- **Naming Suffixes**:
+  - ViewModel: `ViewModel` (e.g. `StudentsViewModel`)
+  - ScreenState: `ScreenState` (e.g. `StudentsScreenState`)
+  - ScreenEvent: `ScreenEvent` (e.g. `StudentsScreenEvent`)
+  - Screen file: `Screen.kt` (e.g. `StudentsScreen.kt`)
+  - Layout Folder: `presentation/screens/[feature]/`
 
 ## Governance
-<!-- Example: Constitution supersedes all other practices; Amendments require documentation, approval, migration plan -->
 
-[GOVERNANCE_RULES]
-<!-- Example: All PRs/reviews must verify compliance; Complexity must be justified; Use [GUIDANCE_FILE] for runtime development guidance -->
+- This constitution is the ultimate reference for code structure, architectural rules, and libraries in the Absence Record project.
+- Any change to the architectural pattern, such as introducing new framework libraries or altering the MVI state flow, must be discussed, approved, and updated in this constitution first.
+- The `AGENTS.md` and `README.md` files must remain aligned with these principles at all times.
+- Development tools, including Spec-Kit commands, must consult these guidelines to ensure consistency.
 
-**Version**: [CONSTITUTION_VERSION] | **Ratified**: [RATIFICATION_DATE] | **Last Amended**: [LAST_AMENDED_DATE]
-<!-- Example: Version: 2.1.1 | Ratified: 2025-06-13 | Last Amended: 2025-07-16 -->
+**Version**: 1.0.0 | **Ratified**: 2026-05-22 | **Last Amended**: 2026-05-22
