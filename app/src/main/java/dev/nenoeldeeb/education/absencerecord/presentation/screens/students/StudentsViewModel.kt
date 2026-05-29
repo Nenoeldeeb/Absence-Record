@@ -1,15 +1,14 @@
 package dev.nenoeldeeb.education.absencerecord.presentation.screens.students
 
-import android.net.Uri
 import androidx.compose.runtime.Stable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dev.nenoeldeeb.education.absencerecord.R
 import dev.nenoeldeeb.education.absencerecord.domain.models.Student
-import dev.nenoeldeeb.education.absencerecord.domain.models.StudentClass
+import dev.nenoeldeeb.education.absencerecord.domain.models.StudentError
+import dev.nenoeldeeb.education.absencerecord.domain.models.toUiText
 import dev.nenoeldeeb.education.absencerecord.domain.usecases.ClassManagementUseCases
 import dev.nenoeldeeb.education.absencerecord.domain.usecases.StudentManagementUseCases
-import dev.nenoeldeeb.education.absencerecord.presentation.screens.components.ClassFilter
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.StudentsScreenEvent.AddClass
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.StudentsScreenEvent.AddStudent
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.StudentsScreenEvent.CloseImportSelectionDialog
@@ -34,8 +33,10 @@ import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.Stud
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.StudentsScreenEvent.ToggleStudentsSelection
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.StudentsScreenEvent.UpdateNewStudentName
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.StudentsScreenEvent.UpdateStudent
+import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.delegates.ClassActionDelegate
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.delegates.ImportExportDelegate
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.delegates.SelectionStateDelegate
+import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.delegates.StudentActionDelegate
 import dev.nenoeldeeb.education.absencerecord.presentation.utils.UiText
 import dev.nenoeldeeb.education.absencerecord.presentation.utils.applyClassFilter
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -51,12 +52,13 @@ open class StudentsViewModel(
     private val studentManagementUseCases: StudentManagementUseCases,
     private val classManagementUseCases: ClassManagementUseCases,
     private val selectionDelegate: SelectionStateDelegate = SelectionStateDelegate(),
-    private val importExportDelegate: ImportExportDelegate = ImportExportDelegate()
+    private val importExportDelegate: ImportExportDelegate = ImportExportDelegate(),
+    private val studentActionDelegate: StudentActionDelegate =
+        StudentActionDelegate(studentManagementUseCases, importExportDelegate),
+    private val classActionDelegate: ClassActionDelegate = ClassActionDelegate(classManagementUseCases)
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(StudentsScreenState())
     val uiState: StateFlow<StudentsScreenState> = _uiState.asStateFlow()
-
-    /** Unfiltered student list; used to cheaply re-apply filters without a new DB query. */
     private var rawStudents: List<Student> = emptyList()
 
     init {
@@ -68,53 +70,81 @@ open class StudentsViewModel(
             combine(
                 studentManagementUseCases.getAllStudentsUseCase(),
                 classManagementUseCases.getAllClassesUseCase()
-            ) { studentsResult, classesResult ->
-                Pair(
-                    studentsResult,
-                    classesResult
-                )
-            }.collectLatest { (studentsResult, classesResult) ->
-                studentsResult.onSuccess { students ->
-                    rawStudents = students
-                    _uiState.update { state ->
-                        state.copy(
-                            allStudents =
-                                students.applyClassFilter(
-                                    state.selectedClassFilter
-                                )
-                        )
+            ) { s, c -> s to c }
+                .collectLatest { (studentsResult, classesResult) ->
+                    studentsResult.onSuccess { students ->
+                        rawStudents = students
+                        _uiState.update { state ->
+                            state.copy(allStudents = students.applyClassFilter(state.selectedClassFilter))
+                        }
+                    }.onFailure { e ->
+                        _uiState.update {
+                            it.copy(
+                                error = UiText.StringResource(R.string.error_loading_students, e.message ?: "Unknown error")
+                            )
+                        }
                     }
-                }.onFailure { e ->
-                    _uiState.update {
-                        it.copy(
-                            error =
-                                UiText.StringResource(
-                                    R.string.error_loading_students,
-                                    e.message ?: "Unknown error"
-                                )
-                        )
-                    }
+                    classesResult.onSuccess { classes -> _uiState.update { it.copy(availableClasses = classes) } }
                 }
-                classesResult.onSuccess { classes ->
-                    _uiState.update { it.copy(availableClasses = classes) }
-                }
-            }
         }
     }
 
     open fun onEvent(event: StudentsScreenEvent) {
         when (event) {
             is UpdateNewStudentName -> _uiState.update { it.copy(newStudentName = event.name) }
-            is AddStudent -> addStudent(event.name, event.classId)
-            is UpdateStudent -> updateStudent(event.student, event.newName, event.newClassId)
-            is PrepareImportSelectionDialog -> prepareImportSelectionDialog(event.uri)
+            is AddStudent ->
+                viewModelScope.launch {
+                    studentActionDelegate.addStudent(event.name, event.classId)
+                        .onSuccess { toast ->
+                            _uiState.update { state ->
+                                state.copy(toastMessage = toast, newStudentName = "", showAddStudentDialog = false)
+                            }
+                        }
+                        .onFailure { error -> _uiState.update { state -> state.copy(error = error.toUiText()) } }
+                }
+
+            is UpdateStudent ->
+                viewModelScope.launch {
+                    studentActionDelegate.updateStudent(event.student, event.newName, event.newClassId)
+                        .onSuccess { toast ->
+                            _uiState.update { state -> state.copy(toastMessage = toast, showEditDialog = null) }
+                        }
+                        .onFailure { error -> _uiState.update { state -> state.copy(error = error.toUiText()) } }
+                }
+
+            is PrepareImportSelectionDialog -> {
+                val uri =
+                    event.uri ?: run {
+                        _uiState.update { it.copy(error = StudentError.Cancelled.toUiText()) }
+                        return
+                    }
+                viewModelScope.launch {
+                    studentActionDelegate.prepareImportSelectionDialog(uri.toString())
+                        .onSuccess { parsedData ->
+                            val (data, selectionMap, showDialog) = importExportDelegate.prepareImportDialog(parsedData)
+                            _uiState.update {
+                                if (data == null) {
+                                    it.copy(
+                                        parsedStudentsFromFile = null,
+                                        importSelectionMap = emptyMap(),
+                                        toastMessage = UiText.StringResource(R.string.no_students_found_in_file)
+                                    )
+                                } else {
+                                    it.copy(
+                                        parsedStudentsFromFile = data,
+                                        importSelectionMap = selectionMap,
+                                        showImportSelectionDialog = showDialog
+                                    )
+                                }
+                            }
+                        }
+                        .onFailure { error -> _uiState.update { state -> state.copy(error = error.toUiText()) } }
+                }
+            }
+
             is CloseImportSelectionDialog ->
                 _uiState.update {
-                    it.copy(
-                        showImportSelectionDialog = false,
-                        parsedStudentsFromFile = null,
-                        importSelectionMap = emptyMap()
-                    )
+                    it.copy(showImportSelectionDialog = false, parsedStudentsFromFile = null, importSelectionMap = emptyMap())
                 }
 
             is ToggleImportSelection ->
@@ -128,7 +158,23 @@ open class StudentsViewModel(
                     )
                 }
 
-            is PerformImport -> performImport()
+            is PerformImport ->
+                viewModelScope.launch {
+                    val parsedStudents = _uiState.value.parsedStudentsFromFile ?: return@launch
+                    studentActionDelegate.performImport(parsedStudents, _uiState.value.importSelectionMap)
+                        .onSuccess { toast ->
+                            _uiState.update { state ->
+                                state.copy(
+                                    showImportSelectionDialog = false,
+                                    parsedStudentsFromFile = null,
+                                    importSelectionMap = emptyMap(),
+                                    toastMessage = toast
+                                )
+                            }
+                        }
+                        .onFailure { error -> _uiState.update { state -> state.copy(error = error.toUiText()) } }
+                }
+
             is ConsumeToastMessage -> _uiState.update { it.copy(toastMessage = null) }
             is ShowStudentDialog ->
                 _uiState.update {
@@ -142,11 +188,7 @@ open class StudentsViewModel(
             is ToggleStudentSelection ->
                 _uiState.update { state ->
                     state.copy(
-                        selectedStudentIds =
-                            selectionDelegate.toggleSelection(
-                                state.selectedStudentIds,
-                                event.studentId
-                            )
+                        selectedStudentIds = selectionDelegate.toggleSelection(state.selectedStudentIds, event.studentId)
                     )
                 }
 
@@ -157,10 +199,7 @@ open class StudentsViewModel(
                             state.isMultiSelectionMode,
                             state.selectedStudentIds
                         )
-                    state.copy(
-                        isMultiSelectionMode = newMode,
-                        selectedStudentIds = newSelection
-                    )
+                    state.copy(isMultiSelectionMode = newMode, selectedStudentIds = newSelection)
                 }
 
             is ToggleStudentsSelection ->
@@ -177,12 +216,61 @@ open class StudentsViewModel(
                     )
                 }
 
-            is DeleteSelectedStudents -> deleteSelectedStudents()
-            is ExportSelectedStudents -> exportSelectedStudents(event.uri)
-            is ExportAndDeleteSelectedStudents -> exportAndDeleteSelectedStudents(event.uri)
+            is DeleteSelectedStudents ->
+                viewModelScope.launch {
+                    studentActionDelegate.deleteSelectedStudents(_uiState.value.selectedStudentIds, _uiState.value.allStudents)
+                        .onSuccess { toast ->
+                            _uiState.update { state ->
+                                state.copy(
+                                    toastMessage = toast,
+                                    showBulkDeleteDialog = false,
+                                    isMultiSelectionMode = false,
+                                    selectedStudentIds = emptySet()
+                                )
+                            }
+                        }
+                        .onFailure { error -> _uiState.update { state -> state.copy(error = error.toUiText()) } }
+                }
+
+            is ExportSelectedStudents ->
+                viewModelScope.launch {
+                    val state = _uiState.value
+                    studentActionDelegate.exportSelectedStudents(
+                        event.uri.toString(),
+                        state.selectedStudentIds,
+                        state.allStudents
+                    )
+                        .onSuccess { toast ->
+                            _uiState.update { state ->
+                                state.copy(toastMessage = toast, isMultiSelectionMode = false, selectedStudentIds = emptySet())
+                            }
+                        }
+                        .onFailure { error -> _uiState.update { state -> state.copy(error = error.toUiText()) } }
+                }
+
+            is ExportAndDeleteSelectedStudents ->
+                viewModelScope.launch {
+                    val state = _uiState.value
+                    studentActionDelegate.exportAndDeleteSelectedStudents(
+                        event.uri.toString(),
+                        state.selectedStudentIds,
+                        state.allStudents
+                    )
+                        .onSuccess { toast ->
+                            _uiState.update { updateState ->
+                                updateState.copy(
+                                    toastMessage = toast,
+                                    showBulkDeleteDialog = false,
+                                    isMultiSelectionMode = false,
+                                    selectedStudentIds = emptySet()
+                                )
+                            }
+                        }
+                        .onFailure { error -> _uiState.update { state -> state.copy(error = error.toUiText()) } }
+                }
+
             is ShowBulkDeleteDialog -> _uiState.update { it.copy(showBulkDeleteDialog = true) }
             is DismissBulkDeleteDialog -> _uiState.update { it.copy(showBulkDeleteDialog = false) }
-            // Class filter events
             is SelectClassFilter ->
                 _uiState.update { state ->
                     state.copy(
@@ -193,382 +281,41 @@ open class StudentsViewModel(
                 }
 
             is ToggleClassFilterVisibility -> _uiState.update { it.copy(isClassFilterVisible = !it.isClassFilterVisible) }
-
             is ToggleClassDropdown -> _uiState.update { it.copy(classDropdownExpanded = event.expanded) }
-
             is ShowManageClassesDialog -> _uiState.update { it.copy(showManageClassesDialog = event.show) }
-
-            is AddClass -> addClass(event.name)
-            is RenameClass -> renameClass(event.studentClass, event.newName)
-            is DeleteClass -> deleteClass(event.studentClass)
-        }
-    }
-
-    // ── Student CRUD ─────────────────────────────────────────────────────────
-
-    private fun addStudent(
-        name: String,
-        classId: Int?
-    ) {
-        val trimmed = name.trim()
-        if (trimmed.isBlank()) {
-            _uiState.update {
-                it.copy(toastMessage = UiText.StringResource(R.string.student_name_cannot_be_empty))
-            }
-            return
-        }
-        viewModelScope.launch {
-            studentManagementUseCases.addStudentUseCase(Student(name = trimmed, classId = classId)).onSuccess {
-                _uiState.update {
-                    it.copy(
-                        newStudentName = "",
-                        showAddStudentDialog = false,
-                        toastMessage = UiText.StringResource(R.string.student_added, trimmed)
-                    )
+            is AddClass ->
+                viewModelScope.launch {
+                    classActionDelegate.addClass(event.name)
+                        .onSuccess { toast -> _uiState.update { state -> state.copy(toastMessage = toast) } }
+                        .onFailure { error -> _uiState.update { state -> state.copy(error = error.toUiText()) } }
                 }
-            }.onFailure { e ->
-                _uiState.update {
-                    it.copy(
-                        error =
-                            UiText.StringResource(
-                                R.string.error_adding_student,
-                                e.message ?: "Unknown error"
-                            )
-                    )
-                }
-            }
-        }
-    }
 
-    private fun updateStudent(
-        student: Student,
-        newName: String,
-        newClassId: Int?
-    ) {
-        val trimmed = newName.trim()
-        if (trimmed.isBlank()) {
-            _uiState.update {
-                it.copy(toastMessage = UiText.StringResource(R.string.student_name_cannot_be_empty))
-            }
-            return
-        }
-        viewModelScope.launch {
-            studentManagementUseCases.updateStudentUseCase(student.copy(name = trimmed, classId = newClassId)).onSuccess {
-                _uiState.update {
-                    it.copy(
-                        showEditDialog = null,
-                        toastMessage = UiText.StringResource(R.string.student_updated, trimmed)
-                    )
+            is RenameClass ->
+                viewModelScope.launch {
+                    classActionDelegate.renameClass(event.studentClass, event.newName)
+                        .onSuccess { toast -> _uiState.update { state -> state.copy(toastMessage = toast) } }
+                        .onFailure { error -> _uiState.update { state -> state.copy(error = error.toUiText()) } }
                 }
-            }.onFailure { e ->
-                _uiState.update {
-                    it.copy(
-                        error =
-                            UiText.StringResource(
-                                R.string.error_updating_student,
-                                e.message ?: "Unknown error"
-                            )
-                    )
-                }
-            }
-        }
-    }
 
-    // ── Import / Export ──────────────────────────────────────────────────────
-
-    private fun prepareImportSelectionDialog(uri: Uri?) {
-        if (uri == null) {
-            _uiState.update {
-                it.copy(toastMessage = UiText.StringResource(R.string.file_selection_cancelled))
-            }
-            return
-        }
-        viewModelScope.launch {
-            studentManagementUseCases.importStudentsUseCase.parseFile(uri.toString()).onSuccess { parsedData ->
-                val (data, selectionMap, showDialog) = importExportDelegate.prepareImportDialog(parsedData)
-                _uiState.update {
-                    if (data == null) {
-                        it.copy(
-                            parsedStudentsFromFile = null,
-                            importSelectionMap = emptyMap(),
-                            toastMessage =
-                                UiText.StringResource(
-                                    R.string.no_students_found_in_file
+            is DeleteClass ->
+                viewModelScope.launch {
+                    classActionDelegate.deleteClass(event.studentClass)
+                        .onSuccess { toast ->
+                            val newFilter =
+                                classActionDelegate.onDeletedClassFilterFallback(
+                                    _uiState.value.selectedClassFilter,
+                                    event.studentClass
                                 )
-                        )
-                    } else {
-                        it.copy(
-                            parsedStudentsFromFile = data,
-                            importSelectionMap = selectionMap,
-                            showImportSelectionDialog = showDialog
-                        )
-                    }
-                }
-            }.onFailure { e ->
-                _uiState.update {
-                    it.copy(
-                        error =
-                            UiText.StringResource(
-                                R.string.error_reading_or_parsing_file,
-                                e.message ?: "Unknown error"
-                            )
-                    )
-                }
-            }
-        }
-    }
-
-    private fun performImport() {
-        val parsedStudents = _uiState.value.parsedStudentsFromFile ?: return
-        val selectionMap = _uiState.value.importSelectionMap
-        viewModelScope.launch {
-            studentManagementUseCases.importStudentsUseCase.performImport(parsedStudents, selectionMap)
-                .onSuccess { importResult ->
-                    _uiState.update {
-                        it.copy(
-                            showImportSelectionDialog = false,
-                            toastMessage =
-                                importExportDelegate.buildImportResultMessage(
-                                    importResult
+                            _uiState.update {
+                                it.copy(
+                                    toastMessage = toast,
+                                    selectedClassFilter = newFilter,
+                                    allStudents = rawStudents.applyClassFilter(newFilter)
                                 )
-                        )
-                    }
-                }.onFailure { e ->
-                    _uiState.update {
-                        it.copy(
-                            error =
-                                UiText.StringResource(
-                                    R.string.error_during_import,
-                                    e.message ?: "Unknown error"
-                                )
-                        )
-                    }
+                            }
+                        }
+                        .onFailure { error -> _uiState.update { state -> state.copy(error = error.toUiText()) } }
                 }
-        }
-    }
-
-    // ── Bulk operations ──────────────────────────────────────────────────────
-
-    private fun deleteSelectedStudents() {
-        val selectedIds = _uiState.value.selectedStudentIds
-        if (selectedIds.isEmpty()) return
-        val studentsToDelete = _uiState.value.allStudents.filter { it.id in selectedIds }
-        viewModelScope.launch {
-            studentManagementUseCases.deleteStudentsUseCase(studentsToDelete).onSuccess {
-                _uiState.update {
-                    it.copy(
-                        showBulkDeleteDialog = false,
-                        isMultiSelectionMode = false,
-                        selectedStudentIds = emptySet(),
-                        toastMessage =
-                            UiText.StringResource(
-                                R.string.students_deleted_successfully
-                            )
-                    )
-                }
-            }.onFailure { e ->
-                _uiState.update {
-                    it.copy(
-                        error =
-                            UiText.StringResource(
-                                R.string.error_deleting_student,
-                                e.message ?: "Unknown error"
-                            )
-                    )
-                }
-            }
-        }
-    }
-
-    private fun exportSelectedStudents(uri: Uri) {
-        val selectedIds = _uiState.value.selectedStudentIds
-        if (selectedIds.isEmpty()) return
-        viewModelScope.launch {
-            studentManagementUseCases.exportStudentsUseCase(uri.toString(), selectedIds, _uiState.value.allStudents).onSuccess {
-                _uiState.update {
-                    it.copy(
-                        isMultiSelectionMode = false,
-                        selectedStudentIds = emptySet(),
-                        toastMessage =
-                            UiText.StringResource(
-                                R.string.data_exported_successfully
-                            )
-                    )
-                }
-            }.onFailure { e ->
-                _uiState.update {
-                    it.copy(
-                        error =
-                            UiText.StringResource(
-                                R.string.error_creating_export_data,
-                                e.message ?: "Unknown error"
-                            )
-                    )
-                }
-            }
-        }
-    }
-
-    private fun exportAndDeleteSelectedStudents(uri: Uri) {
-        val selectedIds = _uiState.value.selectedStudentIds
-        if (selectedIds.isEmpty()) return
-        val allStudents = _uiState.value.allStudents
-        val studentsToDelete = allStudents.filter { it.id in selectedIds }
-        viewModelScope.launch {
-            studentManagementUseCases.exportStudentsUseCase(uri.toString(), selectedIds, allStudents).onSuccess {
-                studentManagementUseCases.deleteStudentsUseCase(studentsToDelete).onSuccess {
-                    _uiState.update {
-                        it.copy(
-                            showBulkDeleteDialog = false,
-                            isMultiSelectionMode = false,
-                            selectedStudentIds = emptySet(),
-                            toastMessage =
-                                UiText.StringResource(
-                                    R.string.data_exported_and_deleted_successfully
-                                )
-                        )
-                    }
-                }.onFailure { e ->
-                    _uiState.update {
-                        it.copy(
-                            error =
-                                UiText.StringResource(
-                                    R.string.error_deleting_student,
-                                    e.message ?: "Unknown error"
-                                )
-                        )
-                    }
-                }
-            }.onFailure { e ->
-                _uiState.update {
-                    it.copy(
-                        error =
-                            UiText.StringResource(
-                                R.string.error_creating_export_data,
-                                e.message ?: "Unknown error"
-                            )
-                    )
-                }
-            }
-        }
-    }
-
-    // ── Class CRUD ────────────────────────────────────────────────────────────
-
-    private fun addClass(name: String) {
-        val trimmed = name.trim()
-        if (trimmed.isBlank()) {
-            _uiState.update {
-                it.copy(toastMessage = UiText.StringResource(R.string.class_name_cannot_be_empty))
-            }
-            return
-        }
-        viewModelScope.launch {
-            classManagementUseCases.addClassUseCase(StudentClass(name = trimmed)).onSuccess {
-                _uiState.update {
-                    it.copy(
-                        toastMessage = UiText.StringResource(R.string.class_added, trimmed)
-                    )
-                }
-            }.onFailure { e ->
-                val message =
-                    if (e.message == "DUPLICATE_CLASS_NAME") {
-                        UiText.StringResource(R.string.error_class_name_already_exists)
-                    } else {
-                        UiText.StringResource(
-                            R.string.error_adding_class,
-                            e.message ?: "Unknown error"
-                        )
-                    }
-                _uiState.update { it.copy(toastMessage = message) }
-            }
-        }
-    }
-
-    private fun renameClass(
-        studentClass: StudentClass,
-        newName: String
-    ) {
-        val trimmed = newName.trim()
-        if (trimmed.isBlank()) {
-            _uiState.update {
-                it.copy(toastMessage = UiText.StringResource(R.string.class_name_cannot_be_empty))
-            }
-            return
-        }
-        viewModelScope.launch {
-            classManagementUseCases.updateClassUseCase(studentClass.copy(name = trimmed)).onSuccess {
-                val filter = _uiState.value.selectedClassFilter
-                if (filter is ClassFilter.ByClass && filter.studentClass.id == studentClass.id) {
-                    _uiState.update {
-                        it.copy(
-                            selectedClassFilter =
-                                ClassFilter.ByClass(
-                                    studentClass.copy(name = trimmed)
-                                ),
-                            toastMessage =
-                                UiText.StringResource(
-                                    R.string.class_updated,
-                                    trimmed
-                                )
-                        )
-                    }
-                } else {
-                    _uiState.update {
-                        it.copy(
-                            toastMessage =
-                                UiText.StringResource(
-                                    R.string.class_updated,
-                                    trimmed
-                                )
-                        )
-                    }
-                }
-            }.onFailure { e ->
-                val message =
-                    if (e.message == "DUPLICATE_CLASS_NAME") {
-                        UiText.StringResource(R.string.error_class_name_already_exists)
-                    } else {
-                        UiText.StringResource(
-                            R.string.error_updating_class,
-                            e.message ?: "Unknown error"
-                        )
-                    }
-                _uiState.update { it.copy(toastMessage = message) }
-            }
-        }
-    }
-
-    private fun deleteClass(studentClass: StudentClass) {
-        viewModelScope.launch {
-            classManagementUseCases.deleteClassUseCase(studentClass).onSuccess {
-                val filter = _uiState.value.selectedClassFilter
-                if (filter is ClassFilter.ByClass && filter.studentClass.id == studentClass.id) {
-                    _uiState.update {
-                        it.copy(
-                            selectedClassFilter = ClassFilter.All,
-                            allStudents = rawStudents.applyClassFilter(ClassFilter.All),
-                            toastMessage = UiText.StringResource(R.string.class_deleted)
-                        )
-                    }
-                } else {
-                    _uiState.update {
-                        it.copy(
-                            toastMessage = UiText.StringResource(R.string.class_deleted)
-                        )
-                    }
-                }
-            }.onFailure { e ->
-                _uiState.update {
-                    it.copy(
-                        toastMessage =
-                            UiText.StringResource(
-                                R.string.error_deleting_class,
-                                e.message ?: "Unknown error"
-                            )
-                    )
-                }
-            }
         }
     }
 }
