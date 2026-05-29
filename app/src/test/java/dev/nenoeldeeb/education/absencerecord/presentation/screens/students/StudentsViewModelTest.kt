@@ -149,7 +149,7 @@ class StudentsViewModelTest {
         }
 
     @Test
-    fun `AddStudent event with empty name sets error toast`() =
+    fun `AddStudent event with empty name sets error`() =
         runTest {
             // Given
             every { getAllStudentsUseCase(any(), any()) } returns flowOf(Result.success(emptyList()))
@@ -167,8 +167,8 @@ class StudentsViewModelTest {
             // Then
             coVerify(exactly = 0) { addStudentUseCase(any()) }
             assertEquals(
-                UiText.StringResource(R.string.student_name_cannot_be_empty),
-                viewModel.uiState.value.toastMessage
+                UiText.DynamicString("Name must not be blank"),
+                viewModel.uiState.value.error
             )
         }
 
@@ -202,7 +202,7 @@ class StudentsViewModelTest {
         }
 
     @Test
-    fun `UpdateStudent with empty name sets error toast`() =
+    fun `UpdateStudent with empty name sets error`() =
         runTest {
             // Given
             val student = Student(id = 1, name = "Old Name")
@@ -224,8 +224,8 @@ class StudentsViewModelTest {
             // Then
             coVerify(exactly = 0) { updateStudentUseCase(any()) }
             assertEquals(
-                UiText.StringResource(R.string.student_name_cannot_be_empty),
-                viewModel.uiState.value.toastMessage
+                UiText.DynamicString("Name must not be blank"),
+                viewModel.uiState.value.error
             )
         }
 
@@ -252,7 +252,7 @@ class StudentsViewModelTest {
             advanceUntilIdle()
 
             // Then
-            val expectedError = UiText.StringResource(R.string.error_updating_student, errorMsg)
+            val expectedError = UiText.StringResource(R.string.error_database_operation_failed)
             assertEquals(expectedError, viewModel.uiState.value.error)
         }
 
@@ -303,7 +303,7 @@ class StudentsViewModelTest {
             advanceUntilIdle()
 
             // Then
-            val expectedError = UiText.StringResource(R.string.error_deleting_student, errorMsg)
+            val expectedError = UiText.StringResource(R.string.error_database_operation_failed)
             assertEquals(expectedError, viewModel.uiState.value.error)
         }
 
@@ -343,7 +343,7 @@ class StudentsViewModelTest {
             // Then
             assertEquals(
                 UiText.StringResource(R.string.file_selection_cancelled),
-                viewModel.uiState.value.toastMessage
+                viewModel.uiState.value.error
             )
         }
 
@@ -366,7 +366,7 @@ class StudentsViewModelTest {
             advanceUntilIdle()
 
             // Then
-            val expectedError = UiText.StringResource(R.string.error_reading_or_parsing_file, errorMsg)
+            val expectedError = UiText.StringResource(R.string.error_reading_file)
             assertEquals(expectedError, viewModel.uiState.value.error)
         }
 
@@ -430,7 +430,7 @@ class StudentsViewModelTest {
             advanceUntilIdle()
 
             // Then
-            val expectedError = UiText.StringResource(R.string.error_during_import, errorMsg)
+            val expectedError = UiText.StringResource(R.string.error_database_operation_failed)
             assertEquals(expectedError, viewModel.uiState.value.error)
         }
 
@@ -487,7 +487,7 @@ class StudentsViewModelTest {
             advanceUntilIdle()
 
             // Then
-            val expectedError = UiText.StringResource(R.string.error_creating_export_data, errorMsg)
+            val expectedError = UiText.StringResource(R.string.error_reading_file)
             assertEquals(expectedError, viewModel.uiState.value.error)
         }
 
@@ -546,7 +546,7 @@ class StudentsViewModelTest {
 
             // Then
             coVerify(exactly = 0) { deleteStudentsUseCase(any()) }
-            val expectedError = UiText.StringResource(R.string.error_creating_export_data, errorMsg)
+            val expectedError = UiText.StringResource(R.string.error_reading_file)
             assertEquals(expectedError, viewModel.uiState.value.error)
         }
 
@@ -573,7 +573,7 @@ class StudentsViewModelTest {
             advanceUntilIdle()
 
             // Then
-            val expectedError = UiText.StringResource(R.string.error_deleting_student, errorMsg)
+            val expectedError = UiText.StringResource(R.string.error_database_operation_failed)
             assertEquals(expectedError, viewModel.uiState.value.error)
         }
 
