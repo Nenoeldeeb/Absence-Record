@@ -27,7 +27,6 @@ data class StudentsScreenState(
     val showEditDialog: Student? = null,
     val showAddStudentDialog: Boolean = false,
     // Import/Export data
-    val exportSelectionMap: Map<Int, Boolean> = emptyMap(),
     val parsedStudentsFromFile: List<ParsedStudentImportData>? = null,
     val importSelectionMap: Map<Int, Boolean> = emptyMap(),
     // Temporary data

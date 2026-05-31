@@ -115,6 +115,9 @@
     <string name="error_deleting_attendance">خطأ في إزالة موعد حضور: %1$s</string>
     <string name="error_loading_student_history">خطأ في تحميل تاريخ الطالب: %1$s</string>
     <string name="no_students_found_in_file">لم يتم العثور على طلاب في الملف.</string>
+    <string name="error_database_operation_failed">فشلت عملية قاعدة البيانات.</string>
+    <string name="error_reading_file">خطأ في قراءة الملف.</string>
+    <string name="error_parsing_import_file">خطأ في تحليل ملف الاستيراد.</string>
 
     <!--    ComposeCalendar -->
     <string name="content_description_today">اليوم الحالي</string>

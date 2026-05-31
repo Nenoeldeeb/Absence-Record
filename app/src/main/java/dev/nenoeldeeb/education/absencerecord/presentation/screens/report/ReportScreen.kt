@@ -194,7 +194,7 @@ fun ReportScreen(
                             it.first == uiState.selectedMonthYearForCalendarPreview
                         }
                         ?.second
-                    ?: emptyList(),
+                        ?: emptyList(),
                 onDismiss = {
                     viewModel.onEvent(ReportScreenEvent.ShowCalendarPreviewDialog(false))
                 },

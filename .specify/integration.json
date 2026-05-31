@@ -6,11 +6,15 @@
     "agy"
   ],
   "integration_settings": {
+    "opencode": {
+      "script": "sh",
+      "invoke_separator": "."
+    },
     "agy": {
       "script": "sh",
       "invoke_separator": "-"
     }
   },
-  "integration": "agy",
-  "default_integration": "agy"
+  "integration": "opencode",
+  "default_integration": "opencode"
 }

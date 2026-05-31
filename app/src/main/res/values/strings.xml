@@ -119,6 +119,9 @@
     <string name="error_deleting_attendance">Error deleting attendance: %1$s</string>
     <string name="error_loading_student_history">Error loading student history: %1$s</string>
     <string name="no_students_found_in_file">No students found in file.</string>
+    <string name="error_database_operation_failed">Database operation failed.</string>
+    <string name="error_reading_file">Error reading file.</string>
+    <string name="error_parsing_import_file">Error parsing import file.</string>
 
     <!--    ComposeCalendar -->
     <string name="content_description_today">Today.</string>
