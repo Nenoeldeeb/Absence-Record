@@ -88,7 +88,7 @@ fun CalendarScreen(
                 modifier =
                     Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 8.dp, vertical = 4.dp)
+                        .padding(horizontal = 16.dp, vertical = 8.dp)
             )
         }
         ComposeCalendar(

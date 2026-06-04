@@ -108,7 +108,10 @@ fun ReportScreen(
 
         AnimatedVisibility(uiState.isSortComponentsVisible) {
             ReportControls(
-                modifier = Modifier.fillMaxWidth(),
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 8.dp),
                 selectedMonth = uiState.selectedMonth,
                 availableMonths = uiState.availableMonths,
                 monthDropdownExpanded = uiState.monthDropdownExpanded,
@@ -138,7 +141,7 @@ fun ReportScreen(
                 modifier =
                     Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 8.dp, vertical = 4.dp)
+                        .padding(horizontal = 16.dp, vertical = 8.dp)
             )
         }
 
