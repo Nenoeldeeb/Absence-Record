@@ -163,7 +163,7 @@ fun StudentsScreen(
                     modifier =
                         Modifier
                             .fillMaxWidth()
-                            .padding(bottom = 8.dp),
+                            .padding(horizontal = 16.dp, vertical = 8.dp),
                     trailingIcon = {
                         IconButton(
                             onClick = {
