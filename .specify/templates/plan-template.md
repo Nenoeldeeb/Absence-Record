@@ -39,6 +39,8 @@ _GATE: Must pass before Phase 0 research. Re-check after Phase 1 design._
 - [ ] Technology Check: Are we using `kotlinx-datetime`, `@Serializable`, Room, and `strings.xml` / `UiText`?
 - [ ] Test Check: Do we have test cases for both onSuccess and onFailure paths?
 - [ ] Main-Safety Check: Are intensive tasks offloaded to appropriate background dispatchers?
+- [ ] File Size Check: Does every source file (including tests) stay within 300 lines?
+- [ ] Accessibility Check: Are all interactive composables accessible (content descriptions, 48dp touch targets, contrast)?
 
 ## Project Structure
 
