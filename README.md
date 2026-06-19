@@ -37,6 +37,7 @@ This project leverages the latest tools and libraries in the Android ecosystem t
 - **MVI (Model-View-Intent)**: Used for state management in the Presentation layer by wrapping them in a single UiState data class and for handling side effects by wrapping them in a sealed interface.
 - **Repository Pattern**: Abstracts the data layer, providing a clean API for the domain layer to access data irrespective of the source (Database, API, etc.).
 - **SOLID Principles**: Adherence to key object-oriented design principles (SRP, OCP, LSP, ISP, DIP) for robust and scalable code.
+- **Accessibility**: All user-facing composables must be accessible — content descriptions, 48dp touch targets, sufficient color contrast, and TalkBack compatibility.
 - **UDF (Unidirectional Data Flow)**: Ensures consistent state management within the Compose UI, where state flows down and events flow up.
 
 ## Building
@@ -107,6 +108,8 @@ Before pushing your changes:
 - [ ] Run `./gradlew check` to validate all code quality checks and tests pass
 - [ ] Write tests for new functionality (both success and failure paths)
 - [ ] Keep strings in `res/values/strings.xml` (with Arabic translations in `values-ar/`)
+- [ ] Ensure all source files (including tests) are under 300 lines
+- [ ] Verify accessibility: content descriptions, 48dp touch targets, TalkBack
 - [ ] Follow naming conventions from [AGENTS.md](AGENTS.md)
 
 ## Project Structure

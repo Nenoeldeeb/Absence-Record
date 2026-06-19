@@ -17,6 +17,18 @@
 - **Composable Observation**: Collect state ONLY via `collectAsStateWithLifecycle()`.
 - **Async Execution**: Use `viewModelScope.launch`. NEVER create raw `Job` instances.
 
+## Accessibility
+
+- All interactive composables MUST have meaningful `contentDescription` values.
+- Touch targets MUST be at least 48dp.
+- Color MUST NOT be the sole indicator of state; use icons or text labels too.
+- Test each screen with TalkBack before shipping.
+
+## Code Quality
+
+- Every source file (including test files) MUST NOT exceed 300 lines. Break
+  large files into focused units.
+
 ## Kotlin & Project Specifics
 
 - **Dates**: Use `kotlinx.datetime` exclusively (NO `java.time`).
