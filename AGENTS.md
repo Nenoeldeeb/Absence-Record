@@ -30,6 +30,22 @@
 - **UI Tests**: Use Compose rules (`@get:Rule`) and `mockk(relaxed = true)` for ViewModels.
 - **Async Tests**: Advance virtual time with `runTest`.
 
+## Accessibility
+
+- All interactive composables MUST have a meaningful `contentDescription`.
+- Touch targets MUST be at least 48dp.
+- Color MUST NOT be the sole means of conveying information.
+- Verify with Accessibility Scanner before committing.
+
+## File Size Discipline
+
+- No source or test file in `app/src/` may exceed 300 lines.
+- Files approaching the limit MUST be refactored into single-responsibility units.
+
+## Documentation Updates
+
+- Whenever a spec, plan, or task introduces a new project structure, feature, or technology, `AGENTS.md` and `README.md` MUST be updated to reflect it.
+
 ## Build & Lint Commands
 
 - **Unit Test**: `./gradlew testDebugUnitTest --tests "PackageOrClass"`

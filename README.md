@@ -38,6 +38,7 @@ This project leverages the latest tools and libraries in the Android ecosystem t
 - **Repository Pattern**: Abstracts the data layer, providing a clean API for the domain layer to access data irrespective of the source (Database, API, etc.).
 - **SOLID Principles**: Adherence to key object-oriented design principles (SRP, OCP, LSP, ISP, DIP) for robust and scalable code.
 - **UDF (Unidirectional Data Flow)**: Ensures consistent state management within the Compose UI, where state flows down and events flow up.
+- **Accessibility & Inclusive Design**: Every interactive element meets accessibility standards (contentDescription, 48dp touch targets, color contrast).
 
 ## Building
 
@@ -107,6 +108,9 @@ Before pushing your changes:
 - [ ] Run `./gradlew check` to validate all code quality checks and tests pass
 - [ ] Write tests for new functionality (both success and failure paths)
 - [ ] Keep strings in `res/values/strings.xml` (with Arabic translations in `values-ar/`)
+- [ ] Ensure all interactive elements are accessible (contentDescription, 48dp touch targets, color contrast)
+- [ ] Verify no source or test file exceeds 300 lines
+- [ ] Update `AGENTS.md` and `README.md` if new features, structures, or technologies were introduced
 - [ ] Follow naming conventions from [AGENTS.md](AGENTS.md)
 
 ## Project Structure

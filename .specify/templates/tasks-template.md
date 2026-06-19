@@ -99,6 +99,9 @@ description: "Task list template for feature implementation"
 
 - [ ] TXXX [P] Format code using `./gradlew ktlintFormat`
 - [ ] TXXX Verify all tests and lints pass using `./gradlew check`
+- [ ] TXXX [P] Verify accessibility (contentDescription, touch targets, color contrast, TalkBack navigation)
+- [ ] TXXX [P] Verify no source or test file exceeds 300 lines
+- [ ] TXXX Verify AGENTS.md and README.md are updated if new structures, features, or technologies were introduced
 - [ ] TXXX Perform local testing on emulator / physical device
 
 ---

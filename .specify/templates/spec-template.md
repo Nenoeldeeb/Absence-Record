@@ -68,6 +68,18 @@
 
 [Add more user stories as needed, each with an assigned priority]
 
+### Cross-Cutting Non-Functional Requirements *(mandatory)*
+
+<!--
+  Every feature MUST consider these non-functional requirements from the constitution.
+  Check each box and add feature-specific notes where applicable.
+-->
+
+- [ ] **Accessibility**: Interactive elements MUST have contentDescription, 48dp minimum touch targets, and sufficient color contrast. Color MUST NOT be the sole differentiator.
+- [ ] **File Size**: No source or test file in `app/src/` may exceed 300 lines. Refactor into smaller units if approaching the limit.
+- [ ] **Localization**: All user-facing strings MUST use `strings.xml` with Arabic (`values-ar/`) translations via `UiText`.
+- [ ] **Main Safety**: CPU-intensive operations MUST be offloaded to background dispatchers.
+
 ### Edge Cases
 
 <!--
