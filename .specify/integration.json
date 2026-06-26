@@ -3,7 +3,8 @@
   "integration_state_schema": 1,
   "installed_integrations": [
     "opencode",
-    "agy"
+    "agy",
+    "codex"
   ],
   "integration_settings": {
     "opencode": {
@@ -11,6 +12,10 @@
       "invoke_separator": "."
     },
     "agy": {
+      "script": "sh",
+      "invoke_separator": "-"
+    },
+    "codex": {
       "script": "sh",
       "invoke_separator": "-"
     }
