@@ -10,7 +10,7 @@ import dev.nenoeldeeb.education.absencerecord.domain.usecases.AttendanceUseCases
 import dev.nenoeldeeb.education.absencerecord.domain.usecases.ClassManagementUseCases
 import dev.nenoeldeeb.education.absencerecord.domain.usecases.StudentManagementUseCases
 import dev.nenoeldeeb.education.absencerecord.presentation.utils.UiText
-import dev.nenoeldeeb.education.absencerecord.presentation.utils.applyClassFilter
+import dev.nenoeldeeb.education.absencerecord.presentation.utils.applyMultiClassFilter
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -47,9 +47,15 @@ class CalendarViewModel(
                     .onSuccess { students ->
                         rawStudents = students
                         _uiState.update { state ->
+                            val filteredStudents =
+                                students.applyMultiClassFilter(state.selectedClassIds)
+                            val visibleIds = filteredStudents.map { it.id }.toSet()
                             state.copy(
-                                allStudents =
-                                    students.applyClassFilter(state.selectedClassFilter)
+                                allStudents = filteredStudents,
+                                studentsForSelectedDate =
+                                    state.studentsForSelectedDate.filter {
+                                        it.studentId in visibleIds
+                                    }
                             )
                         }
                     }
@@ -99,20 +105,11 @@ class CalendarViewModel(
                     )
                 }
 
-            is CalendarScreenEvent.SelectClassFilter ->
-                _uiState.update { state ->
-                    state.copy(
-                        selectedClassFilter = event.filter,
-                        classDropdownExpanded = false,
-                        allStudents = rawStudents.applyClassFilter(event.filter)
-                    )
-                }
+            is CalendarScreenEvent.ToggleClassSelection ->
+                toggleClassSelection(event.classId)
 
-            is CalendarScreenEvent.ToggleClassFilterVisibility ->
-                _uiState.update { it.copy(isClassFilterVisible = !it.isClassFilterVisible) }
-
-            is CalendarScreenEvent.ToggleClassDropdown ->
-                _uiState.update { it.copy(classDropdownExpanded = event.expanded) }
+            is CalendarScreenEvent.ToggleFilterDropdown ->
+                _uiState.update { it.copy(filterDropdownExpanded = !it.filterDropdownExpanded) }
         }
     }
 
@@ -126,8 +123,14 @@ class CalendarViewModel(
                 .collectLatest { result ->
                     result
                         .onSuccess { selectedStudentsForDate ->
-                            _uiState.update {
-                                it.copy(studentsForSelectedDate = selectedStudentsForDate)
+                            _uiState.update { state ->
+                                val visibleIds = state.allStudents.map { it.id }.toSet()
+                                state.copy(
+                                    studentsForSelectedDate =
+                                        selectedStudentsForDate.filter {
+                                            it.studentId in visibleIds
+                                        }
+                                )
                             }
                         }
                         .onFailure { e ->
@@ -142,6 +145,31 @@ class CalendarViewModel(
                             }
                         }
                 }
+        }
+    }
+
+    private fun toggleClassSelection(classId: Int) {
+        viewModelScope.launch {
+            val updatedIds = _uiState.value.selectedClassIds.toMutableSet()
+            if (classId in updatedIds) {
+                updatedIds.remove(classId)
+            } else {
+                updatedIds.add(classId)
+            }
+
+            val filteredStudents = rawStudents.applyMultiClassFilter(updatedIds)
+
+            _uiState.update { state ->
+                val visibleIds = filteredStudents.map { it.id }.toSet()
+                state.copy(
+                    selectedClassIds = updatedIds,
+                    allStudents = filteredStudents,
+                    studentsForSelectedDate =
+                        state.studentsForSelectedDate.filter {
+                            it.studentId in visibleIds
+                        }
+                )
+            }
         }
     }
 

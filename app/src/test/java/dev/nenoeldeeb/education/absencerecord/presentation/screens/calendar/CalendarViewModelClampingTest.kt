@@ -1,162 +1,154 @@
 package dev.nenoeldeeb.education.absencerecord.presentation.screens.calendar
 
-import dev.nenoeldeeb.education.absencerecord.R
 import dev.nenoeldeeb.education.absencerecord.domain.models.Student
 import dev.nenoeldeeb.education.absencerecord.domain.models.StudentClass
 import dev.nenoeldeeb.education.absencerecord.domain.usecases.ClassManagementUseCases
-import dev.nenoeldeeb.education.absencerecord.presentation.utils.UiText
 import io.mockk.coEvery
 import io.mockk.mockk
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
+import kotlinx.datetime.LocalDate
+import kotlinx.datetime.Month
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 
 @OptIn(ExperimentalCoroutinesApi::class)
-class CalendarViewModelTest : CalendarViewModelTestBase() {
+class CalendarViewModelClampingTest : CalendarViewModelTestBase() {
     @BeforeEach
     fun setUp() {
         commonSetUp()
     }
 
-    // region Multi-Select Filter Tests
-
     @Test
-    fun `ToggleClassSelection filters students by single class`() =
+    fun `attendance count is clamped when filter removes students`() =
         runTest {
             val class1 = StudentClass(1, "Class A")
             val class2 = StudentClass(2, "Class B")
+            val date = LocalDate(2026, Month.MARCH, 1)
             val students =
                 listOf(
-                    Student(1, "Student1", classId = 1),
-                    Student(2, "Student2", classId = 1),
-                    Student(3, "Student3", classId = 2)
+                    Student(1, "S1", classId = 1),
+                    Student(2, "S2", classId = 1),
+                    Student(3, "S3", classId = 2)
                 )
             val classes = listOf(class1, class2)
+            val attendance =
+                listOf(
+                    dev.nenoeldeeb.education.absencerecord.domain.models.StudentAttendance(studentId = 1, date = date),
+                    dev.nenoeldeeb.education.absencerecord.domain.models.StudentAttendance(studentId = 2, date = date)
+                )
 
             coEvery { studentManagementUseCases.getAllStudentsUseCase() } returns flowOf(Result.success(students))
             val classManagementUseCases = mockk<ClassManagementUseCases>(relaxed = true)
             coEvery { classManagementUseCases.getAllClassesUseCase() } returns flowOf(Result.success(classes))
-            coEvery { getAttendanceForDateUseCase(any()) } returns flowOf(Result.success(emptyList()))
+            coEvery { getAttendanceForDateUseCase(date) } returns flowOf(Result.success(attendance))
 
             viewModel = CalendarViewModel(attendanceUseCases, studentManagementUseCases, classManagementUseCases)
+            advanceUntilIdle()
+
+            viewModel.onEvent(CalendarScreenEvent.SelectDateForDialog(date))
             advanceUntilIdle()
 
             viewModel.onEvent(CalendarScreenEvent.ToggleClassSelection(1))
             advanceUntilIdle()
 
             assertEquals(2, viewModel.uiState.value.allStudents.size)
-            assertEquals(setOf(1), viewModel.uiState.value.selectedClassIds)
+            assertEquals(2, viewModel.uiState.value.studentsForSelectedDate.size)
+
+            viewModel.onEvent(CalendarScreenEvent.ToggleClassSelection(2))
+            advanceUntilIdle()
+
+            assertEquals(3, viewModel.uiState.value.allStudents.size)
+            assertEquals(2, viewModel.uiState.value.studentsForSelectedDate.size)
         }
 
     @Test
-    fun `ToggleClassSelection with multiple classes merges and deduplicates`() =
+    fun `present count never exceeds visible count when classes are unchecked`() =
         runTest {
             val class1 = StudentClass(1, "Class A")
             val class2 = StudentClass(2, "Class B")
+            val date = LocalDate(2026, Month.MARCH, 1)
             val students =
                 listOf(
                     Student(1, "S1", classId = 1),
                     Student(2, "S2", classId = 1),
-                    Student(3, "S3", classId = 2),
-                    Student(4, "S4", classId = 2)
+                    Student(3, "S3", classId = 2)
                 )
             val classes = listOf(class1, class2)
+            val attendance =
+                listOf(
+                    dev.nenoeldeeb.education.absencerecord.domain.models.StudentAttendance(studentId = 1, date = date),
+                    dev.nenoeldeeb.education.absencerecord.domain.models.StudentAttendance(studentId = 2, date = date),
+                    dev.nenoeldeeb.education.absencerecord.domain.models.StudentAttendance(studentId = 3, date = date)
+                )
 
             coEvery { studentManagementUseCases.getAllStudentsUseCase() } returns flowOf(Result.success(students))
             val classManagementUseCases = mockk<ClassManagementUseCases>(relaxed = true)
             coEvery { classManagementUseCases.getAllClassesUseCase() } returns flowOf(Result.success(classes))
-            coEvery { getAttendanceForDateUseCase(any()) } returns flowOf(Result.success(emptyList()))
+            coEvery { getAttendanceForDateUseCase(date) } returns flowOf(Result.success(attendance))
 
             viewModel = CalendarViewModel(attendanceUseCases, studentManagementUseCases, classManagementUseCases)
             advanceUntilIdle()
 
+            viewModel.onEvent(CalendarScreenEvent.SelectDateForDialog(date))
+            advanceUntilIdle()
             viewModel.onEvent(CalendarScreenEvent.ToggleClassSelection(1))
             advanceUntilIdle()
             viewModel.onEvent(CalendarScreenEvent.ToggleClassSelection(2))
             advanceUntilIdle()
 
-            assertEquals(4, viewModel.uiState.value.allStudents.size)
-            assertEquals(setOf(1, 2), viewModel.uiState.value.selectedClassIds)
+            assertEquals(3, viewModel.uiState.value.allStudents.size)
+            assertEquals(3, viewModel.uiState.value.studentsForSelectedDate.size)
+
+            viewModel.onEvent(CalendarScreenEvent.ToggleClassSelection(2))
+            advanceUntilIdle()
+
+            assertEquals(2, viewModel.uiState.value.allStudents.size)
+            assertEquals(2, viewModel.uiState.value.studentsForSelectedDate.size)
         }
 
     @Test
-    fun `unchecking all classes shows only unassigned students`() =
+    fun `attendance records persist when student is filtered out and back in`() =
         runTest {
             val class1 = StudentClass(1, "Class A")
+            val date = LocalDate(2026, Month.MARCH, 1)
             val students =
                 listOf(
-                    Student(1, "S1", classId = 1),
-                    Student(2, "S2", classId = null)
+                    Student(1, "S1", classId = 1)
                 )
             val classes = listOf(class1)
+            val attendance =
+                listOf(
+                    dev.nenoeldeeb.education.absencerecord.domain.models.StudentAttendance(studentId = 1, date = date)
+                )
 
             coEvery { studentManagementUseCases.getAllStudentsUseCase() } returns flowOf(Result.success(students))
             val classManagementUseCases = mockk<ClassManagementUseCases>(relaxed = true)
             coEvery { classManagementUseCases.getAllClassesUseCase() } returns flowOf(Result.success(classes))
-            coEvery { getAttendanceForDateUseCase(any()) } returns flowOf(Result.success(emptyList()))
+            coEvery { getAttendanceForDateUseCase(date) } returns flowOf(Result.success(attendance))
 
             viewModel = CalendarViewModel(attendanceUseCases, studentManagementUseCases, classManagementUseCases)
             advanceUntilIdle()
 
+            viewModel.onEvent(CalendarScreenEvent.SelectDateForDialog(date))
+            advanceUntilIdle()
             viewModel.onEvent(CalendarScreenEvent.ToggleClassSelection(1))
             advanceUntilIdle()
-            assertEquals(1, viewModel.uiState.value.allStudents.size)
 
-            viewModel.onEvent(CalendarScreenEvent.ToggleClassSelection(1))
-            advanceUntilIdle()
-
-            assertEquals(1, viewModel.uiState.value.allStudents.size)
-            assertEquals(setOf(2), viewModel.uiState.value.allStudents.map { it.id }.toSet())
-            assertEquals(emptySet(), viewModel.uiState.value.selectedClassIds)
-        }
-
-    @Test
-    fun `ToggleClassSelection shows error on students load failure`() =
-        runTest {
-            val errorMsg = "Failed to load students"
-            coEvery { studentManagementUseCases.getAllStudentsUseCase() } returns flowOf(Result.failure(Exception(errorMsg)))
-            coEvery { getAttendanceForDateUseCase(any()) } returns flowOf(Result.success(emptyList()))
-
-            viewModel =
-                CalendarViewModel(
-                    attendanceUseCases,
-                    studentManagementUseCases,
-                    mockk<ClassManagementUseCases>(relaxed = true)
-                )
-            advanceUntilIdle()
-
-            val expectedError = UiText.StringResource(R.string.error_loading_students, errorMsg)
-            assertEquals(expectedError, viewModel.uiState.value.error)
-        }
-
-    @Test
-    fun `selecting empty class shows zero students`() =
-        runTest {
-            val class1 = StudentClass(1, "Empty Class")
-            val students =
-                listOf(
-                    Student(1, "S1", classId = 2)
-                )
-            val classes = listOf(class1)
-
-            coEvery { studentManagementUseCases.getAllStudentsUseCase() } returns flowOf(Result.success(students))
-            val classManagementUseCases = mockk<ClassManagementUseCases>(relaxed = true)
-            coEvery { classManagementUseCases.getAllClassesUseCase() } returns flowOf(Result.success(classes))
-            coEvery { getAttendanceForDateUseCase(any()) } returns flowOf(Result.success(emptyList()))
-
-            viewModel = CalendarViewModel(attendanceUseCases, studentManagementUseCases, classManagementUseCases)
-            advanceUntilIdle()
+            assertEquals(1, viewModel.uiState.value.studentsForSelectedDate.size)
 
             viewModel.onEvent(CalendarScreenEvent.ToggleClassSelection(1))
             advanceUntilIdle()
 
             assertEquals(0, viewModel.uiState.value.allStudents.size)
-            assertEquals(setOf(1), viewModel.uiState.value.selectedClassIds)
-        }
+            assertEquals(0, viewModel.uiState.value.studentsForSelectedDate.size)
 
-    // endregion
+            viewModel.onEvent(CalendarScreenEvent.ToggleClassSelection(1))
+            advanceUntilIdle()
+
+            assertEquals(1, viewModel.uiState.value.studentsForSelectedDate.size)
+        }
 }

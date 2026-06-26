@@ -2,7 +2,6 @@
 
 package dev.nenoeldeeb.education.absencerecord.presentation.screens.calendar
 
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -14,22 +13,17 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
@@ -41,7 +35,7 @@ import dev.nenoeldeeb.education.absencerecord.R
 import dev.nenoeldeeb.education.absencerecord.app.AppViewModelProvider
 import dev.nenoeldeeb.education.absencerecord.domain.models.Student
 import dev.nenoeldeeb.education.absencerecord.domain.models.StudentAttendance
-import dev.nenoeldeeb.education.absencerecord.presentation.screens.components.ClassFilterDropdown
+import dev.nenoeldeeb.education.absencerecord.domain.models.StudentClass
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.components.ComposeCalendar
 import dev.nenoeldeeb.education.absencerecord.presentation.theme.green30
 import dev.nenoeldeeb.education.absencerecord.presentation.utils.DateFormatter.toUiText
@@ -57,40 +51,6 @@ fun CalendarScreen(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
     Column(modifier = modifier) {
-        TopAppBar(
-            title = {},
-            actions = {
-                IconButton(
-                    onClick = {
-                        viewModel.onEvent(CalendarScreenEvent.ToggleClassFilterVisibility)
-                    }
-                ) {
-                    Icon(
-                        imageVector =
-                            ImageVector.vectorResource(R.drawable.outline_filter_24),
-                        contentDescription = stringResource(R.string.filter_description)
-                    )
-                }
-            }
-        )
-
-        AnimatedVisibility(uiState.isClassFilterVisible) {
-            ClassFilterDropdown(
-                selectedFilter = uiState.selectedClassFilter,
-                availableClasses = uiState.availableClasses,
-                expanded = uiState.classDropdownExpanded,
-                onExpandedChange = {
-                    viewModel.onEvent(CalendarScreenEvent.ToggleClassDropdown(it))
-                },
-                onFilterSelected = {
-                    viewModel.onEvent(CalendarScreenEvent.SelectClassFilter(it))
-                },
-                modifier =
-                    Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 8.dp)
-            )
-        }
         ComposeCalendar(
             modifier = Modifier.weight(1f),
             onDateSelected = { date ->
@@ -105,6 +65,9 @@ fun CalendarScreen(
             studentsForSelectedDate = uiState.studentsForSelectedDate,
             error = uiState.error,
             selectedDate = it,
+            availableClasses = uiState.availableClasses,
+            selectedClassIds = uiState.selectedClassIds,
+            filterDropdownExpanded = uiState.filterDropdownExpanded,
             onDismiss = { viewModel.onEvent(CalendarScreenEvent.SelectDateForDialog(null)) },
             onToggleAttendance = { student, date, isPresent ->
                 if (isPresent) {
@@ -118,6 +81,12 @@ fun CalendarScreen(
                     )
                     SoundPlayer.playAddAttendanceSound()
                 }
+            },
+            onToggleClassSelection = { classId ->
+                viewModel.onEvent(CalendarScreenEvent.ToggleClassSelection(classId))
+            },
+            onToggleFilterDropdown = {
+                viewModel.onEvent(CalendarScreenEvent.ToggleFilterDropdown)
             }
         )
     }
@@ -130,8 +99,13 @@ internal fun AttendanceDialog(
     studentsForSelectedDate: List<StudentAttendance>,
     error: UiText?,
     selectedDate: LocalDate,
+    availableClasses: List<StudentClass>,
+    selectedClassIds: Set<Int>,
+    filterDropdownExpanded: Boolean,
     onDismiss: () -> Unit,
-    onToggleAttendance: (Student, LocalDate, Boolean) -> Unit
+    onToggleAttendance: (Student, LocalDate, Boolean) -> Unit,
+    onToggleClassSelection: (Int) -> Unit,
+    onToggleFilterDropdown: () -> Unit
 ) {
     AlertDialog(
         modifier = modifier,
@@ -144,14 +118,24 @@ internal fun AttendanceDialog(
             )
         },
         text = {
-            DialogContent(
-                modifier = Modifier.fillMaxWidth(),
-                allStudents = allStudents,
-                studentsForSelectedDate = studentsForSelectedDate,
-                error = error,
-                selectedDate = selectedDate,
-                onToggleAttendance = onToggleAttendance
-            )
+            Column {
+                ClassCheckboxFilter(
+                    availableClasses = availableClasses,
+                    selectedClassIds = selectedClassIds,
+                    expanded = filterDropdownExpanded,
+                    onExpandedChange = { onToggleFilterDropdown() },
+                    onClassToggle = onToggleClassSelection,
+                    modifier = Modifier.padding(bottom = 8.dp)
+                )
+                DialogContent(
+                    modifier = Modifier.fillMaxWidth(),
+                    allStudents = allStudents,
+                    studentsForSelectedDate = studentsForSelectedDate,
+                    error = error,
+                    selectedDate = selectedDate,
+                    onToggleAttendance = onToggleAttendance
+                )
+            }
         },
         confirmButton = {
             TextButton(onClick = onDismiss) { Text(stringResource(R.string.action_close)) }

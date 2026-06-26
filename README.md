@@ -9,7 +9,7 @@ Absence Record is a comprehensive Android application designed to streamline stu
 ## Features
 
 - **Student Management**: Efficiently manage student profiles. Facilitates adding new students, editing existing details with support for photos and personal information, and viewing a comprehensive list of all students.
-- **Calendar & Attendance Tracking**: A visual calendar interface designed for easy attendance recording. Allows quick toggling of student presence or absence for specific dates directly from a calendar view.
+- **Calendar & Attendance Tracking**: A visual calendar interface designed for easy attendance recording. Allows quick toggling of student presence or absence for specific dates directly from a calendar view. The attendance dialog includes a multi-select class filter with checkboxes for filtering students by one or more classes, with dynamic count updates and attendance clamping.
 - **Comprehensive Reporting**: Generate detailed attendance reports to analyze student attendance trends over custom date ranges. Reports help in identifying patterns and maintaining accurate records.
 - **Data Import/Export**: Robust data management capabilities allowing users to export database records for backup purposes and import them to restore data or migrate between devices. Support for JSON format ensures compatibility.
 

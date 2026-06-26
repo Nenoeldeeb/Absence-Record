@@ -35,6 +35,7 @@
 - **Strings**: Use `strings.xml` (with `values-ar/` support) and the `UiText` wrapper state. NO hardcoded strings.
 - **Serialization**: Use `kotlinx.serialization` (`@Serializable`).
 - **DI**: Manual via `AppContainer` and `AppViewModelProvider`.
+- **Class Filter Pattern**: Calendar screen uses multi-select class filter (`Set<Int>`) inside the attendance dialog. Other screens (Report, Students) use single-select `ClassFilter` via `ClassFilterDropdown`. Multi-select dropdown is custom (checkboxes) and not shared.
 
 ## Testing (JUnit 6 + MockK)
 
@@ -59,4 +60,5 @@ shell commands, and other important information, read the current plan
 - Room SQLite database (001-refactor-students-viewmodel)
 
 ## Recent Changes
+- 002-class-filter-refactor: Moved class filter from top bar into attendance dialog as multi-select checkbox dropdown. Added `applyMultiClassFilter` extension, `ClassCheckboxFilter` composable, `Set<Int>` filter state, dynamic count, and attendance count clamping. Removed old filter icon and `ClassFilterDropdown` from calendar screen.
 - 001-refactor-students-viewmodel: Added Kotlin 2.4.0+ / Kotlin JVM 25 + Jetpack Compose, Room, Kotlinx Datetime, Kotlinx Serialization

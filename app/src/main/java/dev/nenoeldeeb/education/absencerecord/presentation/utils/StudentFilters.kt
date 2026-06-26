@@ -9,3 +9,10 @@ fun Iterable<Student>.applyClassFilter(filter: ClassFilter): List<Student> =
         ClassFilter.Unassigned -> this.filter { it.classId == null }
         is ClassFilter.ByClass -> this.filter { it.classId == filter.studentClass.id }
     }
+
+fun Iterable<Student>.applyMultiClassFilter(classIds: Set<Int>): List<Student> {
+    if (classIds.isEmpty()) return this.filter { it.classId == null }
+    return this
+        .filter { it.classId != null && it.classId in classIds }
+        .distinctBy { it.id }
+}
