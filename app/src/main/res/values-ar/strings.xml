@@ -119,6 +119,14 @@
     <string name="error_reading_file">خطأ في قراءة الملف.</string>
     <string name="error_parsing_import_file">خطأ في تحليل ملف الاستيراد.</string>
 
+    <!-- Class Filter -->
+    <string name="class_filter_none">لا يوجد تصفية</string>
+    <string name="class_filter_one">تم اختيار صف واحد</string>
+    <string name="class_filter_n">تم اختيار %d صفوف</string>
+    <string name="class_filter_checkbox_content_description">مربع اختيار %1$s، %2$s</string>
+    <string name="class_filter_checkbox_checked">محدد</string>
+    <string name="class_filter_checkbox_unchecked">غير محدد</string>
+
     <!--    ComposeCalendar -->
     <string name="content_description_today">اليوم الحالي</string>
     <plurals name="days_count">
@@ -185,4 +193,3 @@
     <string name="delete_class_title">أحذف الصف</string>
     <string name="filter_description">تصفية</string>
 </resources>
-

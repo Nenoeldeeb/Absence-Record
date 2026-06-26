@@ -1,10 +1,9 @@
 {
   "ai": "opencode",
   "branch_numbering": "sequential",
-  "context_file": "AGENTS.md",
   "here": true,
   "integration": "opencode",
   "preset": null,
   "script": "sh",
-  "speckit_version": "0.5.0"
+  "speckit_version": "0.11.2"
 }
