@@ -123,6 +123,14 @@
     <string name="error_reading_file">Error reading file.</string>
     <string name="error_parsing_import_file">Error parsing import file.</string>
 
+    <!-- Class Filter -->
+    <string name="class_filter_none">No filter</string>
+    <string name="class_filter_one">1 class selected</string>
+    <string name="class_filter_n">%d classes selected</string>
+    <string name="class_filter_checkbox_content_description">%1$s checkbox, %2$s</string>
+    <string name="class_filter_checkbox_checked">checked</string>
+    <string name="class_filter_checkbox_unchecked">unchecked</string>
+
     <!--    ComposeCalendar -->
     <string name="content_description_today">Today.</string>
     <plurals name="days_count">
@@ -171,4 +179,3 @@
     <string name="day_short_saturday">Sat</string>
     <string name="day_short_sunday">Sun</string>
 </resources>
-

@@ -6,3 +6,13 @@ build/
 keystores/
 local.properties
 signing.properties
+*.iml
+*.class
+*.jar
+*.log
+.env*
+out/
+.DS_Store
+Thumbs.db
+*.tmp
+*.swp
