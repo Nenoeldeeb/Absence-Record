@@ -10,7 +10,8 @@ import dev.nenoeldeeb.education.absencerecord.domain.usecases.student.DeleteStud
 import dev.nenoeldeeb.education.absencerecord.domain.usecases.student.GetAllStudentsUseCase
 import dev.nenoeldeeb.education.absencerecord.domain.usecases.student.UpdateStudentUseCase
 import dev.nenoeldeeb.education.absencerecord.domain.usecases.transfer.ExportStudentsUseCase
-import dev.nenoeldeeb.education.absencerecord.domain.usecases.transfer.ImportStudentsUseCase
+import dev.nenoeldeeb.education.absencerecord.domain.usecases.transfer.ParseImportFileUseCase
+import dev.nenoeldeeb.education.absencerecord.domain.usecases.transfer.PerformImportUseCase
 
 data class StudentManagementUseCases(
     private val studentRepository: StudentRepository,
@@ -23,14 +24,9 @@ data class StudentManagementUseCases(
     val updateStudentUseCase: UpdateStudentUseCase = UpdateStudentUseCase(studentRepository)
     val deleteStudentsUseCase: DeleteStudentsUseCase = DeleteStudentsUseCase(studentRepository)
     val getAllStudentsUseCase: GetAllStudentsUseCase = GetAllStudentsUseCase(studentRepository)
-    val importStudentsUseCase: ImportStudentsUseCase =
-        ImportStudentsUseCase(
-            studentRepository,
-            attendanceRepository,
-            storageRepository,
-            serializationService,
-            studentClassRepository
-        )
+    val parseImportFileUseCase: ParseImportFileUseCase = ParseImportFileUseCase(storageRepository, serializationService)
+    val performImportUseCase: PerformImportUseCase =
+        PerformImportUseCase(studentRepository, attendanceRepository, studentClassRepository)
     val exportStudentsUseCase: ExportStudentsUseCase =
         ExportStudentsUseCase(
             attendanceRepository,

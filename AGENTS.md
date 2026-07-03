@@ -52,7 +52,8 @@
 
 <!-- SPECKIT START -->
 For additional context about technologies to be used, project structure,
-shell commands, and other important information, read the current plan
+shell commands, and other important information, read the current plan:
+specs/003-resolve-constitution-violations/plan.md
 <!-- SPECKIT END -->
 
 ## Active Technologies
@@ -62,3 +63,4 @@ shell commands, and other important information, read the current plan
 ## Recent Changes
 - 002-class-filter-refactor: Moved class filter from top bar into attendance dialog as multi-select checkbox dropdown. Added `applyMultiClassFilter` extension, `ClassCheckboxFilter` composable, `Set<Int>` filter state, dynamic count, and attendance count clamping. Removed old filter icon and `ClassFilterDropdown` from calendar screen.
 - 001-refactor-students-viewmodel: Added Kotlin 2.4.0+ / Kotlin JVM 25 + Jetpack Compose, Room, Kotlinx Datetime, Kotlinx Serialization
+- 003-resolve-constitution-violations: Fixed 10 file-size violations + 6 architecture/accessibility violations. Added handler classes (`handlers/`), DayCell extraction, test base class pattern, and split use cases.

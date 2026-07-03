@@ -195,21 +195,26 @@ class ExportStudentsUseCaseTest {
         }
 
     @Test
-    fun `should handle exception during data gathering`() =
+    fun `should handle repository failure gracefully`() =
         runTest {
-            // Arrange - Force exception during finding/mapping
+            // Arrange - Force failure during finding/mapping
             val selectedIds = setOf(1)
             val allStudents = listOf(Student(id = 1, name = "John"))
+            val expectedJson = "[]"
 
-            // Mock repo to throw exception
-            every { attendanceRepository.getStudentAttendanceDates(1) } throws RuntimeException("Unexpected error")
+            // Mock repo to return failure (getOrDefault returns emptyList)
+            every { attendanceRepository.getStudentAttendanceDates(1) } returns
+                flowOf(Result.failure(RuntimeException("Unexpected error")))
+            every {
+                serializationService.encodeToString<List<StudentExportData>>(any(), any())
+            } returns Result.success(expectedJson)
+            coEvery { storageRepository.writeTextToUri(any(), expectedJson) } returns Result.success(Unit)
 
             // Act
             val result = useCase("uri", selectedIds, allStudents)
 
             // Assert
-            assertTrue(result.isFailure)
-            assertIs<RuntimeException>(result.exceptionOrNull())
+            assertTrue(result.isSuccess)
         }
 
     @Test

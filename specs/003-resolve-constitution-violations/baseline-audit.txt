@@ -1,0 +1,11 @@
+ 15536 total
+   607 /home/nenoeldeeb/Projects/AndroidStudioProjects/Absencerecord/app/src/test/java/dev/nenoeldeeb/education/absencerecord/presentation/screens/students/StudentsViewModelTest.kt
+   456 /home/nenoeldeeb/Projects/AndroidStudioProjects/Absencerecord/app/src/androidTest/java/dev/nenoeldeeb/education/absencerecord/presentation/screens/calendar/CalendarScreenTest.kt
+   383 /home/nenoeldeeb/Projects/AndroidStudioProjects/Absencerecord/app/src/androidTest/java/dev/nenoeldeeb/education/absencerecord/data/utils/CalendarImageGeneratorTest.kt
+   356 /home/nenoeldeeb/Projects/AndroidStudioProjects/Absencerecord/app/src/androidTest/java/dev/nenoeldeeb/education/absencerecord/data/datasources/local/daos/AttendanceDaoTest.kt
+   353 /home/nenoeldeeb/Projects/AndroidStudioProjects/Absencerecord/app/src/test/kotlin/dev/nenoeldeeb/education/absencerecord/domain/usecases/transfer/ImportStudentsUseCaseTest.kt
+   330 /home/nenoeldeeb/Projects/AndroidStudioProjects/Absencerecord/app/src/androidTest/java/dev/nenoeldeeb/education/absencerecord/presentation/screens/report/ReportScreenTest.kt
+   320 /home/nenoeldeeb/Projects/AndroidStudioProjects/Absencerecord/app/src/main/java/dev/nenoeldeeb/education/absencerecord/presentation/screens/students/StudentsViewModel.kt
+   320 /home/nenoeldeeb/Projects/AndroidStudioProjects/Absencerecord/app/src/androidTest/java/dev/nenoeldeeb/education/absencerecord/data/datasources/local/daos/StudentDaoTest.kt
+   315 /home/nenoeldeeb/Projects/AndroidStudioProjects/Absencerecord/app/src/main/java/dev/nenoeldeeb/education/absencerecord/presentation/screens/components/ComposeCalendar.kt
+   313 /home/nenoeldeeb/Projects/AndroidStudioProjects/Absencerecord/app/src/test/java/dev/nenoeldeeb/education/absencerecord/presentation/screens/report/ReportViewModelTest.kt

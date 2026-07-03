@@ -49,24 +49,27 @@ fun ReportScreen(
                     data = uri
                     flags += Intent.FLAG_GRANT_READ_URI_PERMISSION
                 }
-            try {
-                context.startActivity(
-                    Intent.createChooser(
-                        shareIntent,
-                        context.applicationContext.getString(R.string.view_picture)
-                    )
-                )
-            } catch (e: Exception) {
-                viewModel.onEvent(
-                    ReportScreenEvent.ShowToast(
-                        UiText.StringResource(
-                            R.string.sharing_app_not_found,
-                            e.message ?: ""
+            val result =
+                runCatching {
+                    context.startActivity(
+                        Intent.createChooser(
+                            shareIntent,
+                            context.getString(R.string.view_picture)
                         )
                     )
+                }
+            viewModel.onEvent(
+                ReportScreenEvent.ShareFileResult(
+                    uri = uri,
+                    error =
+                        result.exceptionOrNull()?.let { e ->
+                            UiText.StringResource(
+                                R.string.sharing_app_not_found,
+                                e.message ?: ""
+                            )
+                        }
                 )
-            }
-            viewModel.onEvent(ReportScreenEvent.ConsumeShareFileUri)
+            )
         }
     }
 

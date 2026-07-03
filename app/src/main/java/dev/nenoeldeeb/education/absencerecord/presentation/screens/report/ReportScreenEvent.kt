@@ -20,7 +20,7 @@ sealed interface ReportScreenEvent {
         val studentName: String
     ) : ReportScreenEvent
 
-    data object ConsumeShareFileUri : ReportScreenEvent
+    data class ShareFileResult(val uri: android.net.Uri, val error: UiText? = null) : ReportScreenEvent
 
     data class ShowToast(val message: UiText) : ReportScreenEvent
 

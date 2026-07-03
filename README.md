@@ -138,6 +138,7 @@ app/src/main/java/dev/nenoeldeeb/education/absencerecord/
     │       ├── ScreenEvent.kt
     │       ├── components/   # Screen-specific components
     │       ├── dialogs/      # Dialog components
+    │       ├── handlers/    # Event handler classes
     │       └── delegates/    # State management delegates
     ├── theme/            # Material3 theme (Color, Type, Theme)
     └── utils/            # UI utilities (UiText, DateFormatter, etc.)
