@@ -94,7 +94,7 @@ class StudentActionDelegate(
     }
 
     suspend fun prepareImportSelectionDialog(uriString: String): Result<List<ParsedStudentImportData>> {
-        return studentManagementUseCases.importStudentsUseCase.parseFile(uriString)
+        return studentManagementUseCases.parseImportFileUseCase(uriString)
             .fold(
                 onSuccess = { Result.success(it) },
                 onFailure = { Result.failure(StudentError.FileRead) }
@@ -105,7 +105,7 @@ class StudentActionDelegate(
         parsedStudents: List<ParsedStudentImportData>,
         selectionMap: Map<Int, Boolean>
     ): Result<UiText?> {
-        return studentManagementUseCases.importStudentsUseCase.performImport(parsedStudents, selectionMap)
+        return studentManagementUseCases.performImportUseCase(parsedStudents, selectionMap)
             .fold(
                 onSuccess = { Result.success(importExportDelegate.buildImportResultMessage(it) as UiText?) },
                 onFailure = { Result.failure(StudentError.Database) }

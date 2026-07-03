@@ -1,25 +1,16 @@
 package dev.nenoeldeeb.education.absencerecord.presentation.screens.students
 
-import androidx.compose.runtime.Stable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dev.nenoeldeeb.education.absencerecord.R
 import dev.nenoeldeeb.education.absencerecord.domain.models.Student
-import dev.nenoeldeeb.education.absencerecord.domain.models.StudentError
-import dev.nenoeldeeb.education.absencerecord.domain.models.toUiText
 import dev.nenoeldeeb.education.absencerecord.domain.usecases.ClassManagementUseCases
 import dev.nenoeldeeb.education.absencerecord.domain.usecases.StudentManagementUseCases
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.StudentsScreenEvent.AddClass
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.StudentsScreenEvent.AddStudent
-import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.StudentsScreenEvent.CloseImportSelectionDialog
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.StudentsScreenEvent.ConsumeToastMessage
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.StudentsScreenEvent.DeleteClass
-import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.StudentsScreenEvent.DeleteSelectedStudents
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.StudentsScreenEvent.DismissBulkDeleteDialog
-import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.StudentsScreenEvent.ExportAndDeleteSelectedStudents
-import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.StudentsScreenEvent.ExportSelectedStudents
-import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.StudentsScreenEvent.PerformImport
-import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.StudentsScreenEvent.PrepareImportSelectionDialog
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.StudentsScreenEvent.RenameClass
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.StudentsScreenEvent.SelectClassFilter
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.StudentsScreenEvent.ShowBulkDeleteDialog
@@ -27,7 +18,6 @@ import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.Stud
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.StudentsScreenEvent.ShowStudentDialog
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.StudentsScreenEvent.ToggleClassDropdown
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.StudentsScreenEvent.ToggleClassFilterVisibility
-import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.StudentsScreenEvent.ToggleImportSelection
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.StudentsScreenEvent.ToggleSelectionMode
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.StudentsScreenEvent.ToggleStudentSelection
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.StudentsScreenEvent.ToggleStudentsSelection
@@ -37,8 +27,11 @@ import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.dele
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.delegates.ImportExportDelegate
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.delegates.SelectionStateDelegate
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.delegates.StudentActionDelegate
+import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.handlers.BulkActionHandler
+import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.handlers.ImportExportHandler
 import dev.nenoeldeeb.education.absencerecord.presentation.utils.UiText
 import dev.nenoeldeeb.education.absencerecord.presentation.utils.applyClassFilter
+import dev.nenoeldeeb.education.absencerecord.presentation.utils.toUiText
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -47,7 +40,6 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-@Stable
 open class StudentsViewModel(
     private val studentManagementUseCases: StudentManagementUseCases,
     private val classManagementUseCases: ClassManagementUseCases,
@@ -55,7 +47,10 @@ open class StudentsViewModel(
     private val importExportDelegate: ImportExportDelegate = ImportExportDelegate(),
     private val studentActionDelegate: StudentActionDelegate =
         StudentActionDelegate(studentManagementUseCases, importExportDelegate),
-    private val classActionDelegate: ClassActionDelegate = ClassActionDelegate(classManagementUseCases)
+    private val classActionDelegate: ClassActionDelegate = ClassActionDelegate(classManagementUseCases),
+    private val importExportHandler: ImportExportHandler =
+        ImportExportHandler(studentActionDelegate, importExportDelegate),
+    private val bulkActionHandler: BulkActionHandler = BulkActionHandler(studentActionDelegate)
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(StudentsScreenState())
     val uiState: StateFlow<StudentsScreenState> = _uiState.asStateFlow()
@@ -112,68 +107,19 @@ open class StudentsViewModel(
                         .onFailure { error -> _uiState.update { state -> state.copy(error = error.toUiText()) } }
                 }
 
-            is PrepareImportSelectionDialog -> {
-                val uri =
-                    event.uri ?: run {
-                        _uiState.update { it.copy(error = StudentError.Cancelled.toUiText()) }
-                        return
-                    }
-                viewModelScope.launch {
-                    studentActionDelegate.prepareImportSelectionDialog(uri.toString())
-                        .onSuccess { parsedData ->
-                            val (data, selectionMap, showDialog) = importExportDelegate.prepareImportDialog(parsedData)
-                            _uiState.update {
-                                if (data == null) {
-                                    it.copy(
-                                        parsedStudentsFromFile = null,
-                                        importSelectionMap = emptyMap(),
-                                        toastMessage = UiText.StringResource(R.string.no_students_found_in_file)
-                                    )
-                                } else {
-                                    it.copy(
-                                        parsedStudentsFromFile = data,
-                                        importSelectionMap = selectionMap,
-                                        showImportSelectionDialog = showDialog
-                                    )
-                                }
-                            }
-                        }
-                        .onFailure { error -> _uiState.update { state -> state.copy(error = error.toUiText()) } }
-                }
-            }
-
-            is CloseImportSelectionDialog ->
-                _uiState.update {
-                    it.copy(showImportSelectionDialog = false, parsedStudentsFromFile = null, importSelectionMap = emptyMap())
-                }
-
-            is ToggleImportSelection ->
-                _uiState.update {
-                    it.copy(
-                        importSelectionMap =
-                            importExportDelegate.toggleImportSelection(
-                                it.importSelectionMap,
-                                event.parsedStudentId
-                            )
-                    )
-                }
-
-            is PerformImport ->
-                viewModelScope.launch {
-                    val parsedStudents = _uiState.value.parsedStudentsFromFile ?: return@launch
-                    studentActionDelegate.performImport(parsedStudents, _uiState.value.importSelectionMap)
-                        .onSuccess { toast ->
-                            _uiState.update { state ->
-                                state.copy(
-                                    showImportSelectionDialog = false,
-                                    parsedStudentsFromFile = null,
-                                    importSelectionMap = emptyMap(),
-                                    toastMessage = toast
-                                )
-                            }
-                        }
-                        .onFailure { error -> _uiState.update { state -> state.copy(error = error.toUiText()) } }
-                }
+            is StudentsScreenEvent.PrepareImportSelectionDialog ->
+                importExportHandler.handlePrepareImportSelectionDialog(
+                    event.uri,
+                    _uiState,
+                    viewModelScope
+                )
+            is StudentsScreenEvent.CloseImportSelectionDialog -> importExportHandler.handleCloseImportSelectionDialog(_uiState)
+            is StudentsScreenEvent.ToggleImportSelection ->
+                importExportHandler.handleToggleImportSelection(
+                    event.parsedStudentId,
+                    _uiState
+                )
+            is StudentsScreenEvent.PerformImport -> importExportHandler.handlePerformImport(_uiState, viewModelScope)
 
             is ConsumeToastMessage -> _uiState.update { it.copy(toastMessage = null) }
             is ShowStudentDialog ->
@@ -216,58 +162,23 @@ open class StudentsViewModel(
                     )
                 }
 
-            is DeleteSelectedStudents ->
-                viewModelScope.launch {
-                    studentActionDelegate.deleteSelectedStudents(_uiState.value.selectedStudentIds, _uiState.value.allStudents)
-                        .onSuccess { toast ->
-                            _uiState.update { state ->
-                                state.copy(
-                                    toastMessage = toast,
-                                    showBulkDeleteDialog = false,
-                                    isMultiSelectionMode = false,
-                                    selectedStudentIds = emptySet()
-                                )
-                            }
-                        }
-                        .onFailure { error -> _uiState.update { state -> state.copy(error = error.toUiText()) } }
-                }
-
-            is ExportSelectedStudents ->
-                viewModelScope.launch {
-                    val state = _uiState.value
-                    studentActionDelegate.exportSelectedStudents(
-                        event.uri.toString(),
-                        state.selectedStudentIds,
-                        state.allStudents
-                    )
-                        .onSuccess { toast ->
-                            _uiState.update { state ->
-                                state.copy(toastMessage = toast, isMultiSelectionMode = false, selectedStudentIds = emptySet())
-                            }
-                        }
-                        .onFailure { error -> _uiState.update { state -> state.copy(error = error.toUiText()) } }
-                }
-
-            is ExportAndDeleteSelectedStudents ->
-                viewModelScope.launch {
-                    val state = _uiState.value
-                    studentActionDelegate.exportAndDeleteSelectedStudents(
-                        event.uri.toString(),
-                        state.selectedStudentIds,
-                        state.allStudents
-                    )
-                        .onSuccess { toast ->
-                            _uiState.update { updateState ->
-                                updateState.copy(
-                                    toastMessage = toast,
-                                    showBulkDeleteDialog = false,
-                                    isMultiSelectionMode = false,
-                                    selectedStudentIds = emptySet()
-                                )
-                            }
-                        }
-                        .onFailure { error -> _uiState.update { state -> state.copy(error = error.toUiText()) } }
-                }
+            is StudentsScreenEvent.DeleteSelectedStudents ->
+                bulkActionHandler.handleDeleteSelectedStudents(
+                    _uiState,
+                    viewModelScope
+                )
+            is StudentsScreenEvent.ExportSelectedStudents ->
+                bulkActionHandler.handleExportSelectedStudents(
+                    event.uri.toString(),
+                    _uiState,
+                    viewModelScope
+                )
+            is StudentsScreenEvent.ExportAndDeleteSelectedStudents ->
+                bulkActionHandler.handleExportAndDeleteSelectedStudents(
+                    event.uri.toString(),
+                    _uiState,
+                    viewModelScope
+                )
 
             is ShowBulkDeleteDialog -> _uiState.update { it.copy(showBulkDeleteDialog = true) }
             is DismissBulkDeleteDialog -> _uiState.update { it.copy(showBulkDeleteDialog = false) }

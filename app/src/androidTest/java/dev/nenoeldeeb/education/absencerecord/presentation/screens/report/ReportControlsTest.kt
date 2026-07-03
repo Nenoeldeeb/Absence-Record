@@ -9,10 +9,7 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import dev.nenoeldeeb.education.absencerecord.R
 import dev.nenoeldeeb.education.absencerecord.domain.models.SortType
-import dev.nenoeldeeb.education.absencerecord.domain.models.Student
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.report.components.ReportControls
-import dev.nenoeldeeb.education.absencerecord.presentation.screens.report.dialogs.CalendarPreviewDialog
-import dev.nenoeldeeb.education.absencerecord.presentation.screens.report.dialogs.StudentHistoryDialog
 import dev.nenoeldeeb.education.absencerecord.presentation.theme.AbsenceRecordTheme
 import kotlinx.datetime.LocalDate
 import org.junit.Rule
@@ -20,7 +17,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 
 @RunWith(AndroidJUnit4::class)
-class ReportScreenTest {
+class ReportControlsTest {
     @get:Rule
     val composeTestRule = createComposeRule()
 
@@ -174,157 +171,6 @@ class ReportScreenTest {
         composeTestRule.onNodeWithText("January 2026", substring = true).performClick()
 
         assert(selectedMonth == month)
-    }
-
-    // endregion
-
-    // region StudentHistoryDialog Tests
-
-    @Test
-    fun studentHistoryDialog_displaysTitleWithStudentName() {
-        val student = Student(id = 1, name = "Alice")
-
-        composeTestRule.setContent {
-            AbsenceRecordTheme {
-                StudentHistoryDialog(
-                    student = student,
-                    history = emptyList(),
-                    onDismiss = {},
-                    onShareMonth = {}
-                )
-            }
-        }
-
-        composeTestRule
-            .onNodeWithText(getString(R.string.student_history_title, "Alice"))
-            .assertIsDisplayed()
-    }
-
-    @Test
-    fun studentHistoryDialog_displaysNoRecordsMessage_whenHistoryEmpty() {
-        val student = Student(id = 1, name = "Alice")
-
-        composeTestRule.setContent {
-            AbsenceRecordTheme {
-                StudentHistoryDialog(
-                    student = student,
-                    history = emptyList(),
-                    onDismiss = {},
-                    onShareMonth = {}
-                )
-            }
-        }
-
-        composeTestRule
-            .onNodeWithText(getString(R.string.no_attendance_records))
-            .assertIsDisplayed()
-    }
-
-    @Test
-    fun studentHistoryDialog_displaysHistoryItems() {
-        val student = Student(id = 1, name = "Alice")
-        val history =
-            listOf(
-                LocalDate(2026, 1, 1) to
-                    listOf(LocalDate(2026, 1, 5), LocalDate(2026, 1, 10))
-            )
-
-        composeTestRule.setContent {
-            AbsenceRecordTheme {
-                StudentHistoryDialog(
-                    student = student,
-                    history = history,
-                    onDismiss = {},
-                    onShareMonth = {}
-                )
-            }
-        }
-
-        composeTestRule.onNodeWithText("January 2026", substring = true).assertIsDisplayed()
-        // Check for plural string "2 days"
-        // Since it's a plural, we can check for substring "2" or "days"
-        composeTestRule.onNodeWithText("2", substring = true).assertIsDisplayed()
-    }
-
-    @Test
-    fun studentHistoryDialog_clickingShareInvokesCallback() {
-        var sharedMonth: LocalDate? = null
-        val student = Student(id = 1, name = "Alice")
-        val month = LocalDate(2026, 1, 1)
-        val history = listOf(month to listOf(LocalDate(2026, 1, 5)))
-
-        composeTestRule.setContent {
-            AbsenceRecordTheme {
-                StudentHistoryDialog(
-                    student = student,
-                    history = history,
-                    onDismiss = {},
-                    onShareMonth = { sharedMonth = it }
-                )
-            }
-        }
-
-        composeTestRule
-            .onNodeWithContentDescription(getString(R.string.share_calendar_image))
-            .performClick()
-
-        assert(sharedMonth == month)
-    }
-
-    // endregion
-
-    // region CalendarPreviewDialog Tests
-
-    @Test
-    fun calendarPreviewDialog_displaysShareButton() {
-        val student = Student(id = 1, name = "Alice")
-        val month = LocalDate(2026, 1, 1)
-
-        composeTestRule.setContent {
-            AbsenceRecordTheme {
-                CalendarPreviewDialog(
-                    student = student,
-                    monthToPreview = month,
-                    datesForPreviewMonth = emptyList(),
-                    onDismiss = {},
-                    onShare = { _, _, _ -> }
-                )
-            }
-        }
-
-        composeTestRule.onNodeWithText(getString(R.string.action_share_image)).assertIsDisplayed()
-    }
-
-    @Test
-    fun calendarPreviewDialog_clickingShareInvokesCallback() {
-        var sharedMonth: LocalDate? = null
-        var sharedId: Int? = null
-        var sharedName: String? = null
-
-        val student = Student(id = 1, name = "Alice")
-        val month = LocalDate(2026, 1, 1)
-
-        composeTestRule.setContent {
-            AbsenceRecordTheme {
-                CalendarPreviewDialog(
-                    student = student,
-                    monthToPreview = month,
-                    datesForPreviewMonth = emptyList(),
-                    onDismiss = {},
-                    onShare = { m, id, name ->
-                        sharedMonth = m
-                        sharedId = id
-                        sharedName = name
-                    }
-                )
-            }
-        }
-
-        composeTestRule.onNodeWithText(getString(R.string.action_share_image)).performClick()
-
-        assert(sharedMonth == month)
-        assert(sharedId == student.id)
-        assert(sharedName == student.name)
     }
 
     // endregion

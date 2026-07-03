@@ -1,6 +1,5 @@
 package dev.nenoeldeeb.education.absencerecord.presentation.screens.report
 
-import androidx.compose.runtime.Stable
 import androidx.core.net.toUri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -30,7 +29,6 @@ import kotlinx.datetime.minus
 import kotlinx.datetime.plus
 
 @OptIn(ExperimentalCoroutinesApi::class)
-@Stable
 class ReportViewModel(
     private val studentManagementUseCases: StudentManagementUseCases,
     private val attendanceUseCases: AttendanceUseCases,
@@ -154,7 +152,12 @@ class ReportViewModel(
                     event.studentName
                 )
 
-            is ReportScreenEvent.ConsumeShareFileUri -> _uiState.update { it.copy(shareFileUri = null) }
+            is ReportScreenEvent.ShareFileResult -> {
+                if (event.error != null) {
+                    onEvent(ReportScreenEvent.ShowToast(event.error))
+                }
+                _uiState.update { it.copy(shareFileUri = null) }
+            }
 
             is ReportScreenEvent.ShowToast -> showToast(event.message)
             is ReportScreenEvent.ConsumeToastMessage -> _uiState.update { it.copy(toastMessage = null) }
@@ -245,54 +248,43 @@ class ReportViewModel(
             return
         }
         viewModelScope.launch {
-            try {
-                val startOfMonth = LocalDate(month.year, month.month, 1)
-                val endOfMonth = startOfMonth.plus(1, DateTimeUnit.MONTH).minus(1, DateTimeUnit.DAY)
+            val startOfMonth = LocalDate(month.year, month.month, 1)
+            val endOfMonth = startOfMonth.plus(1, DateTimeUnit.MONTH).minus(1, DateTimeUnit.DAY)
 
-                attendanceUseCases.getAttendanceHistoryForDateRangeUseCase(
-                    studentId,
-                    startOfMonth,
-                    endOfMonth
-                ).collectLatest { result ->
-                    result.onSuccess { items ->
-                        reportUseCases.shareReportUseCase(
-                            studentName,
-                            month,
-                            items.map { it.date }
-                        ).onSuccess { uri ->
-                            _uiState.update {
-                                it.copy(shareFileUri = uri.toUri())
-                            }
-                        }.onFailure { e ->
-                            onEvent(
-                                ReportScreenEvent.ShowToast(
-                                    UiText.StringResource(
-                                        R.string.error_preparing_image,
-                                        e.message ?: ""
-                                    )
-                                )
-                            )
+            attendanceUseCases.getAttendanceHistoryForDateRangeUseCase(
+                studentId,
+                startOfMonth,
+                endOfMonth
+            ).collectLatest { result ->
+                result.onSuccess { items ->
+                    reportUseCases.shareReportUseCase(
+                        studentName,
+                        month,
+                        items.map { it.date }
+                    ).onSuccess { uri ->
+                        _uiState.update {
+                            it.copy(shareFileUri = uri.toUri())
                         }
                     }.onFailure { e ->
                         onEvent(
                             ReportScreenEvent.ShowToast(
                                 UiText.StringResource(
-                                    R.string.error_fetching_history,
+                                    R.string.error_preparing_image,
                                     e.message ?: ""
                                 )
                             )
                         )
                     }
-                }
-            } catch (e: Exception) {
-                onEvent(
-                    ReportScreenEvent.ShowToast(
-                        UiText.StringResource(
-                            R.string.error_preparing_image,
-                            e.message ?: ""
+                }.onFailure { e ->
+                    onEvent(
+                        ReportScreenEvent.ShowToast(
+                            UiText.StringResource(
+                                R.string.error_fetching_history,
+                                e.message ?: ""
+                            )
                         )
                     )
-                )
+                }
             }
         }
     }

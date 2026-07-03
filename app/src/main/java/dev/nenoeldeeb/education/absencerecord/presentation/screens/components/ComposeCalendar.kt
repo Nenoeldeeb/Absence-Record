@@ -1,9 +1,6 @@
 package dev.nenoeldeeb.education.absencerecord.presentation.screens.components
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -35,8 +32,6 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
-import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.LayoutDirection
@@ -213,11 +208,20 @@ private fun CalendarGrid(
                 key = { index -> days[index]?.toString() ?: "empty-$index" }
             ) { index ->
                 val day = days[index]
+                val contentDescription =
+                    if (markedDates.contains(day)) {
+                        stringResource(R.string.content_description_present)
+                    } else if (day == today) {
+                        stringResource(R.string.content_description_today)
+                    } else {
+                        ""
+                    }
                 DayCell(
                     day = day,
                     isCurrentDay = day == today,
                     isMarked = markedDates.contains(day),
                     onDateSelected = onDateSelected,
+                    description = contentDescription,
                     modifier =
                         Modifier
                             .aspectRatio(1f)
@@ -225,69 +229,6 @@ private fun CalendarGrid(
                             .clip(CircleShape)
                 )
             }
-        }
-    }
-}
-
-@Composable
-private fun DayCell(
-    day: LocalDate?,
-    isCurrentDay: Boolean,
-    isMarked: Boolean,
-    onDateSelected: (LocalDate) -> Unit,
-    modifier: Modifier = Modifier
-) {
-    val dayContentDescription =
-        if (isMarked) {
-            stringResource(R.string.content_description_present)
-        } else if (isCurrentDay) {
-            stringResource(R.string.content_description_today)
-        } else {
-            ""
-        }
-    Box(
-        modifier =
-            modifier
-                .then(
-                    if (day != null) {
-                        Modifier.clickable { onDateSelected(day) }
-                    } else {
-                        Modifier
-                    }
-                )
-                .then(
-                    when {
-                        isMarked ->
-                            Modifier.background(
-                                MaterialTheme.colorScheme.secondary
-                            )
-
-                        isCurrentDay && day != null ->
-                            Modifier.background(
-                                MaterialTheme.colorScheme.primary
-                            )
-
-                        else -> Modifier
-                    }
-                )
-                .semantics {
-                    day?.let {
-                        contentDescription = dayContentDescription
-                    }
-                },
-        contentAlignment = Alignment.Center
-    ) {
-        day?.let {
-            Text(
-                text = it.day.toString(),
-                style = MaterialTheme.typography.bodyMedium,
-                color =
-                    when {
-                        isMarked -> MaterialTheme.colorScheme.onSecondary
-                        isCurrentDay -> MaterialTheme.colorScheme.onPrimary
-                        else -> MaterialTheme.colorScheme.onSurface
-                    }
-            )
         }
     }
 }

@@ -1,0 +1,24 @@
+Architecture Violation Audit - $(date)
+
+=== try-catch in domain/ ===
+(none) ✓
+
+=== try-catch in presentation/ ===
+app/src/main/java/.../report/ReportScreen.kt: try { (line 52) - share intent
+app/src/main/java/.../report/ReportViewModel.kt: try { (line 248) - prepareCalendarImageForSharing
+app/src/main/java/.../presentation/utils/SoundPlayer.kt: try { - utility class
+
+=== domain imports presentation/ ===
+(none) ✓
+
+=== @Stable on ViewModels ===
+(none) ✓
+
+=== Files exceeding 300 lines (7 remaining) ===
+611 - StudentsViewModelTest.kt (test)
+456 - CalendarScreenTest.kt (test)
+383 - CalendarImageGeneratorTest.kt (test)
+356 - AttendanceDaoTest.kt (test)
+330 - ReportScreenTest.kt (test)
+320 - StudentDaoTest.kt (test)
+313 - ReportViewModelTest.kt (test)
