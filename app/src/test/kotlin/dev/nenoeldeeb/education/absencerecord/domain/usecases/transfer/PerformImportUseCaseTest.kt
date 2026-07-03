@@ -4,10 +4,8 @@ import dev.nenoeldeeb.education.absencerecord.domain.models.ParsedStudentImportD
 import dev.nenoeldeeb.education.absencerecord.domain.models.Student
 import dev.nenoeldeeb.education.absencerecord.domain.models.StudentExportData
 import dev.nenoeldeeb.education.absencerecord.domain.repositories.AttendanceRepository
-import dev.nenoeldeeb.education.absencerecord.domain.repositories.StorageRepository
 import dev.nenoeldeeb.education.absencerecord.domain.repositories.StudentClassRepository
 import dev.nenoeldeeb.education.absencerecord.domain.repositories.StudentRepository
-import dev.nenoeldeeb.education.absencerecord.domain.services.SerializationService
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
@@ -22,138 +20,34 @@ import kotlin.test.assertEquals
 import kotlin.test.assertIs
 import kotlin.test.assertTrue
 
-@DisplayName("ImportStudentsUseCase Tests")
-class ImportStudentsUseCaseTest {
+@DisplayName("PerformImportUseCase Tests")
+class PerformImportUseCaseTest {
     private lateinit var studentRepository: StudentRepository
     private lateinit var attendanceRepository: AttendanceRepository
-    private lateinit var storageRepository: StorageRepository
-    private lateinit var serializationService: SerializationService
     private lateinit var studentClassRepository: StudentClassRepository
-    private lateinit var useCase: ImportStudentsUseCase
+    private lateinit var useCase: PerformImportUseCase
 
     @BeforeEach
     fun setup() {
         studentRepository = mockk()
         attendanceRepository = mockk()
-        storageRepository = mockk()
-        serializationService = mockk()
         studentClassRepository = mockk()
-        useCase =
-            ImportStudentsUseCase(
-                studentRepository,
-                attendanceRepository,
-                storageRepository,
-                serializationService,
-                studentClassRepository
-            )
-        // Default mocks
+        useCase = PerformImportUseCase(studentRepository, attendanceRepository, studentClassRepository)
         coEvery { studentClassRepository.getOrCreateClassByName(any()) } returns Result.success(1)
         coEvery { studentRepository.updateStudent(any()) } returns Result.success(Unit)
     }
 
     @Nested
-    @DisplayName("parseFile Tests")
-    inner class ParseFileTests {
-        @Test
-        fun `should successfully parse file`() =
-            runTest {
-                // Arrange
-                val uriString = "content://file"
-                val jsonString = "[{\"name\":\"John\",\"dates\":[\"2024-01-01\"]}]"
-                val exportDataList = listOf(StudentExportData("John", "", listOf("2024-01-01")))
-
-                coEvery { storageRepository.readTextFromUri(uriString) } returns
-                    Result.success(jsonString)
-                every {
-                    serializationService.decodeFromString(
-                        jsonString,
-                        any<kotlinx.serialization.KSerializer<List<StudentExportData>>>()
-                    )
-                } returns Result.success(exportDataList)
-
-                // Act
-                val result = useCase.parseFile(uriString)
-
-                // Assert
-                assertTrue(result.isSuccess)
-                val parsedList = result.getOrNull()
-                assertEquals(1, parsedList?.size)
-                assertEquals("John", parsedList?.first()?.originalData?.name)
-            }
-
-        @Test
-        fun `should return empty list for blank file content`() =
-            runTest {
-                // Arrange
-                val uriString = "content://empty"
-                coEvery { storageRepository.readTextFromUri(uriString) } returns
-                    Result.success("  ")
-
-                // Act
-                val result = useCase.parseFile(uriString)
-
-                // Assert
-                assertTrue(result.isSuccess)
-                assertEquals(result.getOrNull()?.isEmpty(), true)
-            }
-
-        @Test
-        fun `should handle storage repository failure`() =
-            runTest {
-                // Arrange
-                val uriString = "content://error"
-                val exception = Exception("Read error")
-                coEvery { storageRepository.readTextFromUri(uriString) } returns
-                    Result.failure(exception)
-
-                // Act
-                val result = useCase.parseFile(uriString)
-
-                // Assert
-                assertTrue(result.isFailure)
-                assertEquals(exception, result.exceptionOrNull())
-            }
-
-        @Test
-        fun `should handle serialization failure`() =
-            runTest {
-                // Arrange
-                val uriString = "content://malformed"
-                val jsonString = "{ malformed json"
-                val exception = Exception("JSON Parse error")
-
-                coEvery { storageRepository.readTextFromUri(uriString) } returns
-                    Result.success(jsonString)
-                every {
-                    serializationService.decodeFromString(
-                        jsonString,
-                        any<kotlinx.serialization.KSerializer<List<StudentExportData>>>()
-                    )
-                } returns Result.failure(exception)
-
-                // Act
-                val result = useCase.parseFile(uriString)
-
-                // Assert
-                assertTrue(result.isFailure)
-                assertEquals(exception, result.exceptionOrNull())
-            }
-    }
-
-    @Nested
-    @DisplayName("performImport Tests")
-    inner class PerformImportTests {
+    @DisplayName("invoke Tests")
+    inner class InvokeTests {
         @Test
         fun `should fail if no students selected`() =
             runTest {
-                // Arrange
                 val parsedData = listOf(ParsedStudentImportData(StudentExportData("John", "", emptyList())))
                 val selectionMap = mapOf(parsedData[0].id to false)
 
-                // Act
-                val result = useCase.performImport(parsedData, selectionMap)
+                val result = useCase(parsedData, selectionMap)
 
-                // Assert
                 assertTrue(result.isFailure)
                 assertIs<IllegalArgumentException>(result.exceptionOrNull())
             }
@@ -161,27 +55,17 @@ class ImportStudentsUseCaseTest {
         @Test
         fun `should import new student with attendance`() =
             runTest {
-                // Arrange
                 val exportData = StudentExportData("John", "", listOf("2024-01-01"))
                 val parsedData = listOf(ParsedStudentImportData(exportData))
                 val selectionMap = mapOf(parsedData[0].id to true)
 
-                // Mock check for existing students
-                every { studentRepository.getAllStudents() } answers
-                    {
-                        flowOf(Result.success(emptyList()))
-                    }
-
-                // Mock insertion of new student
+                every { studentRepository.getAllStudents() } returns
+                    flowOf(Result.success(emptyList()))
                 coEvery { studentRepository.insertStudent(any()) } returns Result.success(1L)
-
-                // Mock insertion of attendance
                 coEvery { attendanceRepository.insertAttendance(any()) } returns Result.success(1L)
 
-                // Act
-                val result = useCase.performImport(parsedData, selectionMap)
+                val result = useCase(parsedData, selectionMap)
 
-                // Assert
                 assertTrue(result.isSuccess)
                 val importResult = result.getOrNull()
                 assertEquals(1, importResult?.newStudentsCount)
@@ -199,25 +83,17 @@ class ImportStudentsUseCaseTest {
         @Test
         fun `should merge with existing student`() =
             runTest {
-                // Arrange
                 val exportData = StudentExportData("John", "", listOf("2024-01-01"))
                 val parsedData = listOf(ParsedStudentImportData(exportData))
                 val selectionMap = mapOf(parsedData[0].id to true)
                 val existingStudent = Student(id = 1, name = "John")
 
-                // Mock existing students
-                every { studentRepository.getAllStudents() } answers
-                    {
-                        flowOf(Result.success(listOf(existingStudent)))
-                    }
-
-                // Mock insertion of attendance only
+                every { studentRepository.getAllStudents() } returns
+                    flowOf(Result.success(listOf(existingStudent)))
                 coEvery { attendanceRepository.insertAttendance(any()) } returns Result.success(1L)
 
-                // Act
-                val result = useCase.performImport(parsedData, selectionMap)
+                val result = useCase(parsedData, selectionMap)
 
-                // Assert
                 assertTrue(result.isSuccess)
                 val importResult = result.getOrNull()
                 assertEquals(0, importResult?.newStudentsCount)
@@ -235,21 +111,16 @@ class ImportStudentsUseCaseTest {
         @Test
         fun `should handle invalid dates in import`() =
             runTest {
-                // Arrange
                 val exportData = StudentExportData("John", "", listOf("invalid-date"))
                 val parsedData = listOf(ParsedStudentImportData(exportData))
                 val selectionMap = mapOf(parsedData[0].id to true)
 
-                every { studentRepository.getAllStudents() } answers
-                    {
-                        flowOf(Result.success(emptyList()))
-                    }
+                every { studentRepository.getAllStudents() } returns
+                    flowOf(Result.success(emptyList()))
                 coEvery { studentRepository.insertStudent(any()) } returns Result.success(1L)
 
-                // Act
-                val result = useCase.performImport(parsedData, selectionMap)
+                val result = useCase(parsedData, selectionMap)
 
-                // Assert
                 assertTrue(result.isSuccess)
                 val importResult = result.getOrNull()
                 assertEquals(0, importResult?.datesProcessedCount)
@@ -259,22 +130,17 @@ class ImportStudentsUseCaseTest {
         @Test
         fun `should handle mixed selection`() =
             runTest {
-                // Arrange
                 val data1 = ParsedStudentImportData(StudentExportData("John", "", emptyList()))
                 val data2 = ParsedStudentImportData(StudentExportData("Jane", "", emptyList()))
                 val parsedData = listOf(data1, data2)
                 val selectionMap = mapOf(data1.id to true, data2.id to false)
 
-                every { studentRepository.getAllStudents() } answers
-                    {
-                        flowOf(Result.success(emptyList()))
-                    }
+                every { studentRepository.getAllStudents() } returns
+                    flowOf(Result.success(emptyList()))
                 coEvery { studentRepository.insertStudent(any()) } returns Result.success(1L)
 
-                // Act
-                val result = useCase.performImport(parsedData, selectionMap)
+                val result = useCase(parsedData, selectionMap)
 
-                // Assert
                 assertTrue(result.isSuccess)
                 val importResult = result.getOrNull()
                 assertEquals(1, importResult?.newStudentsCount)
@@ -286,19 +152,14 @@ class ImportStudentsUseCaseTest {
         @Test
         fun `should return failure when exception occurs during import`() =
             runTest {
-                // Arrange
                 val parsedData = listOf(ParsedStudentImportData(StudentExportData("John", "", emptyList())))
                 val selectionMap = mapOf(parsedData[0].id to true)
 
-                every { studentRepository.getAllStudents() } answers
-                    {
-                        flowOf(Result.failure(Exception("DB Error")))
-                    }
+                every { studentRepository.getAllStudents() } returns
+                    flowOf(Result.failure(Exception("DB Error")))
 
-                // Act
-                val result = useCase.performImport(parsedData, selectionMap)
+                val result = useCase(parsedData, selectionMap)
 
-                // Assert
                 assertTrue(result.isFailure)
                 assertEquals("DB Error", result.exceptionOrNull()?.message)
             }
@@ -306,7 +167,6 @@ class ImportStudentsUseCaseTest {
         @Test
         fun `should import new student with class`() =
             runTest {
-                // Arrange
                 val exportData = StudentExportData("John", "Class A", emptyList())
                 val parsedData = listOf(ParsedStudentImportData(exportData))
                 val selectionMap = mapOf(parsedData[0].id to true)
@@ -317,10 +177,8 @@ class ImportStudentsUseCaseTest {
                     Result.success(10)
                 coEvery { studentRepository.insertStudent(any()) } returns Result.success(1L)
 
-                // Act
-                useCase.performImport(parsedData, selectionMap)
+                useCase(parsedData, selectionMap)
 
-                // Assert
                 coVerify {
                     studentRepository.insertStudent(match { it.name == "John" && it.classId == 10 })
                 }
@@ -329,7 +187,6 @@ class ImportStudentsUseCaseTest {
         @Test
         fun `should update existing student class when merging`() =
             runTest {
-                // Arrange
                 val exportData = StudentExportData("John", "Class B", emptyList())
                 val parsedData = listOf(ParsedStudentImportData(exportData))
                 val selectionMap = mapOf(parsedData[0].id to true)
@@ -342,10 +199,8 @@ class ImportStudentsUseCaseTest {
                 coEvery { studentRepository.updateStudent(any()) } returns Result.success(Unit)
                 coEvery { attendanceRepository.insertAttendance(any()) } returns Result.success(1L)
 
-                // Act
-                useCase.performImport(parsedData, selectionMap)
+                useCase(parsedData, selectionMap)
 
-                // Assert
                 coVerify {
                     studentRepository.updateStudent(match { it.id == 1 && it.classId == 20 })
                 }

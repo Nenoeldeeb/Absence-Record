@@ -6,7 +6,6 @@ import dev.nenoeldeeb.education.absencerecord.domain.repositories.AttendanceRepo
 import dev.nenoeldeeb.education.absencerecord.domain.repositories.StorageRepository
 import dev.nenoeldeeb.education.absencerecord.domain.repositories.StudentClassRepository
 import dev.nenoeldeeb.education.absencerecord.domain.services.SerializationService
-import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.first
 import kotlinx.serialization.builtins.ListSerializer
 
@@ -41,43 +40,28 @@ class ExportStudentsUseCase(
             return Result.failure(IllegalArgumentException())
         }
 
-        return try {
-            val classes = studentClassRepository.getAllClasses().first().getOrDefault(emptyList())
-            val classMap = classes.associate { it.id to it.name }
+        val classes = studentClassRepository.getAllClasses().first().getOrDefault(emptyList())
+        val classMap = classes.associate { it.id to it.name }
 
-            val exportList =
-                selectedStudentIds.mapNotNull { studentId ->
-                    allStudents.find { it.id == studentId }?.let { student ->
-                        val historyDates =
-                            attendanceRepository
-                                .getStudentAttendanceDates(studentId)
-                                .first()
-                                .getOrDefault(emptyList())
-                        StudentExportData(
-                            name = student.name,
-                            dates = historyDates.map { it.toString() },
-                            className = student.classId?.let { classMap[it] } ?: ""
-                        )
-                    }
+        val exportList =
+            selectedStudentIds.mapNotNull { studentId ->
+                allStudents.find { it.id == studentId }?.let { student ->
+                    val historyDates =
+                        attendanceRepository
+                            .getStudentAttendanceDates(studentId)
+                            .first()
+                            .getOrDefault(emptyList())
+                    StudentExportData(
+                        name = student.name,
+                        dates = historyDates.map { it.toString() },
+                        className = student.classId?.let { classMap[it] } ?: ""
+                    )
                 }
-            val serializationResult =
-                serializationService
-                    .encodeToString(exportList, ListSerializer(StudentExportData.serializer()))
-
-            when {
-                serializationResult.isSuccess -> {
-                    val jsonString =
-                        serializationResult.getOrNull() ?: return Result.failure(
-                            IllegalStateException("Serialization succeeded but returned null")
-                        )
-                    storageRepository.writeTextToUri(uriString, jsonString)
-                }
-
-                else -> Result.failure(serializationResult.exceptionOrNull() ?: Exception("Unknown error"))
             }
-        } catch (e: Exception) {
-            if (e is CancellationException) throw e
-            Result.failure(e)
-        }
+        return serializationService.encodeToString(exportList, ListSerializer(StudentExportData.serializer()))
+            .fold(
+                onSuccess = { jsonString -> storageRepository.writeTextToUri(uriString, jsonString) },
+                onFailure = { Result.failure(it) }
+            )
     }
 }
