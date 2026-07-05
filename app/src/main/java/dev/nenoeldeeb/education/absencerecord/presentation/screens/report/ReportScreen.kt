@@ -3,7 +3,6 @@
 package dev.nenoeldeeb.education.absencerecord.presentation.screens.report
 
 import android.content.Intent
-import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -12,10 +11,14 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
@@ -41,6 +44,14 @@ fun ReportScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    LaunchedEffect(uiState.error) {
+        uiState.error?.let {
+            snackbarHostState.showSnackbar(it.asString(context))
+            viewModel.onEvent(ReportScreenEvent.ConsumeError)
+        }
+    }
 
     LaunchedEffect(uiState.shareFileUri) {
         uiState.shareFileUri?.let { uri ->
@@ -75,100 +86,105 @@ fun ReportScreen(
 
     LaunchedEffect(uiState.toastMessage) {
         uiState.toastMessage?.let {
-            Toast.makeText(context, it.asString(context), Toast.LENGTH_LONG).show()
+            snackbarHostState.showSnackbar(it.asString(context))
             viewModel.onEvent(ReportScreenEvent.ConsumeToastMessage)
         }
     }
 
-    Column(modifier = modifier) {
-        TopAppBar(
-            title = {},
-            actions = {
-                IconButton(
-                    onClick = {
-                        viewModel.onEvent(ReportScreenEvent.ToggleClassFilterVisibility)
+    Scaffold(
+        modifier = modifier,
+        snackbarHost = { SnackbarHost(hostState = snackbarHostState) }
+    ) { paddingValues ->
+        Column(modifier = Modifier.padding(paddingValues)) {
+            TopAppBar(
+                title = {},
+                actions = {
+                    IconButton(
+                        onClick = {
+                            viewModel.onEvent(ReportScreenEvent.ToggleClassFilterVisibility)
+                        }
+                    ) {
+                        Icon(
+                            imageVector =
+                                ImageVector.vectorResource(R.drawable.outline_filter_24),
+                            contentDescription = stringResource(R.string.filter_description)
+                        )
                     }
-                ) {
-                    Icon(
-                        imageVector =
-                            ImageVector.vectorResource(R.drawable.outline_filter_24),
-                        contentDescription = stringResource(R.string.filter_description)
-                    )
-                }
-                IconButton(
-                    onClick = {
-                        viewModel.onEvent(ReportScreenEvent.ToggleSortComponentsVisibility)
+                    IconButton(
+                        onClick = {
+                            viewModel.onEvent(ReportScreenEvent.ToggleSortComponentsVisibility)
+                        }
+                    ) {
+                        Icon(
+                            imageVector =
+                                ImageVector.vectorResource(R.drawable.outline_sort_24),
+                            contentDescription = stringResource(R.string.sort_description)
+                        )
                     }
-                ) {
-                    Icon(
-                        imageVector =
-                            ImageVector.vectorResource(R.drawable.outline_sort_24),
-                        contentDescription = stringResource(R.string.sort_description)
-                    )
                 }
+            )
+
+            AnimatedVisibility(uiState.isSortComponentsVisible) {
+                ReportControls(
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp, vertical = 8.dp),
+                    selectedMonth = uiState.selectedMonth,
+                    availableMonths = uiState.availableMonths,
+                    monthDropdownExpanded = uiState.monthDropdownExpanded,
+                    sortType = uiState.sortType,
+                    onMonthSelected = { month ->
+                        viewModel.onEvent(ReportScreenEvent.UpdateSelectedMonth(month))
+                    },
+                    onMonthCleared = { viewModel.onEvent(ReportScreenEvent.ClearMonthFilter) },
+                    onMonthDropdownToggled = { expanded ->
+                        viewModel.onEvent(ReportScreenEvent.ToggleMonthDropdown(expanded))
+                    },
+                    onSortTypeToggled = { viewModel.onEvent(ReportScreenEvent.ToggleSortType) }
+                )
             }
-        )
 
-        AnimatedVisibility(uiState.isSortComponentsVisible) {
-            ReportControls(
-                modifier =
-                    Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 8.dp),
-                selectedMonth = uiState.selectedMonth,
-                availableMonths = uiState.availableMonths,
-                monthDropdownExpanded = uiState.monthDropdownExpanded,
-                sortType = uiState.sortType,
-                onMonthSelected = { month ->
-                    viewModel.onEvent(ReportScreenEvent.UpdateSelectedMonth(month))
-                },
-                onMonthCleared = { viewModel.onEvent(ReportScreenEvent.ClearMonthFilter) },
-                onMonthDropdownToggled = { expanded ->
-                    viewModel.onEvent(ReportScreenEvent.ToggleMonthDropdown(expanded))
-                },
-                onSortTypeToggled = { viewModel.onEvent(ReportScreenEvent.ToggleSortType) }
-            )
-        }
+            AnimatedVisibility(uiState.isClassFilterVisible) {
+                ClassFilterDropdown(
+                    selectedFilter = uiState.selectedClassFilter,
+                    availableClasses = uiState.availableClasses,
+                    expanded = uiState.classDropdownExpanded,
+                    onExpandedChange = {
+                        viewModel.onEvent(ReportScreenEvent.ToggleClassDropdown(it))
+                    },
+                    onFilterSelected = {
+                        viewModel.onEvent(ReportScreenEvent.SelectClassFilter(it))
+                    },
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp, vertical = 8.dp)
+                )
+            }
 
-        AnimatedVisibility(uiState.isClassFilterVisible) {
-            ClassFilterDropdown(
-                selectedFilter = uiState.selectedClassFilter,
-                availableClasses = uiState.availableClasses,
-                expanded = uiState.classDropdownExpanded,
-                onExpandedChange = {
-                    viewModel.onEvent(ReportScreenEvent.ToggleClassDropdown(it))
-                },
-                onFilterSelected = {
-                    viewModel.onEvent(ReportScreenEvent.SelectClassFilter(it))
-                },
-                modifier =
-                    Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 8.dp)
-            )
-        }
-
-        if (uiState.allStudents.isEmpty()) {
-            EmptyStateMessage(
-                message = R.string.no_students_found,
-                modifier =
-                    Modifier
-                        .fillMaxSize()
-                        .padding(16.dp)
-            )
-        } else {
-            StudentList(
-                modifier =
-                    Modifier
-                        .fillMaxWidth()
-                        .padding(top = 16.dp),
-                allStudents = uiState.allStudents,
-                onStudentClick = { student ->
-                    viewModel.onEvent(ReportScreenEvent.SelectStudentForHistory(student))
-                    viewModel.onEvent(ReportScreenEvent.ShowHistoryDialog(true))
-                },
-                onStudentLongClick = {}
-            )
+            if (uiState.allStudents.isEmpty()) {
+                EmptyStateMessage(
+                    message = R.string.no_students_found,
+                    modifier =
+                        Modifier
+                            .fillMaxSize()
+                            .padding(16.dp)
+                )
+            } else {
+                StudentList(
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .padding(top = 16.dp),
+                    allStudents = uiState.allStudents,
+                    onStudentClick = { student ->
+                        viewModel.onEvent(ReportScreenEvent.SelectStudentForHistory(student))
+                        viewModel.onEvent(ReportScreenEvent.ShowHistoryDialog(true))
+                    },
+                    onStudentLongClick = {}
+                )
+            }
         }
     }
 

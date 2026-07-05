@@ -41,4 +41,6 @@ sealed interface ReportScreenEvent {
     data object ToggleSortComponentsVisibility : ReportScreenEvent
 
     data class ToggleClassDropdown(val expanded: Boolean) : ReportScreenEvent
+
+    data object ConsumeError : ReportScreenEvent
 }

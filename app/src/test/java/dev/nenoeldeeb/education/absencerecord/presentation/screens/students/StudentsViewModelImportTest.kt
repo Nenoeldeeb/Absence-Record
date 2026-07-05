@@ -4,6 +4,7 @@ import android.net.Uri
 import dev.nenoeldeeb.education.absencerecord.R
 import dev.nenoeldeeb.education.absencerecord.domain.models.ImportResult
 import dev.nenoeldeeb.education.absencerecord.domain.models.ParsedStudentImportData
+import dev.nenoeldeeb.education.absencerecord.domain.models.StudentError
 import dev.nenoeldeeb.education.absencerecord.domain.models.StudentExportData
 import dev.nenoeldeeb.education.absencerecord.presentation.utils.UiText
 import io.mockk.coEvery
@@ -70,10 +71,9 @@ class StudentsViewModelImportTest : StudentsViewModelTestBase() {
     fun `PrepareImportSelectionDialog parse error sets error`() =
         runTest {
             // Given
-            val errorMsg = "Parse failed"
             every { getAllStudentsUseCase(any(), any()) } returns flowOf(Result.success(emptyList()))
             coEvery { parseImportFileUseCase(any()) } returns
-                Result.failure(Exception(errorMsg))
+                Result.failure(StudentError.ImportParse)
             createViewModel()
             advanceUntilIdle()
 
@@ -85,8 +85,10 @@ class StudentsViewModelImportTest : StudentsViewModelTestBase() {
             advanceUntilIdle()
 
             // Then
-            val expectedError = UiText.StringResource(R.string.error_reading_file)
-            assertEquals(expectedError, viewModel.uiState.value.error)
+            assertEquals(
+                UiText.StringResource(R.string.error_parsing_import_file),
+                viewModel.uiState.value.error
+            )
         }
 
     @Test
@@ -130,11 +132,10 @@ class StudentsViewModelImportTest : StudentsViewModelTestBase() {
         runTest {
             // Given
             val parsedData = listOf(ParsedStudentImportData(StudentExportData("S1", "", emptyList()), 1))
-            val errorMsg = "Import failed"
 
             coEvery { parseImportFileUseCase(any()) } returns Result.success(parsedData)
             coEvery { performImportUseCase(any(), any()) } returns
-                Result.failure(Exception(errorMsg))
+                Result.failure(StudentError.Database)
 
             createViewModel()
             advanceUntilIdle()
@@ -149,7 +150,9 @@ class StudentsViewModelImportTest : StudentsViewModelTestBase() {
             advanceUntilIdle()
 
             // Then
-            val expectedError = UiText.StringResource(R.string.error_database_operation_failed)
-            assertEquals(expectedError, viewModel.uiState.value.error)
+            assertEquals(
+                UiText.StringResource(R.string.error_database_operation_failed),
+                viewModel.uiState.value.error
+            )
         }
 }

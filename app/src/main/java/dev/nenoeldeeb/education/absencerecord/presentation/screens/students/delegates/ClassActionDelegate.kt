@@ -19,10 +19,9 @@ class ClassActionDelegate(
             .fold(
                 onSuccess = { Result.success(UiText.StringResource(R.string.class_added, trimmed) as UiText?) },
                 onFailure = { e ->
-                    if (e.message == "DUPLICATE_CLASS_NAME") {
-                        Result.failure(StudentError.DuplicateClass)
-                    } else {
-                        Result.failure(StudentError.Database)
+                    when (e) {
+                        is StudentError.DuplicateClass -> Result.failure(StudentError.DuplicateClass)
+                        else -> Result.failure(e)
                     }
                 }
             )
@@ -40,10 +39,9 @@ class ClassActionDelegate(
             .fold(
                 onSuccess = { Result.success(UiText.StringResource(R.string.class_updated, trimmed) as UiText?) },
                 onFailure = { e ->
-                    if (e.message == "DUPLICATE_CLASS_NAME") {
-                        Result.failure(StudentError.DuplicateClass)
-                    } else {
-                        Result.failure(StudentError.Database)
+                    when (e) {
+                        is StudentError.DuplicateClass -> Result.failure(StudentError.DuplicateClass)
+                        else -> Result.failure(e)
                     }
                 }
             )

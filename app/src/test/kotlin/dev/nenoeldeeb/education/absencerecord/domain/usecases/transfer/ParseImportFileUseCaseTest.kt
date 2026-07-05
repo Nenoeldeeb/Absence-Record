@@ -1,5 +1,6 @@
 package dev.nenoeldeeb.education.absencerecord.domain.usecases.transfer
 
+import dev.nenoeldeeb.education.absencerecord.domain.models.StudentError
 import dev.nenoeldeeb.education.absencerecord.domain.models.StudentExportData
 import dev.nenoeldeeb.education.absencerecord.domain.repositories.StorageRepository
 import dev.nenoeldeeb.education.absencerecord.domain.services.SerializationService
@@ -71,7 +72,7 @@ class ParseImportFileUseCaseTest {
         fun `should handle storage repository failure`() =
             runTest {
                 val uriString = "content://error"
-                val exception = Exception("Read error")
+                val exception = StudentError.FileRead
                 coEvery { storageRepository.readTextFromUri(uriString) } returns
                     Result.failure(exception)
 
@@ -86,7 +87,7 @@ class ParseImportFileUseCaseTest {
             runTest {
                 val uriString = "content://malformed"
                 val jsonString = "{ malformed json"
-                val exception = Exception("JSON Parse error")
+                val exception = StudentError.ImportParse
 
                 coEvery { storageRepository.readTextFromUri(uriString) } returns
                     Result.success(jsonString)

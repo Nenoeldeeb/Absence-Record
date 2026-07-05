@@ -22,7 +22,7 @@ class StudentActionDelegate(
         return studentManagementUseCases.addStudentUseCase(Student(name = trimmed, classId = classId))
             .fold(
                 onSuccess = { Result.success(UiText.StringResource(R.string.student_added, trimmed) as UiText?) },
-                onFailure = { Result.failure(StudentError.Database) }
+                onFailure = { Result.failure(it) }
             )
     }
 
@@ -38,7 +38,7 @@ class StudentActionDelegate(
         return studentManagementUseCases.updateStudentUseCase(student.copy(name = trimmed, classId = newClassId))
             .fold(
                 onSuccess = { Result.success(UiText.StringResource(R.string.student_updated, trimmed) as UiText?) },
-                onFailure = { Result.failure(StudentError.Database) }
+                onFailure = { Result.failure(it) }
             )
     }
 
@@ -53,7 +53,7 @@ class StudentActionDelegate(
         return studentManagementUseCases.deleteStudentsUseCase(studentsToDelete)
             .fold(
                 onSuccess = { Result.success(UiText.StringResource(R.string.students_deleted_successfully) as UiText?) },
-                onFailure = { Result.failure(StudentError.Database) }
+                onFailure = { Result.failure(it) }
             )
     }
 
@@ -66,7 +66,7 @@ class StudentActionDelegate(
         return studentManagementUseCases.exportStudentsUseCase(uriString, selectedIds, filteredStudents)
             .fold(
                 onSuccess = { Result.success(UiText.StringResource(R.string.data_exported_successfully) as UiText?) },
-                onFailure = { Result.failure(StudentError.FileRead) }
+                onFailure = { e -> Result.failure(e) }
             )
     }
 
@@ -86,10 +86,10 @@ class StudentActionDelegate(
                                     UiText.StringResource(R.string.data_exported_and_deleted_successfully) as UiText?
                                 )
                             },
-                            onFailure = { Result.failure(StudentError.Database) }
+                            onFailure = { e -> Result.failure(e) }
                         )
                 },
-                onFailure = { Result.failure(StudentError.FileRead) }
+                onFailure = { e -> Result.failure(e) }
             )
     }
 
@@ -97,7 +97,7 @@ class StudentActionDelegate(
         return studentManagementUseCases.parseImportFileUseCase(uriString)
             .fold(
                 onSuccess = { Result.success(it) },
-                onFailure = { Result.failure(StudentError.FileRead) }
+                onFailure = { e -> Result.failure(e) }
             )
     }
 
@@ -108,7 +108,7 @@ class StudentActionDelegate(
         return studentManagementUseCases.performImportUseCase(parsedStudents, selectionMap)
             .fold(
                 onSuccess = { Result.success(importExportDelegate.buildImportResultMessage(it) as UiText?) },
-                onFailure = { Result.failure(StudentError.Database) }
+                onFailure = { e -> Result.failure(e) }
             )
     }
 }

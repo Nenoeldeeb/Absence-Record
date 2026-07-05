@@ -23,7 +23,9 @@ sealed interface StudentsScreenEvent {
 
     data object PerformImport : StudentsScreenEvent
 
-    // Toast
+    // Error / Toast
+    data object ConsumeError : StudentsScreenEvent
+
     data object ConsumeToastMessage : StudentsScreenEvent
 
     // Dialog visibility control from screen

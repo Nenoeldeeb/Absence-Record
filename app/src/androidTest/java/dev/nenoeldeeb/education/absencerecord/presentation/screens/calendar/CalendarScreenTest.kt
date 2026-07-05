@@ -12,6 +12,9 @@ import dev.nenoeldeeb.education.absencerecord.domain.models.Student
 import dev.nenoeldeeb.education.absencerecord.domain.models.StudentAttendance
 import dev.nenoeldeeb.education.absencerecord.presentation.theme.AbsenceRecordTheme
 import dev.nenoeldeeb.education.absencerecord.presentation.utils.UiText
+import io.mockk.every
+import io.mockk.mockk
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.datetime.LocalDate
 import org.junit.Rule
 import org.junit.Test
@@ -20,8 +23,8 @@ import org.junit.runner.RunWith
 /**
  * Instrumentation tests for [CalendarScreen] AttendanceDialog composable.
  *
- * These tests verify the UI behavior of attendance dialog toggle callbacks, error states, empty
- * states, and attendance count updates.
+ * These tests verify the UI behavior of attendance dialog toggle callbacks, empty
+ * states, attendance count updates, and screen-level snackbar errors.
  */
 @RunWith(AndroidJUnit4::class)
 class CalendarScreenTest {
@@ -61,14 +64,18 @@ class CalendarScreenTest {
                 AttendanceDialog(
                     allStudents = state.allStudents,
                     studentsForSelectedDate = state.studentsForSelectedDate,
-                    error = state.error,
                     selectedDate = selectedDate,
+                    availableClasses = state.availableClasses,
+                    selectedClassIds = state.selectedClassIds,
+                    filterDropdownExpanded = state.filterDropdownExpanded,
                     onDismiss = {},
                     onToggleAttendance = { s, d, p ->
                         toggledStudent = s
                         toggledDate = d
                         wasPresent = p
-                    }
+                    },
+                    onToggleClassSelection = { },
+                    onToggleFilterDropdown = { }
                 )
             }
         }
@@ -99,10 +106,14 @@ class CalendarScreenTest {
                 AttendanceDialog(
                     allStudents = state.allStudents,
                     studentsForSelectedDate = state.studentsForSelectedDate,
-                    error = state.error,
                     selectedDate = selectedDate,
+                    availableClasses = state.availableClasses,
+                    selectedClassIds = state.selectedClassIds,
+                    filterDropdownExpanded = state.filterDropdownExpanded,
                     onDismiss = {},
-                    onToggleAttendance = { _, _, p -> wasPresent = p }
+                    onToggleAttendance = { _, _, p -> wasPresent = p },
+                    onToggleClassSelection = { },
+                    onToggleFilterDropdown = { }
                 )
             }
         }
@@ -114,37 +125,22 @@ class CalendarScreenTest {
 
     // endregion
 
-    // region Error State Tests
+    // region CalendarScreen Error Snackbar Tests
 
     @Test
-    fun attendanceDialog_displaysErrorMessage() {
-        val selectedDate = LocalDate(2026, 1, 15)
+    fun calendarScreen_displaysErrorInSnackbar() {
         val errorMessage = "Test error occurred"
-        val state =
-            CalendarScreenState(
-                selectedDateForDialog = selectedDate,
-                allStudents = listOf(Student(id = 1, name = "Test")),
-                studentsForSelectedDate = emptyList(),
-                error = UiText.DynamicString(errorMessage)
-            )
+        val mockViewModel = mockk<CalendarViewModel>(relaxed = true)
+        val stateFlow = MutableStateFlow(CalendarScreenState(error = UiText.DynamicString(errorMessage)))
+        every { mockViewModel.uiState } returns stateFlow
 
         composeTestRule.setContent {
             AbsenceRecordTheme {
-                AttendanceDialog(
-                    allStudents = state.allStudents,
-                    studentsForSelectedDate = state.studentsForSelectedDate,
-                    error = state.error,
-                    selectedDate = selectedDate,
-                    onDismiss = {},
-                    onToggleAttendance = { _, _, _ -> }
-                )
+                CalendarScreen(viewModel = mockViewModel)
             }
         }
 
-        // Verify error message is displayed in "Error: {message}" format
-        composeTestRule
-            .onNodeWithText(getString(R.string.error_display, errorMessage))
-            .assertIsDisplayed()
+        composeTestRule.onNodeWithText(errorMessage).assertIsDisplayed()
     }
 
     // endregion
@@ -166,10 +162,14 @@ class CalendarScreenTest {
                 AttendanceDialog(
                     allStudents = state.allStudents,
                     studentsForSelectedDate = state.studentsForSelectedDate,
-                    error = state.error,
                     selectedDate = selectedDate,
+                    availableClasses = state.availableClasses,
+                    selectedClassIds = state.selectedClassIds,
+                    filterDropdownExpanded = state.filterDropdownExpanded,
                     onDismiss = {},
-                    onToggleAttendance = { _, _, _ -> }
+                    onToggleAttendance = { _, _, _ -> },
+                    onToggleClassSelection = { },
+                    onToggleFilterDropdown = { }
                 )
             }
         }
@@ -204,10 +204,14 @@ class CalendarScreenTest {
                 AttendanceDialog(
                     allStudents = state.allStudents,
                     studentsForSelectedDate = state.studentsForSelectedDate,
-                    error = state.error,
                     selectedDate = selectedDate,
+                    availableClasses = state.availableClasses,
+                    selectedClassIds = state.selectedClassIds,
+                    filterDropdownExpanded = state.filterDropdownExpanded,
                     onDismiss = {},
-                    onToggleAttendance = { _, _, _ -> }
+                    onToggleAttendance = { _, _, _ -> },
+                    onToggleClassSelection = { },
+                    onToggleFilterDropdown = { }
                 )
             }
         }
@@ -252,10 +256,14 @@ class CalendarScreenTest {
                 AttendanceDialog(
                     allStudents = state.allStudents,
                     studentsForSelectedDate = state.studentsForSelectedDate,
-                    error = state.error,
                     selectedDate = selectedDate,
+                    availableClasses = state.availableClasses,
+                    selectedClassIds = state.selectedClassIds,
+                    filterDropdownExpanded = state.filterDropdownExpanded,
                     onDismiss = {},
-                    onToggleAttendance = { _, _, _ -> }
+                    onToggleAttendance = { _, _, _ -> },
+                    onToggleClassSelection = { },
+                    onToggleFilterDropdown = { }
                 )
             }
         }

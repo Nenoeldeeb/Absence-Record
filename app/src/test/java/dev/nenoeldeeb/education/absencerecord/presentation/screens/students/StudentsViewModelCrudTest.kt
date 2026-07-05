@@ -2,6 +2,7 @@ package dev.nenoeldeeb.education.absencerecord.presentation.screens.students
 
 import dev.nenoeldeeb.education.absencerecord.R
 import dev.nenoeldeeb.education.absencerecord.domain.models.Student
+import dev.nenoeldeeb.education.absencerecord.domain.models.StudentError
 import dev.nenoeldeeb.education.absencerecord.presentation.utils.UiText
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -43,9 +44,8 @@ class StudentsViewModelCrudTest : StudentsViewModelTestBase() {
     fun `init handles load failure`() =
         runTest {
             // Given
-            val errorMsg = "Database error"
             every { getAllStudentsUseCase(any(), any()) } returns
-                flowOf(Result.failure(Exception(errorMsg)))
+                flowOf(Result.failure(StudentError.Database))
 
             // When
             createViewModel()
@@ -53,8 +53,10 @@ class StudentsViewModelCrudTest : StudentsViewModelTestBase() {
 
             // Then
             assertEquals(emptyList(), viewModel.uiState.value.allStudents)
-            val expectedError = UiText.StringResource(R.string.error_loading_students, errorMsg)
-            assertEquals(expectedError, viewModel.uiState.value.error)
+            assertEquals(
+                UiText.StringResource(R.string.error_database_operation_failed),
+                viewModel.uiState.value.error
+            )
         }
 
     @Test
@@ -170,10 +172,9 @@ class StudentsViewModelCrudTest : StudentsViewModelTestBase() {
         runTest {
             // Given
             val student = Student(id = 1, name = "Old Name")
-            val errorMsg = "Update failed"
             every { getAllStudentsUseCase(any(), any()) } returns
                 flowOf(Result.success(listOf(student)))
-            coEvery { updateStudentUseCase(any()) } returns Result.failure(Exception(errorMsg))
+            coEvery { updateStudentUseCase(any()) } returns Result.failure(StudentError.Database)
             createViewModel()
             advanceUntilIdle()
 
@@ -188,8 +189,10 @@ class StudentsViewModelCrudTest : StudentsViewModelTestBase() {
             advanceUntilIdle()
 
             // Then
-            val expectedError = UiText.StringResource(R.string.error_database_operation_failed)
-            assertEquals(expectedError, viewModel.uiState.value.error)
+            assertEquals(
+                UiText.StringResource(R.string.error_database_operation_failed),
+                viewModel.uiState.value.error
+            )
         }
 
     @Test
@@ -225,10 +228,9 @@ class StudentsViewModelCrudTest : StudentsViewModelTestBase() {
         runTest {
             // Given
             val student1 = Student(id = 1, name = "S1")
-            val errorMsg = "Delete failed"
             every { getAllStudentsUseCase(any(), any()) } returns
                 flowOf(Result.success(listOf(student1)))
-            coEvery { deleteStudentsUseCase(any()) } returns Result.failure(Exception(errorMsg))
+            coEvery { deleteStudentsUseCase(any()) } returns Result.failure(StudentError.Database)
             createViewModel()
             advanceUntilIdle()
 
@@ -239,8 +241,10 @@ class StudentsViewModelCrudTest : StudentsViewModelTestBase() {
             advanceUntilIdle()
 
             // Then
-            val expectedError = UiText.StringResource(R.string.error_database_operation_failed)
-            assertEquals(expectedError, viewModel.uiState.value.error)
+            assertEquals(
+                UiText.StringResource(R.string.error_database_operation_failed),
+                viewModel.uiState.value.error
+            )
         }
 
     @Test

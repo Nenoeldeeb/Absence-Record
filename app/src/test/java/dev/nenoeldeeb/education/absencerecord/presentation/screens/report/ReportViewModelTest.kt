@@ -1,6 +1,8 @@
 package dev.nenoeldeeb.education.absencerecord.presentation.screens.report
 
+import dev.nenoeldeeb.education.absencerecord.R
 import dev.nenoeldeeb.education.absencerecord.domain.models.Student
+import dev.nenoeldeeb.education.absencerecord.domain.models.StudentError
 import dev.nenoeldeeb.education.absencerecord.presentation.utils.UiText
 import io.mockk.coEvery
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -80,14 +82,17 @@ class ReportViewModelTest : ReportViewModelTestBase() {
     @Test
     fun `init handles load failures`() =
         runTest {
-            val errorStudents = "Students Error"
-            val errorMonths = "Months Error"
             coEvery { studentManagementUseCases.getAllStudentsUseCase(any(), any()) } returns
-                flowOf(Result.failure(Exception(errorStudents)))
+                flowOf(Result.failure(StudentError.Database))
             coEvery { attendanceUseCases.getAvailableMonthsUseCase() } returns
-                flowOf(Result.failure(Exception(errorMonths)))
+                flowOf(Result.failure(StudentError.Database))
 
             createViewModel()
             advanceUntilIdle()
+
+            assertEquals(
+                UiText.StringResource(R.string.error_database_operation_failed),
+                viewModel.uiState.value.error
+            )
         }
 }

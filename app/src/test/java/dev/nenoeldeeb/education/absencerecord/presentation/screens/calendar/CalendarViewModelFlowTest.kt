@@ -2,6 +2,7 @@ package dev.nenoeldeeb.education.absencerecord.presentation.screens.calendar
 
 import dev.nenoeldeeb.education.absencerecord.R
 import dev.nenoeldeeb.education.absencerecord.domain.models.Student
+import dev.nenoeldeeb.education.absencerecord.domain.models.StudentError
 import dev.nenoeldeeb.education.absencerecord.presentation.utils.UiText
 import io.mockk.coEvery
 import io.mockk.slot
@@ -171,21 +172,18 @@ class CalendarViewModelFlowTest : CalendarViewModelTestBase() {
         runTest {
             val date = LocalDate(2026, Month.FEBRUARY, 15)
             val students = listOf(Student(1, "S1"))
-            val errorMsg = "Database error"
 
             coEvery { studentManagementUseCases.getAllStudentsUseCase() } returns flowOf(Result.success(students))
-            coEvery { getAttendanceForDateUseCase(date) } returns flowOf(Result.failure(Exception(errorMsg)))
+            coEvery { getAttendanceForDateUseCase(date) } returns flowOf(Result.failure(StudentError.Database))
 
             createViewModel()
 
             viewModel.onEvent(CalendarScreenEvent.SelectDateForDialog(date))
             advanceUntilIdle()
 
-            val expectedError =
-                UiText.StringResource(
-                    R.string.error_loading_attendance,
-                    errorMsg
-                )
-            assertEquals(expectedError, viewModel.uiState.value.error)
+            assertEquals(
+                UiText.StringResource(R.string.error_database_operation_failed),
+                viewModel.uiState.value.error
+            )
         }
 }

@@ -2,7 +2,6 @@ package dev.nenoeldeeb.education.absencerecord.presentation.screens.students
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import dev.nenoeldeeb.education.absencerecord.R
 import dev.nenoeldeeb.education.absencerecord.domain.models.Student
 import dev.nenoeldeeb.education.absencerecord.domain.usecases.ClassManagementUseCases
 import dev.nenoeldeeb.education.absencerecord.domain.usecases.StudentManagementUseCases
@@ -29,7 +28,6 @@ import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.dele
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.delegates.StudentActionDelegate
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.handlers.BulkActionHandler
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.handlers.ImportExportHandler
-import dev.nenoeldeeb.education.absencerecord.presentation.utils.UiText
 import dev.nenoeldeeb.education.absencerecord.presentation.utils.applyClassFilter
 import dev.nenoeldeeb.education.absencerecord.presentation.utils.toUiText
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -74,9 +72,7 @@ open class StudentsViewModel(
                         }
                     }.onFailure { e ->
                         _uiState.update {
-                            it.copy(
-                                error = UiText.StringResource(R.string.error_loading_students, e.message ?: "Unknown error")
-                            )
+                            it.copy(error = e.toUiText())
                         }
                     }
                     classesResult.onSuccess { classes -> _uiState.update { it.copy(availableClasses = classes) } }
@@ -121,6 +117,7 @@ open class StudentsViewModel(
                 )
             is StudentsScreenEvent.PerformImport -> importExportHandler.handlePerformImport(_uiState, viewModelScope)
 
+            is StudentsScreenEvent.ConsumeError -> _uiState.update { it.copy(error = null) }
             is ConsumeToastMessage -> _uiState.update { it.copy(toastMessage = null) }
             is ShowStudentDialog ->
                 _uiState.update {

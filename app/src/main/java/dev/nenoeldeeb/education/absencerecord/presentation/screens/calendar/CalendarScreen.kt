@@ -16,13 +16,19 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -40,7 +46,6 @@ import dev.nenoeldeeb.education.absencerecord.presentation.screens.components.Co
 import dev.nenoeldeeb.education.absencerecord.presentation.theme.green30
 import dev.nenoeldeeb.education.absencerecord.presentation.utils.DateFormatter.toUiText
 import dev.nenoeldeeb.education.absencerecord.presentation.utils.SoundPlayer
-import dev.nenoeldeeb.education.absencerecord.presentation.utils.UiText
 import kotlinx.datetime.LocalDate
 
 @Composable
@@ -49,21 +54,34 @@ fun CalendarScreen(
     viewModel: CalendarViewModel = viewModel(factory = AppViewModelProvider.factory)
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val context = LocalContext.current
+    val snackbarHostState = remember { SnackbarHostState() }
 
-    Column(modifier = modifier) {
-        ComposeCalendar(
-            modifier = Modifier.weight(1f),
-            onDateSelected = { date ->
-                viewModel.onEvent(CalendarScreenEvent.SelectDateForDialog(date))
-            }
-        )
+    LaunchedEffect(uiState.error) {
+        uiState.error?.let {
+            snackbarHostState.showSnackbar(it.asString(context))
+            viewModel.onEvent(CalendarScreenEvent.ConsumeError)
+        }
+    }
+
+    Scaffold(
+        modifier = modifier,
+        snackbarHost = { SnackbarHost(hostState = snackbarHostState) }
+    ) { paddingValues ->
+        Column(modifier = Modifier.padding(paddingValues)) {
+            ComposeCalendar(
+                modifier = Modifier.weight(1f),
+                onDateSelected = { date ->
+                    viewModel.onEvent(CalendarScreenEvent.SelectDateForDialog(date))
+                }
+            )
+        }
     }
 
     uiState.selectedDateForDialog?.let {
         AttendanceDialog(
             allStudents = uiState.allStudents,
             studentsForSelectedDate = uiState.studentsForSelectedDate,
-            error = uiState.error,
             selectedDate = it,
             availableClasses = uiState.availableClasses,
             selectedClassIds = uiState.selectedClassIds,
@@ -97,7 +115,6 @@ internal fun AttendanceDialog(
     modifier: Modifier = Modifier,
     allStudents: List<Student>,
     studentsForSelectedDate: List<StudentAttendance>,
-    error: UiText?,
     selectedDate: LocalDate,
     availableClasses: List<StudentClass>,
     selectedClassIds: Set<Int>,
@@ -131,7 +148,6 @@ internal fun AttendanceDialog(
                     modifier = Modifier.fillMaxWidth(),
                     allStudents = allStudents,
                     studentsForSelectedDate = studentsForSelectedDate,
-                    error = error,
                     selectedDate = selectedDate,
                     onToggleAttendance = onToggleAttendance
                 )
@@ -167,20 +183,10 @@ internal fun DialogContent(
     modifier: Modifier = Modifier,
     allStudents: List<Student>,
     studentsForSelectedDate: List<StudentAttendance>,
-    error: UiText?,
     selectedDate: LocalDate,
     onToggleAttendance: (Student, LocalDate, Boolean) -> Unit
 ) {
     when {
-        error != null -> {
-            Text(
-                text = stringResource(R.string.error_display, error.asString()),
-                textAlign = TextAlign.Center,
-                modifier = modifier,
-                color = MaterialTheme.colorScheme.error
-            )
-        }
-
         allStudents.isEmpty() -> {
             Text(
                 stringResource(R.string.no_students_for_attendance),
