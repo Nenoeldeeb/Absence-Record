@@ -4,6 +4,7 @@ import android.content.Context
 import android.graphics.Bitmap
 import androidx.core.content.FileProvider
 import dev.nenoeldeeb.education.absencerecord.data.utils.CalendarImageGenerator
+import dev.nenoeldeeb.education.absencerecord.domain.models.StudentError
 import dev.nenoeldeeb.education.absencerecord.domain.repositories.ReportRepository
 import dev.nenoeldeeb.education.absencerecord.domain.services.DispatcherProvider
 import kotlinx.coroutines.withContext
@@ -43,7 +44,7 @@ class ReportRepositoryImpl(
                 Result.success(uri.toString())
             } catch (e: Exception) {
                 if (e is CancellationException) throw e
-                Result.failure(e)
+                Result.failure(StudentError.ReportGeneration)
             }
         }
 }

@@ -2,6 +2,7 @@ package dev.nenoeldeeb.education.absencerecord.presentation.screens.calendar
 
 import dev.nenoeldeeb.education.absencerecord.R
 import dev.nenoeldeeb.education.absencerecord.domain.models.Student
+import dev.nenoeldeeb.education.absencerecord.domain.models.StudentError
 import dev.nenoeldeeb.education.absencerecord.presentation.utils.UiText
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -58,15 +59,14 @@ class CalendarViewModelBaseTest : CalendarViewModelTestBase() {
     fun `MarkStudentAttendance shows error on failure`() =
         runTest {
             val date = LocalDate(2023, Month.JANUARY, 15)
-            val errorMsg = "Msg"
-            coEvery { recordStudentAttendanceUseCase(any()) } returns Result.failure(Exception(errorMsg))
+            coEvery { recordStudentAttendanceUseCase(any()) } returns Result.failure(StudentError.Database)
             createViewModel()
 
             viewModel.onEvent(CalendarScreenEvent.MarkStudentAttendance(1, date))
             advanceUntilIdle()
 
             assertEquals(
-                UiText.StringResource(R.string.error_marking_attendance, errorMsg),
+                UiText.StringResource(R.string.error_database_operation_failed),
                 viewModel.uiState.value.error
             )
         }
@@ -90,15 +90,14 @@ class CalendarViewModelBaseTest : CalendarViewModelTestBase() {
     fun `DeleteStudentAttendance failure shows error`() =
         runTest {
             val date = LocalDate(2023, Month.JANUARY, 15)
-            val errorMsg = "Msg"
-            coEvery { deleteStudentAttendanceUseCase(any(), any()) } returns Result.failure(Exception(errorMsg))
+            coEvery { deleteStudentAttendanceUseCase(any(), any()) } returns Result.failure(StudentError.Database)
             createViewModel()
 
             viewModel.onEvent(CalendarScreenEvent.DeleteStudentAttendance(1, date))
             advanceUntilIdle()
 
             assertEquals(
-                UiText.StringResource(R.string.error_deleting_attendance, errorMsg),
+                UiText.StringResource(R.string.error_database_operation_failed),
                 viewModel.uiState.value.error
             )
         }
@@ -117,14 +116,15 @@ class CalendarViewModelBaseTest : CalendarViewModelTestBase() {
     @Test
     fun `init handles students load failure`() =
         runTest {
-            val errorMsg = "Students error"
             coEvery { getAvailableMonthsUseCase() } returns flowOf(Result.success(emptyList()))
-            coEvery { studentManagementUseCases.getAllStudentsUseCase() } returns flowOf(Result.failure(Exception(errorMsg)))
+            coEvery { studentManagementUseCases.getAllStudentsUseCase() } returns flowOf(Result.failure(StudentError.Database))
 
             createViewModel()
             advanceUntilIdle()
 
-            val expectedError = UiText.StringResource(R.string.error_loading_students, errorMsg)
-            assertEquals(expectedError, viewModel.uiState.value.error)
+            assertEquals(
+                UiText.StringResource(R.string.error_database_operation_failed),
+                viewModel.uiState.value.error
+            )
         }
 }

@@ -84,7 +84,7 @@ class StudentActionDelegateTest {
     @Test
     fun `addStudent with DB error returns Database error`() =
         runTest {
-            coEvery { addStudentUseCase(any()) } returns Result.failure(Exception("DB error"))
+            coEvery { addStudentUseCase(any()) } returns Result.failure(StudentError.Database)
 
             val result = delegate.addStudent("Test", classId = null)
 
@@ -151,7 +151,7 @@ class StudentActionDelegateTest {
     fun `deleteSelectedStudents with DB error returns Database error`() =
         runTest {
             val students = listOf(Student(id = 1, name = "S1"))
-            coEvery { deleteStudentsUseCase(any()) } returns Result.failure(Exception("DB error"))
+            coEvery { deleteStudentsUseCase(any()) } returns Result.failure(StudentError.Database)
 
             val result = delegate.deleteSelectedStudents(setOf(1), students)
 
@@ -175,16 +175,16 @@ class StudentActionDelegateTest {
         }
 
     @Test
-    fun `exportSelectedStudents with failure returns FileRead error`() =
+    fun `exportSelectedStudents with failure returns FileWrite error`() =
         runTest {
             val students = listOf(Student(id = 1, name = "S1"))
             coEvery { exportStudentsUseCase(any(), any(), any()) } returns
-                Result.failure(Exception("Export failed"))
+                Result.failure(StudentError.FileWrite)
 
             val result = delegate.exportSelectedStudents("content://export", setOf(1), students)
 
             assertTrue(result.isFailure)
-            assertIs<StudentError.FileRead>(result.exceptionOrNull())
+            assertIs<StudentError.FileWrite>(result.exceptionOrNull())
         }
 
     @Test
@@ -204,16 +204,16 @@ class StudentActionDelegateTest {
         }
 
     @Test
-    fun `exportAndDeleteSelectedStudents on export failure returns FileRead and does not delete`() =
+    fun `exportAndDeleteSelectedStudents on export failure returns FileWrite and does not delete`() =
         runTest {
             val students = listOf(Student(id = 1, name = "S1"))
             coEvery { exportStudentsUseCase(any(), any(), any()) } returns
-                Result.failure(Exception("Export failed"))
+                Result.failure(StudentError.FileWrite)
 
             val result = delegate.exportAndDeleteSelectedStudents("content://export", setOf(1), students)
 
             assertTrue(result.isFailure)
-            assertIs<StudentError.FileRead>(result.exceptionOrNull())
+            assertIs<StudentError.FileWrite>(result.exceptionOrNull())
             coVerify(exactly = 0) { deleteStudentsUseCase(any()) }
         }
 
@@ -252,7 +252,7 @@ class StudentActionDelegateTest {
         runTest {
             val parsedData = listOf(ParsedStudentImportData(StudentExportData("S1", "", emptyList()), 1))
             coEvery { performImportUseCase(any(), any()) } returns
-                Result.failure(Exception("Import failed"))
+                Result.failure(StudentError.Database)
 
             val result = delegate.performImport(parsedData, mapOf(1 to true))
 

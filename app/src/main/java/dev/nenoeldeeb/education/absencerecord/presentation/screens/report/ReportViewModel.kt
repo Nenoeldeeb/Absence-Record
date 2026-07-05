@@ -12,6 +12,7 @@ import dev.nenoeldeeb.education.absencerecord.domain.usecases.ReportUseCases
 import dev.nenoeldeeb.education.absencerecord.domain.usecases.StudentManagementUseCases
 import dev.nenoeldeeb.education.absencerecord.presentation.utils.UiText
 import dev.nenoeldeeb.education.absencerecord.presentation.utils.applyClassFilter
+import dev.nenoeldeeb.education.absencerecord.presentation.utils.toUiText
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -70,13 +71,7 @@ class ReportViewModel(
                     }
                 }.onFailure { e ->
                     _uiState.update {
-                        it.copy(
-                            error =
-                                UiText.StringResource(
-                                    R.string.error_loading_students,
-                                    e.message ?: "Unknown error"
-                                )
-                        )
+                        it.copy(error = e.toUiText())
                     }
                 }
             }
@@ -88,6 +83,8 @@ class ReportViewModel(
             classManagementUseCases.getAllClassesUseCase().collectLatest { result ->
                 result.onSuccess { classes ->
                     _uiState.update { it.copy(availableClasses = classes) }
+                }.onFailure { e ->
+                    _uiState.update { it.copy(error = e.toUiText()) }
                 }
             }
         }
@@ -100,13 +97,7 @@ class ReportViewModel(
                     _uiState.update { it.copy(availableMonths = months) }
                 }.onFailure { e ->
                     _uiState.update {
-                        it.copy(
-                            error =
-                                UiText.StringResource(
-                                    R.string.error_loading_available_months,
-                                    e.message ?: "Unknown error"
-                                )
-                        )
+                        it.copy(error = e.toUiText())
                     }
                 }
             }
@@ -126,13 +117,7 @@ class ReportViewModel(
                     _uiState.update { it.copy(studentHistory = history) }
                 }.onFailure { e ->
                     _uiState.update {
-                        it.copy(
-                            error =
-                                UiText.StringResource(
-                                    R.string.error_loading_student_history,
-                                    e.message ?: "Unknown error"
-                                )
-                        )
+                        it.copy(error = e.toUiText())
                     }
                 }
             }
@@ -202,6 +187,8 @@ class ReportViewModel(
                 }
 
             is ReportScreenEvent.ToggleClassDropdown -> _uiState.update { it.copy(classDropdownExpanded = event.expanded) }
+
+            is ReportScreenEvent.ConsumeError -> _uiState.update { it.copy(error = null) }
         }
     }
 
@@ -267,22 +254,12 @@ class ReportViewModel(
                         }
                     }.onFailure { e ->
                         onEvent(
-                            ReportScreenEvent.ShowToast(
-                                UiText.StringResource(
-                                    R.string.error_preparing_image,
-                                    e.message ?: ""
-                                )
-                            )
+                            ReportScreenEvent.ShowToast(e.toUiText())
                         )
                     }
                 }.onFailure { e ->
                     onEvent(
-                        ReportScreenEvent.ShowToast(
-                            UiText.StringResource(
-                                R.string.error_fetching_history,
-                                e.message ?: ""
-                            )
-                        )
+                        ReportScreenEvent.ShowToast(e.toUiText())
                     )
                 }
             }

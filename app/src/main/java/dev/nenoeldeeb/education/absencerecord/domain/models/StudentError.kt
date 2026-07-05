@@ -10,7 +10,11 @@ sealed class StudentError(
 
     data object FileRead : StudentError("Error reading file")
 
+    data object FileWrite : StudentError("Error writing file")
+
     data object ImportParse : StudentError("Error parsing import file")
+
+    data object ReportGeneration : StudentError("Failed to generate report")
 
     data class Validation(override val message: String) : StudentError(message)
 

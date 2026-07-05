@@ -118,6 +118,8 @@
     <string name="error_database_operation_failed">فشلت عملية قاعدة البيانات.</string>
     <string name="error_reading_file">خطأ في قراءة الملف.</string>
     <string name="error_parsing_import_file">خطأ في تحليل ملف الاستيراد.</string>
+    <string name="error_writing_file">خطأ في كتابة الملف.</string>
+    <string name="error_generating_report">فشلت عملية توليد التقرير.</string>
 
     <!-- Class Filter -->
     <string name="class_filter_none">لا يوجد تصفية</string>
@@ -189,7 +191,7 @@
     <string name="error_updating_class">خطأ أثناء تحديث الصف \"%1$s\".</string>
     <string name="class_deleted">تم حذف الصف بنجاح.</string>
     <string name="error_deleting_class">خطأ أثناء حذف الصف: \"%1$s\".</string>
-    <string name="error_class_name_already_exists">يوجد بالفعل صف بنفس الاسمز</string>
+    <string name="error_class_name_already_exists">يوجد بالفعل صف بنفس الاسم</string>
     <string name="delete_class_title">أحذف الصف</string>
     <string name="filter_description">تصفية</string>
 </resources>

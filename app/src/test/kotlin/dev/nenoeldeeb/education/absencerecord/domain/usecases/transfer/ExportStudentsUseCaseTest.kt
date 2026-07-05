@@ -2,6 +2,7 @@ package dev.nenoeldeeb.education.absencerecord.domain.usecases.transfer
 
 import dev.nenoeldeeb.education.absencerecord.domain.models.Student
 import dev.nenoeldeeb.education.absencerecord.domain.models.StudentClass
+import dev.nenoeldeeb.education.absencerecord.domain.models.StudentError
 import dev.nenoeldeeb.education.absencerecord.domain.models.StudentExportData
 import dev.nenoeldeeb.education.absencerecord.domain.repositories.AttendanceRepository
 import dev.nenoeldeeb.education.absencerecord.domain.repositories.StorageRepository
@@ -20,7 +21,6 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
-import kotlin.test.assertIs
 import kotlin.test.assertTrue
 
 @DisplayName("ExportStudentsUseCase Tests")
@@ -92,7 +92,7 @@ class ExportStudentsUseCaseTest {
 
             // Assert
             assertTrue(result.isFailure)
-            assertIs<IllegalArgumentException>(result.exceptionOrNull())
+            assertEquals(StudentError.Validation("No students selected"), result.exceptionOrNull())
         }
 
     @Test
@@ -171,7 +171,7 @@ class ExportStudentsUseCaseTest {
 
             // Assert
             assertTrue(result.isFailure)
-            assertEquals(exception, result.exceptionOrNull())
+            assertEquals(StudentError.FileWrite, result.exceptionOrNull())
         }
 
     @Test

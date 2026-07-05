@@ -68,7 +68,7 @@ class ClassActionDelegateTest {
     fun `addClass with duplicate name returns DuplicateClass error`() =
         runTest {
             coEvery { addClassUseCase(any()) } returns
-                Result.failure(Exception("DUPLICATE_CLASS_NAME"))
+                Result.failure(StudentError.DuplicateClass)
 
             val result = delegate.addClass("Existing")
 
@@ -107,7 +107,7 @@ class ClassActionDelegateTest {
         runTest {
             val studentClass = StudentClass(id = 1, name = "Old Name")
             coEvery { updateClassUseCase(any()) } returns
-                Result.failure(Exception("DUPLICATE_CLASS_NAME"))
+                Result.failure(StudentError.DuplicateClass)
 
             val result = delegate.renameClass(studentClass, "Existing")
 

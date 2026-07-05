@@ -5,6 +5,7 @@ import dev.nenoeldeeb.education.absencerecord.data.datasources.local.entities.St
 import dev.nenoeldeeb.education.absencerecord.data.mappers.toStudentClass
 import dev.nenoeldeeb.education.absencerecord.data.mappers.toStudentClassEntity
 import dev.nenoeldeeb.education.absencerecord.domain.models.StudentClass
+import dev.nenoeldeeb.education.absencerecord.domain.models.StudentError
 import dev.nenoeldeeb.education.absencerecord.domain.repositories.StudentClassRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
@@ -16,39 +17,53 @@ class StudentClassRepositoryImpl(private val studentClassDao: StudentClassDao) :
         return studentClassDao
             .getAllClasses()
             .map { entities -> Result.success(entities.map { it.toStudentClass() }) }
-            .catch { emit(Result.failure(it)) }
+            .catch { emit(Result.failure(StudentError.Database)) }
     }
 
     override suspend fun insertClass(studentClass: StudentClass): Result<Long> {
-        return runCatching {
+        return try {
             if (studentClassDao.classNameExists(studentClass.name)) {
-                throw IllegalArgumentException("DUPLICATE_CLASS_NAME")
+                Result.failure(StudentError.DuplicateClass)
+            } else {
+                Result.success(studentClassDao.insertClass(studentClass.toStudentClassEntity()))
             }
-            studentClassDao.insertClass(studentClass.toStudentClassEntity())
+        } catch (e: Exception) {
+            Result.failure(StudentError.Database)
         }
     }
 
     override suspend fun updateClass(studentClass: StudentClass): Result<Unit> {
-        return runCatching {
+        return try {
             if (studentClassDao.classNameExists(studentClass.name)) {
-                throw IllegalArgumentException("DUPLICATE_CLASS_NAME")
+                Result.failure(StudentError.DuplicateClass)
+            } else {
+                studentClassDao.updateClass(studentClass.toStudentClassEntity())
+                Result.success(Unit)
             }
-            studentClassDao.updateClass(studentClass.toStudentClassEntity())
+        } catch (e: Exception) {
+            Result.failure(StudentError.Database)
         }
     }
 
     override suspend fun deleteClass(studentClass: StudentClass): Result<Unit> {
-        return runCatching { studentClassDao.deleteClass(studentClass.toStudentClassEntity()) }
+        return try {
+            studentClassDao.deleteClass(studentClass.toStudentClassEntity())
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(StudentError.Database)
+        }
     }
 
     override suspend fun getOrCreateClassByName(name: String): Result<Int> {
-        return runCatching {
+        return try {
             val existing = studentClassDao.getClassByName(name)
             if (existing != null) {
-                existing.id
+                Result.success(existing.id)
             } else {
-                studentClassDao.insertClass(StudentClassEntity(name = name)).toInt()
+                Result.success(studentClassDao.insertClass(StudentClassEntity(name = name)).toInt())
             }
+        } catch (e: Exception) {
+            Result.failure(StudentError.Database)
         }
     }
 }

@@ -46,10 +46,14 @@ class AttendanceDialogDisplayTest {
                 AttendanceDialog(
                     allStudents = state.allStudents,
                     studentsForSelectedDate = state.studentsForSelectedDate,
-                    error = state.error,
                     selectedDate = selectedDate,
+                    availableClasses = state.availableClasses,
+                    selectedClassIds = state.selectedClassIds,
+                    filterDropdownExpanded = state.filterDropdownExpanded,
                     onDismiss = {},
-                    onToggleAttendance = { _, _, _ -> }
+                    onToggleAttendance = { _, _, _ -> },
+                    onToggleClassSelection = { },
+                    onToggleFilterDropdown = { }
                 )
             }
         }
@@ -78,10 +82,14 @@ class AttendanceDialogDisplayTest {
                 AttendanceDialog(
                     allStudents = state.allStudents,
                     studentsForSelectedDate = state.studentsForSelectedDate,
-                    error = state.error,
                     selectedDate = selectedDate,
+                    availableClasses = state.availableClasses,
+                    selectedClassIds = state.selectedClassIds,
+                    filterDropdownExpanded = state.filterDropdownExpanded,
                     onDismiss = {},
-                    onToggleAttendance = { _, _, _ -> }
+                    onToggleAttendance = { _, _, _ -> },
+                    onToggleClassSelection = { },
+                    onToggleFilterDropdown = { }
                 )
             }
         }
@@ -110,10 +118,14 @@ class AttendanceDialogDisplayTest {
                 AttendanceDialog(
                     allStudents = state.allStudents,
                     studentsForSelectedDate = state.studentsForSelectedDate,
-                    error = state.error,
                     selectedDate = selectedDate,
+                    availableClasses = state.availableClasses,
+                    selectedClassIds = state.selectedClassIds,
+                    filterDropdownExpanded = state.filterDropdownExpanded,
                     onDismiss = {},
-                    onToggleAttendance = { _, _, _ -> }
+                    onToggleAttendance = { _, _, _ -> },
+                    onToggleClassSelection = { },
+                    onToggleFilterDropdown = { }
                 )
             }
         }
@@ -138,10 +150,14 @@ class AttendanceDialogDisplayTest {
                 AttendanceDialog(
                     allStudents = state.allStudents,
                     studentsForSelectedDate = state.studentsForSelectedDate,
-                    error = state.error,
                     selectedDate = selectedDate,
+                    availableClasses = state.availableClasses,
+                    selectedClassIds = state.selectedClassIds,
+                    filterDropdownExpanded = state.filterDropdownExpanded,
                     onDismiss = { dismissed = true },
-                    onToggleAttendance = { _, _, _ -> }
+                    onToggleAttendance = { _, _, _ -> },
+                    onToggleClassSelection = { },
+                    onToggleFilterDropdown = { }
                 )
             }
         }
@@ -166,10 +182,14 @@ class AttendanceDialogDisplayTest {
                 AttendanceDialog(
                     allStudents = state.allStudents,
                     studentsForSelectedDate = state.studentsForSelectedDate,
-                    error = state.error,
                     selectedDate = selectedDate,
+                    availableClasses = state.availableClasses,
+                    selectedClassIds = state.selectedClassIds,
+                    filterDropdownExpanded = state.filterDropdownExpanded,
                     onDismiss = {},
-                    onToggleAttendance = { _, _, _ -> }
+                    onToggleAttendance = { _, _, _ -> },
+                    onToggleClassSelection = { },
+                    onToggleFilterDropdown = { }
                 )
             }
         }
@@ -195,10 +215,14 @@ class AttendanceDialogDisplayTest {
                 AttendanceDialog(
                     allStudents = state.allStudents,
                     studentsForSelectedDate = state.studentsForSelectedDate,
-                    error = state.error,
                     selectedDate = selectedDate,
+                    availableClasses = state.availableClasses,
+                    selectedClassIds = state.selectedClassIds,
+                    filterDropdownExpanded = state.filterDropdownExpanded,
                     onDismiss = {},
-                    onToggleAttendance = { _, _, _ -> }
+                    onToggleAttendance = { _, _, _ -> },
+                    onToggleClassSelection = { },
+                    onToggleFilterDropdown = { }
                 )
             }
         }

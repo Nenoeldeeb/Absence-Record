@@ -4,6 +4,7 @@ import dev.nenoeldeeb.education.absencerecord.domain.models.ImportResult
 import dev.nenoeldeeb.education.absencerecord.domain.models.ParsedStudentImportData
 import dev.nenoeldeeb.education.absencerecord.domain.models.Student
 import dev.nenoeldeeb.education.absencerecord.domain.models.StudentAttendance
+import dev.nenoeldeeb.education.absencerecord.domain.models.StudentError
 import dev.nenoeldeeb.education.absencerecord.domain.repositories.AttendanceRepository
 import dev.nenoeldeeb.education.absencerecord.domain.repositories.StudentClassRepository
 import dev.nenoeldeeb.education.absencerecord.domain.repositories.StudentRepository
@@ -23,7 +24,7 @@ class PerformImportUseCase(
         val studentsToImport =
             parsedStudents.filter { selectionMap[it.id] == true }.map { it.originalData }
         if (studentsToImport.isEmpty()) {
-            return Result.failure(IllegalArgumentException())
+            return Result.failure(StudentError.Validation("No students selected for import"))
         }
 
         var newCount = 0

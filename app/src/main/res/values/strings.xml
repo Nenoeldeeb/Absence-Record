@@ -122,6 +122,8 @@
     <string name="error_database_operation_failed">Database operation failed.</string>
     <string name="error_reading_file">Error reading file.</string>
     <string name="error_parsing_import_file">Error parsing import file.</string>
+    <string name="error_writing_file">Error writing file.</string>
+    <string name="error_generating_report">Failed to generate report.</string>
 
     <!-- Class Filter -->
     <string name="class_filter_none">No filter</string>

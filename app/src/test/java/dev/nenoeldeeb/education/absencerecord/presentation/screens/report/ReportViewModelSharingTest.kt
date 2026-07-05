@@ -4,6 +4,7 @@ import android.net.Uri
 import dev.nenoeldeeb.education.absencerecord.R
 import dev.nenoeldeeb.education.absencerecord.domain.models.AttendanceHistoryItem
 import dev.nenoeldeeb.education.absencerecord.domain.models.Student
+import dev.nenoeldeeb.education.absencerecord.domain.models.StudentError
 import dev.nenoeldeeb.education.absencerecord.presentation.utils.UiText
 import io.mockk.coEvery
 import io.mockk.every
@@ -86,7 +87,7 @@ class ReportViewModelSharingTest : ReportViewModelTestBase() {
 
             coEvery { getStudentAttendanceDatesUseCase(1) } returns flowOf(Result.success(emptyList()))
             coEvery { getAttendanceHistoryForDateRangeUseCase(1, any(), any()) } returns
-                flowOf(Result.failure(Exception(errorMsg)))
+                flowOf(Result.failure(StudentError.Database))
 
             createViewModel()
             viewModel.onEvent(ReportScreenEvent.SelectStudentForHistory(student))
@@ -97,8 +98,10 @@ class ReportViewModelSharingTest : ReportViewModelTestBase() {
             advanceUntilIdle()
 
             // Then
-            val expectedToast = UiText.StringResource(R.string.error_fetching_history, errorMsg)
-            assertEquals(expectedToast, viewModel.uiState.value.toastMessage)
+            assertEquals(
+                UiText.StringResource(R.string.error_database_operation_failed),
+                viewModel.uiState.value.toastMessage
+            )
         }
 
     @Test
@@ -108,14 +111,13 @@ class ReportViewModelSharingTest : ReportViewModelTestBase() {
             val student = Student(1, "S1")
             val month = LocalDate(2023, Month.JANUARY, 1)
             val historyItem = AttendanceHistoryItem(LocalDate(2023, Month.JANUARY, 15), student.name)
-            val errorMsg = "Share Error"
 
             coEvery { getStudentAttendanceDatesUseCase(1) } returns flowOf(Result.success(emptyList()))
             coEvery { getAttendanceHistoryForDateRangeUseCase(1, any(), any()) } returns
                 flowOf(Result.success(listOf(historyItem)))
 
             coEvery { shareReportUseCase("S1", month, any()) } returns
-                Result.failure(Exception(errorMsg))
+                Result.failure(StudentError.ReportGeneration)
 
             createViewModel()
             viewModel.onEvent(ReportScreenEvent.SelectStudentForHistory(student))
@@ -126,7 +128,9 @@ class ReportViewModelSharingTest : ReportViewModelTestBase() {
             advanceUntilIdle()
 
             // Then
-            val expectedToast = UiText.StringResource(R.string.error_preparing_image, errorMsg)
-            assertEquals(expectedToast, viewModel.uiState.value.toastMessage)
+            assertEquals(
+                UiText.StringResource(R.string.error_generating_report),
+                viewModel.uiState.value.toastMessage
+            )
         }
 }

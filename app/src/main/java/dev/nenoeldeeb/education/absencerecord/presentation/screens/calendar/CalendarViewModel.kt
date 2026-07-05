@@ -3,14 +3,13 @@ package dev.nenoeldeeb.education.absencerecord.presentation.screens.calendar
 import androidx.compose.runtime.Stable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import dev.nenoeldeeb.education.absencerecord.R
 import dev.nenoeldeeb.education.absencerecord.domain.models.Student
 import dev.nenoeldeeb.education.absencerecord.domain.models.StudentAttendance
 import dev.nenoeldeeb.education.absencerecord.domain.usecases.AttendanceUseCases
 import dev.nenoeldeeb.education.absencerecord.domain.usecases.ClassManagementUseCases
 import dev.nenoeldeeb.education.absencerecord.domain.usecases.StudentManagementUseCases
-import dev.nenoeldeeb.education.absencerecord.presentation.utils.UiText
 import dev.nenoeldeeb.education.absencerecord.presentation.utils.applyMultiClassFilter
+import dev.nenoeldeeb.education.absencerecord.presentation.utils.toUiText
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -61,13 +60,7 @@ class CalendarViewModel(
                     }
                     .onFailure { e ->
                         _uiState.update {
-                            it.copy(
-                                error =
-                                    UiText.StringResource(
-                                        R.string.error_loading_students,
-                                        e.message ?: "Unknown error"
-                                    )
-                            )
+                            it.copy(error = e.toUiText())
                         }
                     }
             }
@@ -80,6 +73,9 @@ class CalendarViewModel(
                 result.onSuccess { classes ->
                     _uiState.update { it.copy(availableClasses = classes) }
                 }
+                    .onFailure { e ->
+                        _uiState.update { it.copy(error = e.toUiText()) }
+                    }
             }
         }
     }
@@ -110,6 +106,9 @@ class CalendarViewModel(
 
             is CalendarScreenEvent.ToggleFilterDropdown ->
                 _uiState.update { it.copy(filterDropdownExpanded = !it.filterDropdownExpanded) }
+
+            is CalendarScreenEvent.ConsumeError ->
+                _uiState.update { it.copy(error = null) }
         }
     }
 
@@ -135,13 +134,7 @@ class CalendarViewModel(
                         }
                         .onFailure { e ->
                             _uiState.update {
-                                it.copy(
-                                    error =
-                                        UiText.StringResource(
-                                            R.string.error_loading_attendance,
-                                            e.message ?: "Unknown error"
-                                        )
-                                )
+                                it.copy(error = e.toUiText())
                             }
                         }
                 }
@@ -183,13 +176,7 @@ class CalendarViewModel(
             )
                 .onFailure { e ->
                     _uiState.update {
-                        it.copy(
-                            error =
-                                UiText.StringResource(
-                                    R.string.error_marking_attendance,
-                                    e.message ?: "Unknown error"
-                                )
-                        )
+                        it.copy(error = e.toUiText())
                     }
                 }
         }
@@ -202,13 +189,7 @@ class CalendarViewModel(
         viewModelScope.launch {
             attendanceUseCases.deleteStudentAttendanceUseCase(studentId, date).onFailure { e ->
                 _uiState.update {
-                    it.copy(
-                        error =
-                            UiText.StringResource(
-                                R.string.error_deleting_attendance,
-                                e.message ?: "Unknown error"
-                            )
-                    )
+                    it.copy(error = e.toUiText())
                 }
             }
         }

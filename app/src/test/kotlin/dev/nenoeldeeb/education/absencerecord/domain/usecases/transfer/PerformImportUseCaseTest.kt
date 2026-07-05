@@ -2,6 +2,7 @@ package dev.nenoeldeeb.education.absencerecord.domain.usecases.transfer
 
 import dev.nenoeldeeb.education.absencerecord.domain.models.ParsedStudentImportData
 import dev.nenoeldeeb.education.absencerecord.domain.models.Student
+import dev.nenoeldeeb.education.absencerecord.domain.models.StudentError
 import dev.nenoeldeeb.education.absencerecord.domain.models.StudentExportData
 import dev.nenoeldeeb.education.absencerecord.domain.repositories.AttendanceRepository
 import dev.nenoeldeeb.education.absencerecord.domain.repositories.StudentClassRepository
@@ -49,7 +50,7 @@ class PerformImportUseCaseTest {
                 val result = useCase(parsedData, selectionMap)
 
                 assertTrue(result.isFailure)
-                assertIs<IllegalArgumentException>(result.exceptionOrNull())
+                assertIs<StudentError.Validation>(result.exceptionOrNull())
             }
 
         @Test

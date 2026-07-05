@@ -3,6 +3,7 @@ package dev.nenoeldeeb.education.absencerecord.data.repositories
 import dev.nenoeldeeb.education.absencerecord.data.datasources.local.daos.AttendanceDao
 import dev.nenoeldeeb.education.absencerecord.data.datasources.local.entities.StudentAttendanceEntity
 import dev.nenoeldeeb.education.absencerecord.domain.models.StudentAttendance
+import dev.nenoeldeeb.education.absencerecord.domain.models.StudentError
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
@@ -53,7 +54,8 @@ class AttendanceRepositoryImplTest {
 
             // Assert
             assertTrue(result.isFailure)
-            assertEquals(exception, result.exceptionOrNull())
+            val error = result.exceptionOrNull()
+            assertEquals(StudentError.Database, error)
         }
 
     @Test
@@ -90,5 +92,34 @@ class AttendanceRepositoryImplTest {
                     match { it == LocalDate(2023, 10, 27) }
                 )
             }
+        }
+
+    @Test
+    fun `insertAttendance returns StudentError_Database on failure`() =
+        runTest {
+            // Arrange
+            val attendance = StudentAttendance(studentId = 1, date = LocalDate.parse("2023-10-27"))
+            coEvery { attendanceDao.insertAttendance(any()) } throws RuntimeException("DB Error")
+
+            // Act
+            val result = repository.insertAttendance(attendance)
+
+            // Assert
+            assertTrue(result.isFailure)
+            assertEquals(StudentError.Database, result.exceptionOrNull())
+        }
+
+    @Test
+    fun `deleteAttendance returns StudentError_Database on failure`() =
+        runTest {
+            // Arrange
+            coEvery { attendanceDao.deleteAttendance(any(), any()) } throws RuntimeException("DB Error")
+
+            // Act
+            val result = repository.deleteAttendance(1, LocalDate(2023, 10, 27))
+
+            // Assert
+            assertTrue(result.isFailure)
+            assertEquals(StudentError.Database, result.exceptionOrNull())
         }
 }

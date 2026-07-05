@@ -2,6 +2,7 @@ package dev.nenoeldeeb.education.absencerecord.data.repositories
 
 import android.content.Context
 import androidx.core.net.toUri
+import dev.nenoeldeeb.education.absencerecord.domain.models.StudentError
 import dev.nenoeldeeb.education.absencerecord.domain.repositories.StorageRepository
 import dev.nenoeldeeb.education.absencerecord.domain.services.DispatcherProvider
 import kotlinx.coroutines.withContext
@@ -23,11 +24,11 @@ class StorageRepositoryImpl(
                 if (content != null) {
                     Result.success(content)
                 } else {
-                    Result.failure(Exception())
+                    Result.failure(StudentError.FileRead)
                 }
             } catch (e: Exception) {
                 if (e is CancellationException) throw e
-                Result.failure(e)
+                Result.failure(StudentError.FileRead)
             }
         }
 
@@ -40,7 +41,7 @@ class StorageRepositoryImpl(
                 val uri = uriString.toUri()
                 // For file URIs, convert to File and use FileOutputStream to ensure truncation
                 if (uri.scheme == "file") {
-                    val file = File(uri.path ?: return@withContext Result.failure(Exception()))
+                    val file = File(uri.path ?: return@withContext Result.failure(StudentError.FileWrite))
                     file.writeText(text)
                     Result.success(Unit)
                 } else {
@@ -52,7 +53,7 @@ class StorageRepositoryImpl(
                 }
             } catch (e: Exception) {
                 if (e is CancellationException) throw e
-                Result.failure(e)
+                Result.failure(StudentError.FileWrite)
             }
         }
 }
