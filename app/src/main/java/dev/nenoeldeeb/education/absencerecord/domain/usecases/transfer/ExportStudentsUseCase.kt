@@ -1,6 +1,7 @@
 package dev.nenoeldeeb.education.absencerecord.domain.usecases.transfer
 
 import dev.nenoeldeeb.education.absencerecord.domain.models.Student
+import dev.nenoeldeeb.education.absencerecord.domain.models.StudentError
 import dev.nenoeldeeb.education.absencerecord.domain.models.StudentExportData
 import dev.nenoeldeeb.education.absencerecord.domain.repositories.AttendanceRepository
 import dev.nenoeldeeb.education.absencerecord.domain.repositories.StorageRepository
@@ -37,7 +38,7 @@ class ExportStudentsUseCase(
         allStudents: List<Student>
     ): Result<Unit> {
         if (selectedStudentIds.isEmpty()) {
-            return Result.failure(IllegalArgumentException())
+            return Result.failure(StudentError.Validation("No students selected"))
         }
 
         val classes = studentClassRepository.getAllClasses().first().getOrDefault(emptyList())
@@ -61,7 +62,7 @@ class ExportStudentsUseCase(
         return serializationService.encodeToString(exportList, ListSerializer(StudentExportData.serializer()))
             .fold(
                 onSuccess = { jsonString -> storageRepository.writeTextToUri(uriString, jsonString) },
-                onFailure = { Result.failure(it) }
+                onFailure = { Result.failure(StudentError.FileWrite) }
             )
     }
 }

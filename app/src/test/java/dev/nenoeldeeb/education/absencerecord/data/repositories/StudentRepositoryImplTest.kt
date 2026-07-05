@@ -3,6 +3,7 @@ package dev.nenoeldeeb.education.absencerecord.data.repositories
 import dev.nenoeldeeb.education.absencerecord.data.datasources.local.daos.StudentDao
 import dev.nenoeldeeb.education.absencerecord.data.datasources.local.entities.StudentEntity
 import dev.nenoeldeeb.education.absencerecord.domain.models.Student
+import dev.nenoeldeeb.education.absencerecord.domain.models.StudentError
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
@@ -49,7 +50,7 @@ class StudentRepositoryImplTest {
 
             // Assert
             assertTrue(result.isFailure)
-            assertEquals(exception, result.exceptionOrNull())
+            assertEquals(StudentError.Database, result.exceptionOrNull())
         }
 
     @Test
@@ -81,7 +82,7 @@ class StudentRepositoryImplTest {
 
             // Assert
             assertTrue(result.isFailure)
-            assertEquals(exception, result.exceptionOrNull())
+            assertEquals(StudentError.Database, result.exceptionOrNull())
         }
 
     @Test
@@ -97,5 +98,20 @@ class StudentRepositoryImplTest {
             // Assert
             assertTrue(result.isSuccess)
             coVerify { studentDao.deleteStudents(match { it.first().id == 5 }) }
+        }
+
+    @Test
+    fun `deleteStudents returns StudentError_Database on failure`() =
+        runTest {
+            // Arrange
+            val student = Student(id = 5, name = "Delete Me")
+            coEvery { studentDao.deleteStudents(any()) } throws RuntimeException("Delete Fail")
+
+            // Act
+            val result = repository.deleteStudents(listOf(student))
+
+            // Assert
+            assertTrue(result.isFailure)
+            assertEquals(StudentError.Database, result.exceptionOrNull())
         }
 }

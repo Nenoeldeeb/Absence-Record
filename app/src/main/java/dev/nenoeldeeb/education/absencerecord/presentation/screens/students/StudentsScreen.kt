@@ -2,7 +2,6 @@
 
 package dev.nenoeldeeb.education.absencerecord.presentation.screens.students
 
-import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -15,11 +14,15 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
@@ -46,14 +49,20 @@ fun StudentsScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
+    val snackbarHostState = remember { SnackbarHostState() }
 
+    LaunchedEffect(uiState.error) {
+        uiState.error?.let {
+            snackbarHostState.showSnackbar(it.asString(context))
+            viewModel.onEvent(StudentsScreenEvent.ConsumeError)
+        }
+    }
     LaunchedEffect(uiState.toastMessage) {
         uiState.toastMessage?.let {
-            Toast.makeText(context, it.asString(context), Toast.LENGTH_LONG).show()
+            snackbarHostState.showSnackbar(it.asString(context))
             viewModel.onEvent(StudentsScreenEvent.ConsumeToastMessage)
         }
     }
-
     BackHandler(uiState.isMultiSelectionMode) {
         viewModel.onEvent(StudentsScreenEvent.ToggleSelectionMode)
     }
@@ -88,137 +97,140 @@ fun StudentsScreen(
             }
         )
 
-    Column(modifier = modifier) {
-        if (uiState.isMultiSelectionMode) {
-            MultiSelectionHeader(
-                modifier =
-                    Modifier
-                        .fillMaxWidth()
-                        .padding(bottom = 16.dp),
-                selectedStudentIds = uiState.selectedStudentIds,
-                onCloseSelectionMode = {
-                    viewModel.onEvent(StudentsScreenEvent.ToggleSelectionMode)
-                },
-                onToggleSelection = {
-                    viewModel.onEvent(StudentsScreenEvent.ToggleStudentsSelection)
-                },
-                onExport = { fileName -> exportLauncher.launch(fileName) },
-                onExportAndDelete = { fileName ->
-                    exportAndDeleteLauncher.launch(fileName)
-                },
-                onShowDeleteDialog = {
-                    viewModel.onEvent(StudentsScreenEvent.ShowBulkDeleteDialog)
-                }
-            )
-        }
-
-        if (!uiState.isMultiSelectionMode) {
-            TopAppBar(title = {
-                Text(stringResource(R.string.students_title, uiState.allStudents.size))
-            }, actions = {
-                IconButton(
-                    onClick = {
-                        viewModel.onEvent(
-                            StudentsScreenEvent.ToggleClassFilterVisibility
-                        )
-                    }
-                ) {
-                    Icon(
-                        imageVector =
-                            ImageVector.vectorResource(
-                                R.drawable.outline_filter_24
-                            ),
-                        contentDescription = stringResource(R.string.filter_description)
-                    )
-                }
-                IconButton(
-                    onClick = {
-                        viewModel.onEvent(
-                            StudentsScreenEvent.ShowStudentDialog(null, true)
-                        )
-                    }
-                ) {
-                    Icon(
-                        imageVector =
-                            ImageVector.vectorResource(
-                                R.drawable.outline_add_24
-                            ),
-                        contentDescription = stringResource(R.string.new_student_label)
-                    )
-                }
-            })
-
-            AnimatedVisibility(uiState.isClassFilterVisible) {
-                // Class filter row with edit icon
-                ClassFilterDropdown(
-                    selectedFilter = uiState.selectedClassFilter,
-                    availableClasses = uiState.availableClasses,
-                    expanded = uiState.classDropdownExpanded,
-                    onExpandedChange = {
-                        viewModel.onEvent(StudentsScreenEvent.ToggleClassDropdown(it))
-                    },
-                    onFilterSelected = {
-                        viewModel.onEvent(StudentsScreenEvent.SelectClassFilter(it))
-                    },
+    Scaffold(
+        modifier = modifier,
+        snackbarHost = { SnackbarHost(hostState = snackbarHostState) }
+    ) { paddingValues ->
+        Column(modifier = Modifier.padding(paddingValues)) {
+            if (uiState.isMultiSelectionMode) {
+                MultiSelectionHeader(
                     modifier =
                         Modifier
                             .fillMaxWidth()
-                            .padding(horizontal = 16.dp, vertical = 8.dp),
-                    trailingIcon = {
-                        IconButton(
-                            onClick = {
-                                viewModel.onEvent(
-                                    StudentsScreenEvent.ShowManageClassesDialog(
-                                        true
+                            .padding(bottom = 16.dp),
+                    selectedStudentIds = uiState.selectedStudentIds,
+                    onCloseSelectionMode = {
+                        viewModel.onEvent(StudentsScreenEvent.ToggleSelectionMode)
+                    },
+                    onToggleSelection = {
+                        viewModel.onEvent(StudentsScreenEvent.ToggleStudentsSelection)
+                    },
+                    onExport = { fileName -> exportLauncher.launch(fileName) },
+                    onExportAndDelete = { fileName ->
+                        exportAndDeleteLauncher.launch(fileName)
+                    },
+                    onShowDeleteDialog = {
+                        viewModel.onEvent(StudentsScreenEvent.ShowBulkDeleteDialog)
+                    }
+                )
+            }
+
+            if (!uiState.isMultiSelectionMode) {
+                TopAppBar(title = {
+                    Text(stringResource(R.string.students_title, uiState.allStudents.size))
+                }, actions = {
+                    IconButton(
+                        onClick = {
+                            viewModel.onEvent(
+                                StudentsScreenEvent.ToggleClassFilterVisibility
+                            )
+                        }
+                    ) {
+                        Icon(
+                            imageVector =
+                                ImageVector.vectorResource(
+                                    R.drawable.outline_filter_24
+                                ),
+                            contentDescription = stringResource(R.string.filter_description)
+                        )
+                    }
+                    IconButton(
+                        onClick = {
+                            viewModel.onEvent(
+                                StudentsScreenEvent.ShowStudentDialog(null, true)
+                            )
+                        }
+                    ) {
+                        Icon(
+                            imageVector =
+                                ImageVector.vectorResource(
+                                    R.drawable.outline_add_24
+                                ),
+                            contentDescription = stringResource(R.string.new_student_label)
+                        )
+                    }
+                })
+
+                AnimatedVisibility(uiState.isClassFilterVisible) {
+                    // Class filter row with edit icon
+                    ClassFilterDropdown(
+                        selectedFilter = uiState.selectedClassFilter,
+                        availableClasses = uiState.availableClasses,
+                        expanded = uiState.classDropdownExpanded,
+                        onExpandedChange = {
+                            viewModel.onEvent(StudentsScreenEvent.ToggleClassDropdown(it))
+                        },
+                        onFilterSelected = {
+                            viewModel.onEvent(StudentsScreenEvent.SelectClassFilter(it))
+                        },
+                        modifier =
+                            Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 16.dp, vertical = 8.dp),
+                        trailingIcon = {
+                            IconButton(
+                                onClick = {
+                                    viewModel.onEvent(
+                                        StudentsScreenEvent.ShowManageClassesDialog(
+                                            true
+                                        )
                                     )
+                                }
+                            ) {
+                                Icon(
+                                    imageVector =
+                                        ImageVector.vectorResource(
+                                            R.drawable.outline_edit_24
+                                        ),
+                                    contentDescription = stringResource(R.string.manage_classes_title),
+                                    modifier = Modifier.size(24.dp)
                                 )
                             }
-                        ) {
-                            Icon(
-                                imageVector =
-                                    ImageVector.vectorResource(
-                                        R.drawable.outline_edit_24
-                                    ),
-                                contentDescription = stringResource(R.string.manage_classes_title),
-                                modifier = Modifier.size(24.dp)
+                        }
+                    )
+                }
+            }
+
+            if (uiState.allStudents.isEmpty()) {
+                EmptyStateMessage(
+                    message = R.string.no_students_message,
+                    modifier = Modifier.fillMaxSize()
+                )
+            } else {
+                StudentList(
+                    allStudents = uiState.allStudents,
+                    selectedStudentIds = uiState.selectedStudentIds,
+                    onStudentClick = { student ->
+                        if (uiState.isMultiSelectionMode) {
+                            viewModel.onEvent(
+                                StudentsScreenEvent.ToggleStudentSelection(student.id)
+                            )
+                        } else {
+                            viewModel.onEvent(StudentsScreenEvent.ShowStudentDialog(student))
+                        }
+                    },
+                    onStudentLongClick = { studentId ->
+                        if (!uiState.isMultiSelectionMode) {
+                            viewModel.onEvent(StudentsScreenEvent.ToggleSelectionMode)
+                            viewModel.onEvent(
+                                StudentsScreenEvent.ToggleStudentSelection(studentId)
                             )
                         }
                     }
                 )
             }
         }
-
-        if (uiState.allStudents.isEmpty()) {
-            EmptyStateMessage(
-                message = R.string.no_students_message,
-                modifier = Modifier.fillMaxSize()
-            )
-        } else {
-            StudentList(
-                allStudents = uiState.allStudents,
-                selectedStudentIds = uiState.selectedStudentIds,
-                onStudentClick = { student ->
-                    if (uiState.isMultiSelectionMode) {
-                        viewModel.onEvent(
-                            StudentsScreenEvent.ToggleStudentSelection(student.id)
-                        )
-                    } else {
-                        viewModel.onEvent(StudentsScreenEvent.ShowStudentDialog(student))
-                    }
-                },
-                onStudentLongClick = { studentId ->
-                    if (!uiState.isMultiSelectionMode) {
-                        viewModel.onEvent(StudentsScreenEvent.ToggleSelectionMode)
-                        viewModel.onEvent(
-                            StudentsScreenEvent.ToggleStudentSelection(studentId)
-                        )
-                    }
-                }
-            )
-        }
     }
-
-    // ── Dialogs ──────────────────────────────────────────────────────────────
 
     if (uiState.showEditDialog != null || uiState.showAddStudentDialog) {
         StudentDialog(

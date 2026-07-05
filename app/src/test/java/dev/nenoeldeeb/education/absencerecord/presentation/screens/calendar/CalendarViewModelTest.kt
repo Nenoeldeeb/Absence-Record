@@ -3,6 +3,7 @@ package dev.nenoeldeeb.education.absencerecord.presentation.screens.calendar
 import dev.nenoeldeeb.education.absencerecord.R
 import dev.nenoeldeeb.education.absencerecord.domain.models.Student
 import dev.nenoeldeeb.education.absencerecord.domain.models.StudentClass
+import dev.nenoeldeeb.education.absencerecord.domain.models.StudentError
 import dev.nenoeldeeb.education.absencerecord.domain.usecases.ClassManagementUseCases
 import dev.nenoeldeeb.education.absencerecord.presentation.utils.UiText
 import io.mockk.coEvery
@@ -117,8 +118,7 @@ class CalendarViewModelTest : CalendarViewModelTestBase() {
     @Test
     fun `ToggleClassSelection shows error on students load failure`() =
         runTest {
-            val errorMsg = "Failed to load students"
-            coEvery { studentManagementUseCases.getAllStudentsUseCase() } returns flowOf(Result.failure(Exception(errorMsg)))
+            coEvery { studentManagementUseCases.getAllStudentsUseCase() } returns flowOf(Result.failure(StudentError.Database))
             coEvery { getAttendanceForDateUseCase(any()) } returns flowOf(Result.success(emptyList()))
 
             viewModel =
@@ -129,8 +129,10 @@ class CalendarViewModelTest : CalendarViewModelTestBase() {
                 )
             advanceUntilIdle()
 
-            val expectedError = UiText.StringResource(R.string.error_loading_students, errorMsg)
-            assertEquals(expectedError, viewModel.uiState.value.error)
+            assertEquals(
+                UiText.StringResource(R.string.error_database_operation_failed),
+                viewModel.uiState.value.error
+            )
         }
 
     @Test

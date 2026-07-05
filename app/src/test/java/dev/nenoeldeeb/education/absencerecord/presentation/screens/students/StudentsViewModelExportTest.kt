@@ -3,6 +3,7 @@ package dev.nenoeldeeb.education.absencerecord.presentation.screens.students
 import android.net.Uri
 import dev.nenoeldeeb.education.absencerecord.R
 import dev.nenoeldeeb.education.absencerecord.domain.models.Student
+import dev.nenoeldeeb.education.absencerecord.domain.models.StudentError
 import dev.nenoeldeeb.education.absencerecord.presentation.utils.UiText
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -57,11 +58,10 @@ class StudentsViewModelExportTest : StudentsViewModelTestBase() {
         runTest {
             // Given
             val student = Student(id = 1, name = "S1")
-            val errorMsg = "Export failed"
             every { getAllStudentsUseCase(any(), any()) } returns
                 flowOf(Result.success(listOf(student)))
             coEvery { exportStudentsUseCase(any(), any(), any()) } returns
-                Result.failure(Exception(errorMsg))
+                Result.failure(StudentError.FileWrite)
 
             createViewModel()
             advanceUntilIdle()
@@ -76,8 +76,10 @@ class StudentsViewModelExportTest : StudentsViewModelTestBase() {
             advanceUntilIdle()
 
             // Then
-            val expectedError = UiText.StringResource(R.string.error_reading_file)
-            assertEquals(expectedError, viewModel.uiState.value.error)
+            assertEquals(
+                UiText.StringResource(R.string.error_writing_file),
+                viewModel.uiState.value.error
+            )
         }
 
     @Test
@@ -116,11 +118,10 @@ class StudentsViewModelExportTest : StudentsViewModelTestBase() {
         runTest {
             // Given
             val student = Student(id = 1, name = "S1")
-            val errorMsg = "Export failed"
             every { getAllStudentsUseCase(any(), any()) } returns
                 flowOf(Result.success(listOf(student)))
             coEvery { exportStudentsUseCase(any(), any(), any()) } returns
-                Result.failure(Exception(errorMsg))
+                Result.failure(StudentError.FileWrite)
 
             createViewModel()
             advanceUntilIdle()
@@ -135,8 +136,10 @@ class StudentsViewModelExportTest : StudentsViewModelTestBase() {
 
             // Then
             coVerify(exactly = 0) { deleteStudentsUseCase(any()) }
-            val expectedError = UiText.StringResource(R.string.error_reading_file)
-            assertEquals(expectedError, viewModel.uiState.value.error)
+            assertEquals(
+                UiText.StringResource(R.string.error_writing_file),
+                viewModel.uiState.value.error
+            )
         }
 
     @Test
@@ -144,11 +147,10 @@ class StudentsViewModelExportTest : StudentsViewModelTestBase() {
         runTest {
             // Given
             val student = Student(id = 1, name = "S1")
-            val errorMsg = "Delete failed"
             every { getAllStudentsUseCase(any(), any()) } returns
                 flowOf(Result.success(listOf(student)))
             coEvery { exportStudentsUseCase(any(), any(), any()) } returns Result.success(Unit)
-            coEvery { deleteStudentsUseCase(any()) } returns Result.failure(Exception(errorMsg))
+            coEvery { deleteStudentsUseCase(any()) } returns Result.failure(StudentError.Database)
 
             createViewModel()
             advanceUntilIdle()
@@ -162,7 +164,9 @@ class StudentsViewModelExportTest : StudentsViewModelTestBase() {
             advanceUntilIdle()
 
             // Then
-            val expectedError = UiText.StringResource(R.string.error_database_operation_failed)
-            assertEquals(expectedError, viewModel.uiState.value.error)
+            assertEquals(
+                UiText.StringResource(R.string.error_database_operation_failed),
+                viewModel.uiState.value.error
+            )
         }
 }

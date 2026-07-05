@@ -1,6 +1,7 @@
 package dev.nenoeldeeb.education.absencerecord.domain.usecases.transfer
 
 import dev.nenoeldeeb.education.absencerecord.domain.models.ParsedStudentImportData
+import dev.nenoeldeeb.education.absencerecord.domain.models.StudentError
 import dev.nenoeldeeb.education.absencerecord.domain.models.StudentExportData
 import dev.nenoeldeeb.education.absencerecord.domain.repositories.StorageRepository
 import dev.nenoeldeeb.education.absencerecord.domain.services.SerializationService
@@ -28,11 +29,11 @@ class ParseImportFileUseCase(
                                     data.map { ParsedStudentImportData(it) }
                                 )
                             },
-                            onFailure = { e -> Result.failure(e) }
+                            onFailure = { Result.failure(StudentError.ImportParse) }
                         )
                 }
             },
-            onFailure = { e -> Result.failure(e) }
+            onFailure = { Result.failure(it) }
         )
     }
 }
