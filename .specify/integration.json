@@ -3,9 +3,7 @@
   "integration_state_schema": 1,
   "installed_integrations": [
     "opencode",
-    "agy",
-    "codex",
-    "copilot"
+    "agy"
   ],
   "integration_settings": {
     "opencode": {
@@ -15,14 +13,6 @@
     "agy": {
       "script": "sh",
       "invoke_separator": "-"
-    },
-    "codex": {
-      "script": "sh",
-      "invoke_separator": "-"
-    },
-    "copilot": {
-      "script": "sh",
-      "invoke_separator": "."
     }
   },
   "integration": "opencode",
