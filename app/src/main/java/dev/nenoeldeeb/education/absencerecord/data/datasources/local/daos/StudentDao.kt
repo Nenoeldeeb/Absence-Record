@@ -31,6 +31,9 @@ interface StudentDao {
     @Update
     suspend fun updateStudent(student: StudentEntity)
 
+    @Query("UPDATE students SET classId = NULL WHERE classId = :classId")
+    suspend fun unassignStudentsFromClass(classId: Int)
+
     @Delete
     suspend fun deleteStudents(students: List<StudentEntity>)
 

@@ -72,6 +72,6 @@ class DefaultAppContainer(private val context: Context) : AppContainer {
     }
 
     override val classManagementUseCases: ClassManagementUseCases by lazy {
-        ClassManagementUseCases(studentClassRepository = studentClassRepository)
+        ClassManagementUseCases(studentClassRepository = studentClassRepository, studentRepository = studentRepository)
     }
 }
