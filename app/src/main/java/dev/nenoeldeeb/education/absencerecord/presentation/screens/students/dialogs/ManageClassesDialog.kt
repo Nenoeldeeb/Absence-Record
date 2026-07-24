@@ -13,6 +13,8 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -60,26 +62,30 @@ internal fun ManageClassesDialog(
             icon = {
                 Icon(
                     imageVector = ImageVector.vectorResource(R.drawable.outline_delete_24),
-                    contentDescription = null,
+                    contentDescription = stringResource(R.string.delete_class_title),
                     tint = MaterialTheme.colorScheme.error
                 )
             },
             confirmButton = {
-                TextButton(
+                Button(
                     onClick = {
                         onDeleteClass(classToDelete!!)
                         classToDelete = null
-                    }
+                    },
+                    colors =
+                        ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.error
+                        )
                 ) {
                     Icon(
                         imageVector = ImageVector.vectorResource(R.drawable.outline_delete_24),
                         contentDescription = null,
-                        tint = MaterialTheme.colorScheme.error
+                        tint = MaterialTheme.colorScheme.onError
                     )
                     Spacer(Modifier.width(4.dp))
                     Text(
                         text = stringResource(R.string.action_delete),
-                        color = MaterialTheme.colorScheme.error
+                        color = MaterialTheme.colorScheme.onError
                     )
                 }
             },
