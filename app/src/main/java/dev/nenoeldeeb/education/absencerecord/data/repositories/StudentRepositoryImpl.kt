@@ -37,6 +37,15 @@ class StudentRepositoryImpl(
         }.recoverCatching { throw StudentError.Database }
     }
 
+    override suspend fun unassignStudentsFromClass(classId: Int): Result<Unit> {
+        return try {
+            studentDao.unassignStudentsFromClass(classId)
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(StudentError.Database)
+        }
+    }
+
     override suspend fun deleteStudents(students: List<Student>): Result<Unit> {
         return runCatching {
             studentDao.deleteStudents(students.map { it.toStudentEntity() })

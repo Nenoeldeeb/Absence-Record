@@ -12,6 +12,8 @@ interface StudentRepository {
 
     suspend fun updateStudent(student: Student): Result<Unit>
 
+    suspend fun unassignStudentsFromClass(classId: Int): Result<Unit>
+
     suspend fun deleteStudents(students: List<Student>): Result<Unit>
 
     fun getStudentsActiveInMonthSortedByName(monthYear: String): Flow<Result<List<Student>>>
