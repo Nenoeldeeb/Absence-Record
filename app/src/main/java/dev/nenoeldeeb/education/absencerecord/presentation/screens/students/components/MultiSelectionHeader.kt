@@ -88,7 +88,14 @@ internal fun MultiSelectionHeader(
             ) {
                 Icon(
                     imageVector = ImageVector.vectorResource(id = R.drawable.outline_file_upload_24),
-                    contentDescription = stringResource(R.string.action_export_delete),
+                    contentDescription =
+                        stringResource(
+                            if (selectedStudentIds.isNotEmpty()) {
+                                R.string.action_export_delete
+                            } else {
+                                R.string.action_export_delete_disabled
+                            }
+                        ),
                     tint =
                         if (selectedStudentIds.isNotEmpty()) {
                             MaterialTheme.colorScheme.error
@@ -103,7 +110,14 @@ internal fun MultiSelectionHeader(
             ) {
                 Icon(
                     imageVector = ImageVector.vectorResource(id = R.drawable.outline_delete_24),
-                    contentDescription = stringResource(R.string.action_delete),
+                    contentDescription =
+                        stringResource(
+                            if (selectedStudentIds.isNotEmpty()) {
+                                R.string.action_delete
+                            } else {
+                                R.string.action_delete_disabled
+                            }
+                        ),
                     tint =
                         if (selectedStudentIds.isNotEmpty()) {
                             MaterialTheme.colorScheme.error

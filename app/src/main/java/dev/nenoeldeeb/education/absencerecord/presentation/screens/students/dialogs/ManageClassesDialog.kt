@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardOptions
@@ -56,6 +57,13 @@ internal fun ManageClassesDialog(
             onDismissRequest = { classToDelete = null },
             title = { Text(stringResource(R.string.delete_class_title)) },
             text = { Text(stringResource(R.string.delete_class_message, classToDelete!!.name)) },
+            icon = {
+                Icon(
+                    imageVector = ImageVector.vectorResource(R.drawable.outline_delete_24),
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.error
+                )
+            },
             confirmButton = {
                 TextButton(
                     onClick = {
@@ -63,6 +71,12 @@ internal fun ManageClassesDialog(
                         classToDelete = null
                     }
                 ) {
+                    Icon(
+                        imageVector = ImageVector.vectorResource(R.drawable.outline_delete_24),
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.error
+                    )
+                    Spacer(Modifier.width(4.dp))
                     Text(
                         text = stringResource(R.string.action_delete),
                         color = MaterialTheme.colorScheme.error
@@ -166,7 +180,7 @@ internal fun ManageClassesDialog(
                                             } else {
                                                 MaterialTheme.colorScheme.primaryContainer
                                             },
-                                        modifier = Modifier.size(20.dp)
+                                        modifier = Modifier.size(24.dp)
                                     )
                                 }
                                 // Cancel rename
@@ -177,7 +191,7 @@ internal fun ManageClassesDialog(
                                                 R.drawable.outline_close_24
                                             ),
                                         contentDescription = stringResource(R.string.action_cancel),
-                                        modifier = Modifier.size(20.dp)
+                                        modifier = Modifier.size(24.dp)
                                     )
                                 }
                             }
@@ -207,7 +221,7 @@ internal fun ManageClassesDialog(
                                                 R.drawable.outline_edit_24
                                             ),
                                         contentDescription = stringResource(R.string.action_edit),
-                                        modifier = Modifier.size(20.dp)
+                                        modifier = Modifier.size(24.dp)
                                     )
                                 }
                                 // Delete button
@@ -219,7 +233,7 @@ internal fun ManageClassesDialog(
                                             ),
                                         contentDescription = stringResource(R.string.action_delete),
                                         tint = MaterialTheme.colorScheme.error,
-                                        modifier = Modifier.size(20.dp)
+                                        modifier = Modifier.size(24.dp)
                                     )
                                 }
                             }

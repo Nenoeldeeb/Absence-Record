@@ -1,6 +1,5 @@
 package dev.nenoeldeeb.education.absencerecord.presentation.screens.students.dialogs
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -22,6 +21,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import dev.nenoeldeeb.education.absencerecord.R
@@ -123,10 +124,20 @@ private fun SelectAllRow(
     onSelectAll: (Boolean) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val contentDesc =
+        stringResource(
+            if (allSelected) {
+                R.string.action_deselect_all
+            } else {
+                R.string.action_select_all
+            }
+        )
     Row(
         modifier =
             modifier
-                .clickable { onSelectAll(!allSelected) },
+                .semantics(mergeDescendants = true) {
+                    contentDescription = contentDesc
+                },
         verticalAlignment = Alignment.CenterVertically
     ) {
         Checkbox(
@@ -147,10 +158,18 @@ private fun StudentImportItemRow(
     onToggle: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val contentDesc =
+        if (isSelected) {
+            stringResource(R.string.student_selected, item.originalData.name)
+        } else {
+            stringResource(R.string.student_not_selected, item.originalData.name)
+        }
     Row(
         modifier =
             modifier
-                .clickable(onClick = onToggle),
+                .semantics(mergeDescendants = true) {
+                    contentDescription = contentDesc
+                },
         verticalAlignment = Alignment.CenterVertically
     ) {
         Checkbox(

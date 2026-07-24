@@ -19,13 +19,14 @@ internal fun DayCell(
     isMarked: Boolean,
     onDateSelected: (LocalDate) -> Unit,
     description: String,
+    interactive: Boolean = true,
     modifier: Modifier = Modifier
 ) {
     Box(
         modifier =
             modifier
                 .then(
-                    if (day != null) {
+                    if (day != null && interactive) {
                         Modifier.clickable { onDateSelected(day) }
                     } else {
                         Modifier
