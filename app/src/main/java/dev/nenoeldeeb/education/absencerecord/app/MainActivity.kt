@@ -11,7 +11,6 @@ import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.calendar.CalendarScreen
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.report.ReportScreen
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.StudentsScreen
@@ -45,21 +44,8 @@ fun MainScreen(contentPadding: PaddingValues) {
     ) { page ->
         when (page) {
             0 -> StudentsScreen(modifier = Modifier.fillMaxSize())
-            1 ->
-                CalendarScreen(
-                    modifier =
-                        Modifier
-                            .fillMaxSize()
-                            .padding(8.dp)
-                )
-
-            2 ->
-                ReportScreen(
-                    modifier =
-                        Modifier
-                            .fillMaxSize()
-                            .padding(8.dp)
-                )
+            1 -> CalendarScreen(modifier = Modifier.fillMaxSize())
+            2 -> ReportScreen(modifier = Modifier.fillMaxSize())
         }
     }
 }

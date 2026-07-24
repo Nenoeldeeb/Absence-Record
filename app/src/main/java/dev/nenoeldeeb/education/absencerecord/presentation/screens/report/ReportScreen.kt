@@ -173,10 +173,6 @@ fun ReportScreen(
                 )
             } else {
                 StudentList(
-                    modifier =
-                        Modifier
-                            .fillMaxWidth()
-                            .padding(top = 16.dp),
                     allStudents = uiState.allStudents,
                     onStudentClick = { student ->
                         viewModel.onEvent(ReportScreenEvent.SelectStudentForHistory(student))
