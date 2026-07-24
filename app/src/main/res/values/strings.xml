@@ -30,7 +30,7 @@
     <string name="class_unassigned_label">Unassigned</string>
     <string name="import_students_action">Import Students</string>
     <string name="select_students_import_title">Select Students to Import</string>
-    <string name="toggle_students_selection">Select All / Deselect  All</string>
+    <string name="toggle_students_selection">Select All / Deselect All</string>
     <string name="no_items_available">No items available.</string>
     <string name="import_selected">Import Selected</string>
     <string name="students_deleted_successfully">Selected students deleted successfully.</string>
@@ -76,7 +76,7 @@
     <string name="action_share_image">Share Image</string>
     <string name="share_calendar_image">Share Calendar Image for this month</string>
     <string name="absencerecord_export_json">absencerecord_export_%1$s.json</string>
-    <string name="imported_dates_count">(%1$s dates)</string>
+    <string name="imported_dates_count">(%1$d dates)</string>
     <string name="view_picture">View Picture</string>
     <string name="sharing_app_not_found">Sharing app not found: %1$s</string>
     <string name="clear_month_filter">Clear month filter</string>

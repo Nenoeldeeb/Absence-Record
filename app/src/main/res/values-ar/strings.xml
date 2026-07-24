@@ -75,7 +75,7 @@
     <string name="action_share_image">مشاركة الصورة</string>
     <string name="share_calendar_image">مشاركة صورة التقويم لهذا الشهر</string>
     <string name="absencerecord_export_json">تصدير_الغياب_%1$s.json</string>
-    <string name="imported_dates_count">(%1$s تواريخ)</string>
+    <string name="imported_dates_count">(%1$d تواريخ)</string>
     <string name="view_picture">عرض الصورة</string>
     <string name="sharing_app_not_found">لا يوجد تطبيق للمشاركة عن طريقه: %1$s</string>
     <string name="clear_month_filter">إلغاء التصنيف بالشهر</string>
