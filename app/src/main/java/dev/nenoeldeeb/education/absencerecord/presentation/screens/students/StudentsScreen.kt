@@ -210,6 +210,7 @@ fun StudentsScreen(
                 StudentList(
                     allStudents = uiState.allStudents,
                     selectedStudentIds = uiState.selectedStudentIds,
+                    isMultiSelectionMode = uiState.isMultiSelectionMode,
                     onStudentClick = { student ->
                         if (uiState.isMultiSelectionMode) {
                             viewModel.onEvent(

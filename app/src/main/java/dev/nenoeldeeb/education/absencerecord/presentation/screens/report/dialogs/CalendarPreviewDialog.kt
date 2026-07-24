@@ -29,7 +29,8 @@ internal fun CalendarPreviewDialog(
                 modifier = Modifier.fillMaxWidth(),
                 initialMonth = monthToPreview,
                 onDateSelected = {},
-                markedDates = datesForPreviewMonth.toSet()
+                markedDates = datesForPreviewMonth.toSet(),
+                interactive = false
             )
         },
         confirmButton = {

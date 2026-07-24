@@ -18,6 +18,10 @@
     <string name="no_students_message">No students added yet.</string>
     <string name="edit_student">Edit Student</string>
     <string name="student_name_label">Student name</string>
+    <string name="student_selected">%1$s, selected</string>
+    <string name="student_not_selected">%1$s, not selected</string>
+    <string name="action_select_all">Select all</string>
+    <string name="action_deselect_all">Deselect all</string>
     <string name="class_filter_all">All Classes</string>
     <string name="class_filter_unassigned">Unassigned</string>
     <string name="class_filter_label">Class Filter</string>
@@ -39,6 +43,8 @@
     <string name="action_export_delete">Export &amp; Delete</string>
     <string name="action_edit">Edit</string>
     <string name="action_export">Export</string>
+    <string name="action_export_delete_disabled">Export and Delete (no students selected)</string>
+    <string name="action_delete_disabled">Delete (no students selected)</string>
     <plurals name="import_preview_message">
         <item quantity="zero">No students found in file.</item>
         <item quantity="one">Found %1$d student. Existing students with the same name will have dates merged:</item>
@@ -51,6 +57,7 @@
     <string name="no_students_for_attendance">No students available to mark attendance.</string>
     <string name="content_description_present">Present</string>
     <string name="content_description_absent">Absent</string>
+    <string name="student_attendance_status">%1$s, %2$s</string>
     <string name="previous_month">Previous month</string>
     <string name="next_month">Next month</string>
 
@@ -135,6 +142,10 @@
 
     <!--    ComposeCalendar -->
     <string name="content_description_today">Today.</string>
+    <string name="calendar_date">Day %1$s</string>
+    <string name="calendar_date_today">Day %1$s, Today</string>
+    <string name="calendar_date_present">Day %1$s, Present</string>
+    <string name="calendar_date_present_today">Day %1$s, Present, Today</string>
     <plurals name="days_count">
         <item quantity="one">%d day</item>
         <item quantity="other">%d days</item>

@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -54,7 +55,8 @@ fun ComposeCalendar(
     onDateSelected: (LocalDate) -> Unit,
     modifier: Modifier = Modifier,
     initialMonth: LocalDate? = null,
-    markedDates: Set<LocalDate> = emptySet()
+    markedDates: Set<LocalDate> = emptySet(),
+    interactive: Boolean = true
 ) {
     val today =
         rememberSaveable {
@@ -111,6 +113,7 @@ fun ComposeCalendar(
                     today = today,
                     markedDates = markedDates,
                     onDateSelected = onDateSelected,
+                    interactive = interactive,
                     modifier = Modifier.fillMaxWidth()
                 )
             }
@@ -194,6 +197,7 @@ private fun CalendarGrid(
     today: LocalDate,
     markedDates: Set<LocalDate>,
     onDateSelected: (LocalDate) -> Unit,
+    interactive: Boolean = true,
     modifier: Modifier = Modifier
 ) {
     // Force LTR layout for calendar grid
@@ -209,10 +213,17 @@ private fun CalendarGrid(
             ) { index ->
                 val day = days[index]
                 val contentDescription =
-                    if (markedDates.contains(day)) {
-                        stringResource(R.string.content_description_present)
-                    } else if (day == today) {
-                        stringResource(R.string.content_description_today)
+                    if (day != null) {
+                        val dayLabel = day.day.toString()
+                        when {
+                            markedDates.contains(day) && day == today ->
+                                stringResource(R.string.calendar_date_present_today, dayLabel)
+                            markedDates.contains(day) ->
+                                stringResource(R.string.calendar_date_present, dayLabel)
+                            day == today ->
+                                stringResource(R.string.calendar_date_today, dayLabel)
+                            else -> stringResource(R.string.calendar_date, dayLabel)
+                        }
                     } else {
                         ""
                     }
@@ -222,10 +233,12 @@ private fun CalendarGrid(
                     isMarked = markedDates.contains(day),
                     onDateSelected = onDateSelected,
                     description = contentDescription,
+                    interactive = interactive,
                     modifier =
                         Modifier
                             .aspectRatio(1f)
                             .padding(2.dp)
+                            .sizeIn(minWidth = 48.dp, minHeight = 48.dp)
                             .clip(CircleShape)
                 )
             }

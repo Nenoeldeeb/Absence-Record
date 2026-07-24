@@ -13,6 +13,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
@@ -28,8 +29,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
@@ -223,7 +226,7 @@ internal fun StudentListItem(
     student: Student,
     isPresent: Boolean
 ) {
-    val contentDescription =
+    val statusText =
         stringResource(
             if (isPresent) {
                 R.string.content_description_present
@@ -231,6 +234,7 @@ internal fun StudentListItem(
                 R.string.content_description_absent
             }
         )
+    val contentDescription = stringResource(R.string.student_attendance_status, student.name, statusText)
     val listItemColors =
         ListItemDefaults.colors(
             containerColor =
@@ -254,6 +258,25 @@ internal fun StudentListItem(
                     Modifier
                         .fillMaxWidth()
                         .wrapContentWidth()
+            )
+        },
+        leadingContent = {
+            Icon(
+                imageVector =
+                    ImageVector.vectorResource(
+                        if (isPresent) {
+                            R.drawable.outline_check_24
+                        } else {
+                            R.drawable.outline_close_24
+                        }
+                    ),
+                contentDescription = null,
+                tint =
+                    if (isPresent) {
+                        MaterialTheme.colorScheme.primary
+                    } else {
+                        MaterialTheme.colorScheme.outline
+                    }
             )
         },
         colors = listItemColors,

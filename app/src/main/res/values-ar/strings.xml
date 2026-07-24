@@ -17,6 +17,10 @@
     <string name="students_title">الطلاب: %d</string>
     <string name="edit_student">تعديل الطالب</string>
     <string name="student_name_label">اسم الطالب</string>
+    <string name="student_selected">%1$s، محدد</string>
+    <string name="student_not_selected">%1$s، غير محدد</string>
+    <string name="action_select_all">تحديد الكل</string>
+    <string name="action_deselect_all">إلغاء تحديد الكل</string>
     <string name="class_unassigned_label">غير مسجل</string>
     <string name="import_students_action">استيراد الطلاب</string>
     <string name="select_students_import_title">اختر الطلاب للاستيراد</string>
@@ -36,6 +40,8 @@
     <string name="action_export_delete">تصدير ثم حذف</string>
     <string name="action_edit">تعديل</string>
     <string name="action_export">تصدير</string>
+    <string name="action_export_delete_disabled">تصدير ثم حذف (لم يتم تحديد أي طالب)</string>
+    <string name="action_delete_disabled">حذف (لم يتم تحديد أي طالب)</string>
     <plurals name="import_preview_message">
         <item quantity="zero">لا يوجد طلاب في الملف.</item>
         <item quantity="one">تم العثور على طالب واحد. سيتم دمج التواريخ للطلاب الموجودين بنفس الاسم</item>
@@ -50,6 +56,7 @@
     <string name="no_students_for_attendance">لا يوجد طلاب لتسجيل الحضور.</string>
     <string name="content_description_present">حاضر</string>
     <string name="content_description_absent">غائب</string>
+    <string name="student_attendance_status">%1$s، %2$s</string>
     <string name="previous_month">الشهر السابق</string>
     <string name="next_month">الشهر التالي</string>
 
@@ -131,6 +138,10 @@
 
     <!--    ComposeCalendar -->
     <string name="content_description_today">اليوم الحالي</string>
+    <string name="calendar_date">اليوم %1$s</string>
+    <string name="calendar_date_today">اليوم %1$s، اليوم الحالي</string>
+    <string name="calendar_date_present">اليوم %1$s، حاضر</string>
+    <string name="calendar_date_present_today">اليوم %1$s، حاضر، اليوم الحالي</string>
     <plurals name="days_count">
         <item quantity="zero">لا يوجد أيام</item>
         <item quantity="one">يوم واحد</item>

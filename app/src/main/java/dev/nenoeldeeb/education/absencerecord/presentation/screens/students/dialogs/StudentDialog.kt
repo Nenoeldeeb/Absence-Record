@@ -132,7 +132,7 @@ internal fun StudentDialog(
                                                     ),
                                                 contentDescription = null,
                                                 tint = MaterialTheme.colorScheme.primary,
-                                                modifier = Modifier.size(18.dp)
+                                                modifier = Modifier.size(24.dp)
                                             )
                                         }
                                     } else {
@@ -156,7 +156,7 @@ internal fun StudentDialog(
                                                         ),
                                                     contentDescription = null,
                                                     tint = MaterialTheme.colorScheme.primary,
-                                                    modifier = Modifier.size(18.dp)
+                                                    modifier = Modifier.size(24.dp)
                                                 )
                                             }
                                         } else {
