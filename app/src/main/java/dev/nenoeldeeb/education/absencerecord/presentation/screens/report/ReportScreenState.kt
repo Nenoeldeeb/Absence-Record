@@ -5,7 +5,6 @@ import androidx.compose.runtime.Stable
 import dev.nenoeldeeb.education.absencerecord.domain.models.SortType
 import dev.nenoeldeeb.education.absencerecord.domain.models.Student
 import dev.nenoeldeeb.education.absencerecord.domain.models.StudentClass
-import dev.nenoeldeeb.education.absencerecord.presentation.screens.components.ClassFilter
 import dev.nenoeldeeb.education.absencerecord.presentation.utils.UiText
 import kotlinx.datetime.LocalDate
 
@@ -21,7 +20,7 @@ data class ReportScreenState(
     val studentHistory: List<Pair<LocalDate, List<LocalDate>>> = emptyList(),
     val selectedMonthYearForCalendarPreview: LocalDate? = null,
     // Class filter
-    val selectedClassFilter: ClassFilter = ClassFilter.All,
+    val selectedClassIds: Set<Int> = emptySet(),
     val classDropdownExpanded: Boolean = false,
     val isClassFilterVisible: Boolean = false,
     val isSortComponentsVisible: Boolean = false,

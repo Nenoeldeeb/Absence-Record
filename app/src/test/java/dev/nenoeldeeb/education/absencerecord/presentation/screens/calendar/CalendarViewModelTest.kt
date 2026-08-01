@@ -1,6 +1,7 @@
 package dev.nenoeldeeb.education.absencerecord.presentation.screens.calendar
 
 import dev.nenoeldeeb.education.absencerecord.R
+import dev.nenoeldeeb.education.absencerecord.data.repositories.ClassFilterRepositoryImpl
 import dev.nenoeldeeb.education.absencerecord.domain.models.Student
 import dev.nenoeldeeb.education.absencerecord.domain.models.StudentClass
 import dev.nenoeldeeb.education.absencerecord.domain.models.StudentError
@@ -43,7 +44,13 @@ class CalendarViewModelTest : CalendarViewModelTestBase() {
             coEvery { classManagementUseCases.getAllClassesUseCase() } returns flowOf(Result.success(classes))
             coEvery { getAttendanceForDateUseCase(any()) } returns flowOf(Result.success(emptyList()))
 
-            viewModel = CalendarViewModel(attendanceUseCases, studentManagementUseCases, classManagementUseCases)
+            viewModel =
+                CalendarViewModel(
+                    attendanceUseCases,
+                    studentManagementUseCases,
+                    classManagementUseCases,
+                    ClassFilterRepositoryImpl()
+                )
             advanceUntilIdle()
 
             viewModel.onEvent(CalendarScreenEvent.ToggleClassSelection(1))
@@ -72,7 +79,13 @@ class CalendarViewModelTest : CalendarViewModelTestBase() {
             coEvery { classManagementUseCases.getAllClassesUseCase() } returns flowOf(Result.success(classes))
             coEvery { getAttendanceForDateUseCase(any()) } returns flowOf(Result.success(emptyList()))
 
-            viewModel = CalendarViewModel(attendanceUseCases, studentManagementUseCases, classManagementUseCases)
+            viewModel =
+                CalendarViewModel(
+                    attendanceUseCases,
+                    studentManagementUseCases,
+                    classManagementUseCases,
+                    ClassFilterRepositoryImpl()
+                )
             advanceUntilIdle()
 
             viewModel.onEvent(CalendarScreenEvent.ToggleClassSelection(1))
@@ -100,7 +113,13 @@ class CalendarViewModelTest : CalendarViewModelTestBase() {
             coEvery { classManagementUseCases.getAllClassesUseCase() } returns flowOf(Result.success(classes))
             coEvery { getAttendanceForDateUseCase(any()) } returns flowOf(Result.success(emptyList()))
 
-            viewModel = CalendarViewModel(attendanceUseCases, studentManagementUseCases, classManagementUseCases)
+            viewModel =
+                CalendarViewModel(
+                    attendanceUseCases,
+                    studentManagementUseCases,
+                    classManagementUseCases,
+                    ClassFilterRepositoryImpl()
+                )
             advanceUntilIdle()
 
             viewModel.onEvent(CalendarScreenEvent.ToggleClassSelection(1))
@@ -125,7 +144,8 @@ class CalendarViewModelTest : CalendarViewModelTestBase() {
                 CalendarViewModel(
                     attendanceUseCases,
                     studentManagementUseCases,
-                    mockk<ClassManagementUseCases>(relaxed = true)
+                    mockk<ClassManagementUseCases>(relaxed = true),
+                    ClassFilterRepositoryImpl()
                 )
             advanceUntilIdle()
 
@@ -150,7 +170,13 @@ class CalendarViewModelTest : CalendarViewModelTestBase() {
             coEvery { classManagementUseCases.getAllClassesUseCase() } returns flowOf(Result.success(classes))
             coEvery { getAttendanceForDateUseCase(any()) } returns flowOf(Result.success(emptyList()))
 
-            viewModel = CalendarViewModel(attendanceUseCases, studentManagementUseCases, classManagementUseCases)
+            viewModel =
+                CalendarViewModel(
+                    attendanceUseCases,
+                    studentManagementUseCases,
+                    classManagementUseCases,
+                    ClassFilterRepositoryImpl()
+                )
             advanceUntilIdle()
 
             viewModel.onEvent(CalendarScreenEvent.ToggleClassSelection(1))

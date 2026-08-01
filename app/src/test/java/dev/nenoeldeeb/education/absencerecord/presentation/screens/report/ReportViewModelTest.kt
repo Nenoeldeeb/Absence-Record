@@ -1,6 +1,7 @@
 package dev.nenoeldeeb.education.absencerecord.presentation.screens.report
 
 import dev.nenoeldeeb.education.absencerecord.R
+import dev.nenoeldeeb.education.absencerecord.data.repositories.ClassFilterRepositoryImpl
 import dev.nenoeldeeb.education.absencerecord.domain.models.Student
 import dev.nenoeldeeb.education.absencerecord.domain.models.StudentError
 import dev.nenoeldeeb.education.absencerecord.presentation.utils.UiText
@@ -94,5 +95,64 @@ class ReportViewModelTest : ReportViewModelTestBase() {
                 UiText.StringResource(R.string.error_database_operation_failed),
                 viewModel.uiState.value.error
             )
+        }
+
+    @Test
+    fun `repository toggle syncs selectedClassIds and filters students`() =
+        runTest {
+            val repo = ClassFilterRepositoryImpl()
+            val enrolled =
+                listOf(
+                    Student(1, "S1", classId = 10),
+                    Student(2, "S2", classId = 10)
+                )
+            val unassigned =
+                listOf(
+                    Student(3, "S3", classId = null),
+                    Student(4, "S4", classId = null)
+                )
+            coEvery { studentManagementUseCases.getAllStudentsUseCase(any(), any()) } returns
+                flowOf(Result.success(enrolled + unassigned))
+
+            createViewModel(repo)
+            advanceUntilIdle()
+
+            assertEquals(emptySet<Int>(), viewModel.uiState.value.selectedClassIds)
+            assertEquals(
+                unassigned.map { it.id }.toSet(),
+                viewModel.uiState.value.allStudents.map { it.id }.toSet()
+            )
+
+            repo.toggleClass(10)
+            advanceUntilIdle()
+
+            assertEquals(setOf(10), viewModel.uiState.value.selectedClassIds)
+            assertEquals(
+                enrolled.map { it.id }.toSet(),
+                viewModel.uiState.value.allStudents.map { it.id }.toSet()
+            )
+
+            repo.toggleClass(10)
+            advanceUntilIdle()
+
+            assertEquals(emptySet<Int>(), viewModel.uiState.value.selectedClassIds)
+            assertEquals(
+                unassigned.map { it.id }.toSet(),
+                viewModel.uiState.value.allStudents.map { it.id }.toSet()
+            )
+        }
+
+    @Test
+    fun `ToggleClassFilter event delegates to repository`() =
+        runTest {
+            val repo = ClassFilterRepositoryImpl()
+
+            createViewModel(repo)
+            advanceUntilIdle()
+
+            viewModel.onEvent(ReportScreenEvent.ToggleClassFilter(10))
+            advanceUntilIdle()
+
+            assertEquals(setOf(10), viewModel.uiState.value.selectedClassIds)
         }
 }

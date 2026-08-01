@@ -6,12 +6,13 @@ import androidx.lifecycle.viewModelScope
 import dev.nenoeldeeb.education.absencerecord.R
 import dev.nenoeldeeb.education.absencerecord.domain.models.SortType
 import dev.nenoeldeeb.education.absencerecord.domain.models.Student
+import dev.nenoeldeeb.education.absencerecord.domain.repositories.ClassFilterRepository
 import dev.nenoeldeeb.education.absencerecord.domain.usecases.AttendanceUseCases
 import dev.nenoeldeeb.education.absencerecord.domain.usecases.ClassManagementUseCases
 import dev.nenoeldeeb.education.absencerecord.domain.usecases.ReportUseCases
 import dev.nenoeldeeb.education.absencerecord.domain.usecases.StudentManagementUseCases
 import dev.nenoeldeeb.education.absencerecord.presentation.utils.UiText
-import dev.nenoeldeeb.education.absencerecord.presentation.utils.applyClassFilter
+import dev.nenoeldeeb.education.absencerecord.presentation.utils.applyMultiClassFilter
 import dev.nenoeldeeb.education.absencerecord.presentation.utils.toUiText
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -34,7 +35,8 @@ class ReportViewModel(
     private val studentManagementUseCases: StudentManagementUseCases,
     private val attendanceUseCases: AttendanceUseCases,
     private val reportUseCases: ReportUseCases,
-    private val classManagementUseCases: ClassManagementUseCases
+    private val classManagementUseCases: ClassManagementUseCases,
+    private val classFilterRepository: ClassFilterRepository
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(ReportScreenState())
     val uiState: StateFlow<ReportScreenState> = _uiState.asStateFlow()
@@ -47,6 +49,20 @@ class ReportViewModel(
         initializeClasses()
         initializeAvailableMonths()
         initializeStudentHistory()
+        initializeClassFilterObserver()
+    }
+
+    private fun initializeClassFilterObserver() {
+        viewModelScope.launch {
+            classFilterRepository.selectedClassIds.collectLatest { ids ->
+                _uiState.update { state ->
+                    state.copy(
+                        selectedClassIds = ids,
+                        allStudents = rawStudents.applyMultiClassFilter(ids)
+                    )
+                }
+            }
+        }
     }
 
     private fun initializeStudents() {
@@ -64,8 +80,8 @@ class ReportViewModel(
                     _uiState.update { state ->
                         state.copy(
                             allStudents =
-                                students.applyClassFilter(
-                                    state.selectedClassFilter
+                                students.applyMultiClassFilter(
+                                    classFilterRepository.selectedClassIds.value
                                 )
                         )
                     }
@@ -165,14 +181,9 @@ class ReportViewModel(
 
             is ReportScreenEvent.ToggleMonthDropdown -> _uiState.update { it.copy(monthDropdownExpanded = event.expanded) }
 
-            is ReportScreenEvent.SelectClassFilter ->
-                _uiState.update { state ->
-                    state.copy(
-                        selectedClassFilter = event.filter,
-                        classDropdownExpanded = false,
-                        allStudents = rawStudents.applyClassFilter(event.filter)
-                    )
-                }
+            is ReportScreenEvent.ToggleClassFilter -> {
+                classFilterRepository.toggleClass(event.classId)
+            }
 
             is ReportScreenEvent.ToggleClassFilterVisibility ->
                 _uiState.update {

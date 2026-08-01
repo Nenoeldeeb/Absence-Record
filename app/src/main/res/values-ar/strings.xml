@@ -190,8 +190,6 @@
     <string name="day_short_friday">ج</string>
     <string name="day_short_saturday">س</string>
     <string name="day_short_sunday">ح</string>
-    <string name="class_filter_all">كل الصفوف</string>
-    <string name="class_filter_unassigned">غير مسجل</string>
     <string name="class_filter_label">صفِّ الصفوف</string>
     <string name="manage_classes_title">إدارة الصفوف</string>
     <string name="new_class_label">اسم صف جديد</string>

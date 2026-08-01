@@ -1,5 +1,6 @@
 package dev.nenoeldeeb.education.absencerecord.presentation.screens.calendar
 
+import dev.nenoeldeeb.education.absencerecord.data.repositories.ClassFilterRepositoryImpl
 import dev.nenoeldeeb.education.absencerecord.domain.models.Student
 import dev.nenoeldeeb.education.absencerecord.domain.models.StudentClass
 import dev.nenoeldeeb.education.absencerecord.domain.usecases.ClassManagementUseCases
@@ -46,7 +47,13 @@ class CalendarViewModelClampingTest : CalendarViewModelTestBase() {
             coEvery { classManagementUseCases.getAllClassesUseCase() } returns flowOf(Result.success(classes))
             coEvery { getAttendanceForDateUseCase(date) } returns flowOf(Result.success(attendance))
 
-            viewModel = CalendarViewModel(attendanceUseCases, studentManagementUseCases, classManagementUseCases)
+            viewModel =
+                CalendarViewModel(
+                    attendanceUseCases,
+                    studentManagementUseCases,
+                    classManagementUseCases,
+                    ClassFilterRepositoryImpl()
+                )
             advanceUntilIdle()
 
             viewModel.onEvent(CalendarScreenEvent.SelectDateForDialog(date))
@@ -90,7 +97,13 @@ class CalendarViewModelClampingTest : CalendarViewModelTestBase() {
             coEvery { classManagementUseCases.getAllClassesUseCase() } returns flowOf(Result.success(classes))
             coEvery { getAttendanceForDateUseCase(date) } returns flowOf(Result.success(attendance))
 
-            viewModel = CalendarViewModel(attendanceUseCases, studentManagementUseCases, classManagementUseCases)
+            viewModel =
+                CalendarViewModel(
+                    attendanceUseCases,
+                    studentManagementUseCases,
+                    classManagementUseCases,
+                    ClassFilterRepositoryImpl()
+                )
             advanceUntilIdle()
 
             viewModel.onEvent(CalendarScreenEvent.SelectDateForDialog(date))
@@ -130,7 +143,13 @@ class CalendarViewModelClampingTest : CalendarViewModelTestBase() {
             coEvery { classManagementUseCases.getAllClassesUseCase() } returns flowOf(Result.success(classes))
             coEvery { getAttendanceForDateUseCase(date) } returns flowOf(Result.success(attendance))
 
-            viewModel = CalendarViewModel(attendanceUseCases, studentManagementUseCases, classManagementUseCases)
+            viewModel =
+                CalendarViewModel(
+                    attendanceUseCases,
+                    studentManagementUseCases,
+                    classManagementUseCases,
+                    ClassFilterRepositoryImpl()
+                )
             advanceUntilIdle()
 
             viewModel.onEvent(CalendarScreenEvent.SelectDateForDialog(date))

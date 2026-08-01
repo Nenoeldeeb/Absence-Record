@@ -9,7 +9,7 @@ Absence Record is a comprehensive Android application designed to streamline stu
 ## Features
 
 - **Student Management**: Efficiently manage student profiles. Facilitates adding new students, editing existing details with support for photos and personal information, and viewing a comprehensive list of all students.
-- **Calendar & Attendance Tracking**: A visual calendar interface designed for easy attendance recording. Allows quick toggling of student presence or absence for specific dates directly from a calendar view. The attendance dialog includes a multi-select class filter with checkboxes for filtering students by one or more classes, with dynamic count updates and attendance clamping.
+- **Calendar & Attendance Tracking**: A visual calendar interface designed for easy attendance recording. Allows quick toggling of student presence or absence for specific dates directly from a calendar view. The attendance dialog includes a shared multi-select class filter (also used on the Report and Students screens) with checkboxes for filtering students by one or more classes, with dynamic count updates and attendance clamping.
 - **Comprehensive Reporting**: Generate detailed attendance reports to analyze student attendance trends over custom date ranges. Reports help in identifying patterns and maintaining accurate records.
 - **Data Import/Export**: Robust data management capabilities allowing users to export database records for backup purposes and import them to restore data or migrate between devices. Support for JSON format ensures compatibility.
 
@@ -36,6 +36,7 @@ This project leverages the latest tools and libraries in the Android ecosystem t
 - **Clean Architecture**: The codebase is strictly separated into Presentation, Domain, and Data layers to ensure testability, maintainability, and independence of frameworks.
 - **MVI (Model-View-Intent)**: Used for state management in the Presentation layer by wrapping them in a single UiState data class and for handling side effects by wrapping them in a sealed interface.
 - **Repository Pattern**: Abstracts the data layer, providing a clean API for the domain layer to access data irrespective of the source (Database, API, etc.).
+- **Synchronized Class Filtering**: A shared `ClassFilterRepository` (domain/repositories) backed by `ClassFilterRepositoryImpl` (data/repositories) holds an in-memory `selectedClassIds: StateFlow<Set<Int>>` (emptySet by default) that keeps the multi-select `ClassCheckboxFilter` in sync across the Calendar attendance dialog, Report, and Students screens. An empty selection shows unassigned students only; checked classes show enrolled students in those classes; there is no "Select All" entry.
 - **SOLID Principles**: Adherence to key object-oriented design principles (SRP, OCP, LSP, ISP, DIP) for robust and scalable code.
 - **Accessibility**: All user-facing composables must be accessible — content descriptions, 48dp touch targets, sufficient color contrast, and TalkBack compatibility.
 - **UDF (Unidirectional Data Flow)**: Ensures consistent state management within the Compose UI, where state flows down and events flow up.

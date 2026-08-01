@@ -22,8 +22,6 @@
     <string name="student_not_selected">%1$s, not selected</string>
     <string name="action_select_all">Select all</string>
     <string name="action_deselect_all">Deselect all</string>
-    <string name="class_filter_all">All Classes</string>
-    <string name="class_filter_unassigned">Unassigned</string>
     <string name="class_filter_label">Class Filter</string>
     <string name="manage_classes_title">Manage Classes</string>
     <string name="new_class_label">New class name</string>

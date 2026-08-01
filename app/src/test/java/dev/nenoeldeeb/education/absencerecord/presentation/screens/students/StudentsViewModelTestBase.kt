@@ -1,8 +1,11 @@
 package dev.nenoeldeeb.education.absencerecord.presentation.screens.students
 
 import dev.nenoeldeeb.education.absencerecord.MainDispatcherRule
+import dev.nenoeldeeb.education.absencerecord.data.repositories.ClassFilterRepositoryImpl
+import dev.nenoeldeeb.education.absencerecord.domain.repositories.ClassFilterRepository
 import dev.nenoeldeeb.education.absencerecord.domain.usecases.ClassManagementUseCases
 import dev.nenoeldeeb.education.absencerecord.domain.usecases.StudentManagementUseCases
+import dev.nenoeldeeb.education.absencerecord.domain.usecases.classes.DeleteClassUseCase
 import dev.nenoeldeeb.education.absencerecord.domain.usecases.student.AddStudentUseCase
 import dev.nenoeldeeb.education.absencerecord.domain.usecases.student.DeleteStudentsUseCase
 import dev.nenoeldeeb.education.absencerecord.domain.usecases.student.GetAllStudentsUseCase
@@ -15,6 +18,7 @@ import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.dele
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flowOf
 import org.junit.jupiter.api.extension.RegisterExtension
 
@@ -38,6 +42,7 @@ open class StudentsViewModelTestBase {
     protected lateinit var importExportDelegate: ImportExportDelegate
     protected lateinit var viewModel: StudentsViewModel
     protected lateinit var classManagementUseCases: ClassManagementUseCases
+    protected lateinit var deleteClassUseCase: DeleteClassUseCase
 
     fun commonSetUp() {
         addStudentUseCase = mockk(relaxed = true)
@@ -61,16 +66,26 @@ open class StudentsViewModelTestBase {
         importExportDelegate = ImportExportDelegate()
 
         classManagementUseCases = mockk<ClassManagementUseCases>(relaxed = true)
+        deleteClassUseCase = mockk(relaxed = true)
+        every { classManagementUseCases.deleteClassUseCase } returns deleteClassUseCase
         every { classManagementUseCases.getAllClassesUseCase() } returns flowOf(Result.success(emptyList()))
     }
 
-    protected fun createViewModel() {
+    protected fun createViewModel(classFilterRepository: ClassFilterRepository = mockk(relaxed = true)) {
+        val repository =
+            if (classFilterRepository is ClassFilterRepositoryImpl) {
+                classFilterRepository
+            } else {
+                every { classFilterRepository.selectedClassIds } returns MutableStateFlow(emptySet())
+                classFilterRepository
+            }
         viewModel =
             StudentsViewModel(
                 studentManagementUseCases,
                 classManagementUseCases,
                 selectionDelegate,
-                importExportDelegate
+                importExportDelegate,
+                classFilterRepository = repository
             )
     }
 }

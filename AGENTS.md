@@ -35,7 +35,10 @@
 - **Strings**: Use `strings.xml` (with `values-ar/` support) and the `UiText` wrapper state. NO hardcoded strings.
 - **Serialization**: Use `kotlinx.serialization` (`@Serializable`).
 - **DI**: Manual via `AppContainer` and `AppViewModelProvider`.
-- **Class Filter Pattern**: Calendar screen uses multi-select class filter (`Set<Int>`) inside the attendance dialog. Other screens (Report, Students) use single-select `ClassFilter` via `ClassFilterDropdown`. Multi-select dropdown is custom (checkboxes) and not shared.
+- **Class Filter Pattern**: Unified multi-select class filter shared across Calendar (attendance dialog), Report, and Students screens.
+  - `ClassFilterRepository` (domain/repositories/) + `ClassFilterRepositoryImpl` (data/repositories/) share an in-memory `selectedClassIds: StateFlow<Set<Int>>` (default `emptySet()`) observed by all three ViewModels.
+  - `ClassCheckboxFilter` (presentation/screens/components/) is the shared multi-select checkbox dropdown used by all three screens.
+  - Filter semantics: empty set = unassigned students only; checked classes = enrolled students in those classes; no "Select All" entry.
 
 ## Testing (JUnit 6 + MockK)
 
@@ -57,10 +60,13 @@ specs/004-unified-error-handling/plan.md
 <!-- SPECKIT END -->
 
 ## Active Technologies
+
 - Kotlin 2.4.0+ / Kotlin JVM 25 + Jetpack Compose, Room, Kotlinx Datetime, Kotlinx Serialization (001-refactor-students-viewmodel)
 - Room SQLite database (001-refactor-students-viewmodel)
 
 ## Recent Changes
+
+- 005-unified-class-filter: Unified class filter via `ClassFilterRepository`/`ClassFilterRepositoryImpl` (in-memory `selectedClassIds: StateFlow<Set<Int>>`), shared `ClassCheckboxFilter` across Calendar/Report/Students, and removed `ClassFilterDropdown`/`ClassFilter`.
 - 002-class-filter-refactor: Moved class filter from top bar into attendance dialog as multi-select checkbox dropdown. Added `applyMultiClassFilter` extension, `ClassCheckboxFilter` composable, `Set<Int>` filter state, dynamic count, and attendance count clamping. Removed old filter icon and `ClassFilterDropdown` from calendar screen.
 - 001-refactor-students-viewmodel: Added Kotlin 2.4.0+ / Kotlin JVM 25 + Jetpack Compose, Room, Kotlinx Datetime, Kotlinx Serialization
 - 003-resolve-constitution-violations: Fixed 10 file-size violations + 6 architecture/accessibility violations. Added handler classes (`handlers/`), DayCell extraction, test base class pattern, and split use cases.

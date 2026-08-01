@@ -3,7 +3,6 @@ package dev.nenoeldeeb.education.absencerecord.presentation.screens.students
 import android.net.Uri
 import dev.nenoeldeeb.education.absencerecord.domain.models.Student
 import dev.nenoeldeeb.education.absencerecord.domain.models.StudentClass
-import dev.nenoeldeeb.education.absencerecord.presentation.screens.components.ClassFilter
 
 sealed interface StudentsScreenEvent {
     // UI Interactions
@@ -49,7 +48,7 @@ sealed interface StudentsScreenEvent {
         StudentsScreenEvent
 
     // Class management
-    data class SelectClassFilter(val filter: ClassFilter) : StudentsScreenEvent
+    data class ToggleClassFilter(val classId: Int) : StudentsScreenEvent
 
     data object ToggleClassFilterVisibility : StudentsScreenEvent
 

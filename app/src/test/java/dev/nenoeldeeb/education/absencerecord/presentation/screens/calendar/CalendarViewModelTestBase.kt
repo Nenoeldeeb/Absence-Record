@@ -1,6 +1,8 @@
 package dev.nenoeldeeb.education.absencerecord.presentation.screens.calendar
 
 import dev.nenoeldeeb.education.absencerecord.MainDispatcherRule
+import dev.nenoeldeeb.education.absencerecord.data.repositories.ClassFilterRepositoryImpl
+import dev.nenoeldeeb.education.absencerecord.domain.repositories.ClassFilterRepository
 import dev.nenoeldeeb.education.absencerecord.domain.usecases.AttendanceUseCases
 import dev.nenoeldeeb.education.absencerecord.domain.usecases.ClassManagementUseCases
 import dev.nenoeldeeb.education.absencerecord.domain.usecases.StudentManagementUseCases
@@ -44,12 +46,13 @@ open class CalendarViewModelTestBase {
         studentManagementUseCases = mockk(relaxed = true)
     }
 
-    protected fun createViewModel() {
+    protected fun createViewModel(classFilterRepository: ClassFilterRepository = ClassFilterRepositoryImpl()) {
         viewModel =
             CalendarViewModel(
                 attendanceUseCases,
                 studentManagementUseCases,
-                mockk<ClassManagementUseCases>(relaxed = true)
+                mockk<ClassManagementUseCases>(relaxed = true),
+                classFilterRepository
             )
     }
 }
