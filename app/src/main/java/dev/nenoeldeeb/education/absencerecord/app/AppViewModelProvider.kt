@@ -15,13 +15,15 @@ object AppViewModelProvider {
                 CalendarViewModel(
                     attendanceUseCases = app().appContainer.attendanceUseCases,
                     studentManagementUseCases = app().appContainer.studentManagementUseCases,
-                    classManagementUseCases = app().appContainer.classManagementUseCases
+                    classManagementUseCases = app().appContainer.classManagementUseCases,
+                    classFilterRepository = app().appContainer.classFilterRepository
                 )
             }
             initializer {
                 StudentsViewModel(
                     studentManagementUseCases = app().appContainer.studentManagementUseCases,
-                    classManagementUseCases = app().appContainer.classManagementUseCases
+                    classManagementUseCases = app().appContainer.classManagementUseCases,
+                    classFilterRepository = app().appContainer.classFilterRepository
                 )
             }
             initializer {
@@ -29,7 +31,8 @@ object AppViewModelProvider {
                     studentManagementUseCases = app().appContainer.studentManagementUseCases,
                     attendanceUseCases = app().appContainer.attendanceUseCases,
                     reportUseCases = app().appContainer.reportUseCases,
-                    classManagementUseCases = app().appContainer.classManagementUseCases
+                    classManagementUseCases = app().appContainer.classManagementUseCases,
+                    classFilterRepository = app().appContainer.classFilterRepository
                 )
             }
         }

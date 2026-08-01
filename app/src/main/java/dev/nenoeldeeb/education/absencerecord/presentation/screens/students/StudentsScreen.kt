@@ -7,6 +7,7 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -23,6 +24,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
@@ -33,7 +35,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import dev.nenoeldeeb.education.absencerecord.R
 import dev.nenoeldeeb.education.absencerecord.app.AppViewModelProvider
-import dev.nenoeldeeb.education.absencerecord.presentation.screens.components.ClassFilterDropdown
+import dev.nenoeldeeb.education.absencerecord.presentation.screens.components.ClassCheckboxFilter
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.components.EmptyStateMessage
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.components.StudentList
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.components.MultiSelectionHeader
@@ -162,42 +164,30 @@ fun StudentsScreen(
                 })
 
                 AnimatedVisibility(uiState.isClassFilterVisible) {
-                    // Class filter row with edit icon
-                    ClassFilterDropdown(
-                        selectedFilter = uiState.selectedClassFilter,
-                        availableClasses = uiState.availableClasses,
-                        expanded = uiState.classDropdownExpanded,
-                        onExpandedChange = {
-                            viewModel.onEvent(StudentsScreenEvent.ToggleClassDropdown(it))
-                        },
-                        onFilterSelected = {
-                            viewModel.onEvent(StudentsScreenEvent.SelectClassFilter(it))
-                        },
-                        modifier =
-                            Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = 16.dp, vertical = 8.dp),
-                        trailingIcon = {
-                            IconButton(
-                                onClick = {
-                                    viewModel.onEvent(
-                                        StudentsScreenEvent.ShowManageClassesDialog(
-                                            true
-                                        )
-                                    )
-                                }
-                            ) {
-                                Icon(
-                                    imageVector =
-                                        ImageVector.vectorResource(
-                                            R.drawable.outline_edit_24
-                                        ),
-                                    contentDescription = stringResource(R.string.manage_classes_title),
-                                    modifier = Modifier.size(24.dp)
-                                )
-                            }
+                    Row(
+                        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        ClassCheckboxFilter(
+                            availableClasses = uiState.availableClasses,
+                            selectedClassIds = uiState.selectedClassIds,
+                            expanded = uiState.classDropdownExpanded,
+                            onExpandedChange = {
+                                viewModel.onEvent(StudentsScreenEvent.ToggleClassDropdown(it))
+                            },
+                            onClassToggle = { classId -> viewModel.onEvent(StudentsScreenEvent.ToggleClassFilter(classId)) },
+                            modifier = Modifier.weight(1f)
+                        )
+                        IconButton(
+                            onClick = { viewModel.onEvent(StudentsScreenEvent.ShowManageClassesDialog(true)) }
+                        ) {
+                            Icon(
+                                imageVector = ImageVector.vectorResource(R.drawable.outline_edit_24),
+                                contentDescription = stringResource(R.string.manage_classes_title),
+                                modifier = Modifier.size(24.dp)
+                            )
                         }
-                    )
+                    }
                 }
             }
 

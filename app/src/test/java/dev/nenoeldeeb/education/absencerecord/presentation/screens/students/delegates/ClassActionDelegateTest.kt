@@ -7,7 +7,6 @@ import dev.nenoeldeeb.education.absencerecord.domain.usecases.ClassManagementUse
 import dev.nenoeldeeb.education.absencerecord.domain.usecases.classes.AddClassUseCase
 import dev.nenoeldeeb.education.absencerecord.domain.usecases.classes.DeleteClassUseCase
 import dev.nenoeldeeb.education.absencerecord.domain.usecases.classes.UpdateClassUseCase
-import dev.nenoeldeeb.education.absencerecord.presentation.screens.components.ClassFilter
 import dev.nenoeldeeb.education.absencerecord.presentation.utils.UiText
 import io.mockk.coEvery
 import io.mockk.every
@@ -130,23 +129,20 @@ class ClassActionDelegateTest {
         }
 
     @Test
-    fun `onDeletedClassFilterFallback with matching filter returns All`() {
-        val studentClass = StudentClass(id = 1, name = "Class A")
-        val filter = ClassFilter.ByClass(studentClass)
+    fun `onDeletedClassFilterFallback removes deleted class id from set`() {
+        val deletedClass = StudentClass(id = 1, name = "Class A")
 
-        val result = delegate.onDeletedClassFilterFallback(filter, studentClass)
+        val result = delegate.onDeletedClassFilterFallback(setOf(1, 2), deletedClass)
 
-        assertEquals(ClassFilter.All, result)
+        assertEquals(setOf(2), result)
     }
 
     @Test
-    fun `onDeletedClassFilterFallback with non-matching filter returns unchanged`() {
+    fun `onDeletedClassFilterFallback with non-selected class returns set unchanged`() {
         val deletedClass = StudentClass(id = 1, name = "Class A")
-        val differentClass = StudentClass(id = 2, name = "Class B")
-        val filter = ClassFilter.ByClass(differentClass)
 
-        val result = delegate.onDeletedClassFilterFallback(filter, deletedClass)
+        val result = delegate.onDeletedClassFilterFallback(setOf(2, 3), deletedClass)
 
-        assertEquals(filter, result)
+        assertEquals(setOf(2, 3), result)
     }
 }

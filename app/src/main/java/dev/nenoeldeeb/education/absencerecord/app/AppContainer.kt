@@ -3,6 +3,7 @@ package dev.nenoeldeeb.education.absencerecord.app
 import android.content.Context
 import dev.nenoeldeeb.education.absencerecord.data.datasources.local.AppDatabase
 import dev.nenoeldeeb.education.absencerecord.data.repositories.AttendanceRepositoryImpl
+import dev.nenoeldeeb.education.absencerecord.data.repositories.ClassFilterRepositoryImpl
 import dev.nenoeldeeb.education.absencerecord.data.repositories.ReportRepositoryImpl
 import dev.nenoeldeeb.education.absencerecord.data.repositories.StorageRepositoryImpl
 import dev.nenoeldeeb.education.absencerecord.data.repositories.StudentClassRepositoryImpl
@@ -10,6 +11,7 @@ import dev.nenoeldeeb.education.absencerecord.data.repositories.StudentRepositor
 import dev.nenoeldeeb.education.absencerecord.data.utils.DefaultDispatcherProvider
 import dev.nenoeldeeb.education.absencerecord.data.utils.JsonSerializationService
 import dev.nenoeldeeb.education.absencerecord.domain.repositories.AttendanceRepository
+import dev.nenoeldeeb.education.absencerecord.domain.repositories.ClassFilterRepository
 import dev.nenoeldeeb.education.absencerecord.domain.repositories.ReportRepository
 import dev.nenoeldeeb.education.absencerecord.domain.repositories.StorageRepository
 import dev.nenoeldeeb.education.absencerecord.domain.repositories.StudentClassRepository
@@ -26,6 +28,7 @@ interface AppContainer {
     val attendanceUseCases: AttendanceUseCases
     val reportUseCases: ReportUseCases
     val classManagementUseCases: ClassManagementUseCases
+    val classFilterRepository: ClassFilterRepository
 }
 
 class DefaultAppContainer(private val context: Context) : AppContainer {
@@ -51,6 +54,10 @@ class DefaultAppContainer(private val context: Context) : AppContainer {
 
     private val studentClassRepository: StudentClassRepository by lazy {
         StudentClassRepositoryImpl(AppDatabase.getDatabase(context).studentClassDao())
+    }
+
+    override val classFilterRepository: ClassFilterRepository by lazy {
+        ClassFilterRepositoryImpl()
     }
 
     override val studentManagementUseCases: StudentManagementUseCases by lazy {

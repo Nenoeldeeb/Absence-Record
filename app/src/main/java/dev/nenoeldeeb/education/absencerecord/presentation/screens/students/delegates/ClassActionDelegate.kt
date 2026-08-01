@@ -4,7 +4,6 @@ import dev.nenoeldeeb.education.absencerecord.R
 import dev.nenoeldeeb.education.absencerecord.domain.models.StudentClass
 import dev.nenoeldeeb.education.absencerecord.domain.models.StudentError
 import dev.nenoeldeeb.education.absencerecord.domain.usecases.ClassManagementUseCases
-import dev.nenoeldeeb.education.absencerecord.presentation.screens.components.ClassFilter
 import dev.nenoeldeeb.education.absencerecord.presentation.utils.UiText
 
 class ClassActionDelegate(
@@ -53,13 +52,7 @@ class ClassActionDelegate(
     }
 
     fun onDeletedClassFilterFallback(
-        currentFilter: ClassFilter,
+        currentClassIds: Set<Int>,
         deletedClass: StudentClass
-    ): ClassFilter {
-        return if (currentFilter is ClassFilter.ByClass && currentFilter.studentClass.id == deletedClass.id) {
-            ClassFilter.All
-        } else {
-            currentFilter
-        }
-    }
+    ): Set<Int> = currentClassIds - deletedClass.id
 }
