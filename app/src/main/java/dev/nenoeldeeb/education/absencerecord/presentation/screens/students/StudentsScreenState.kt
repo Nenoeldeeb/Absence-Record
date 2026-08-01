@@ -4,7 +4,6 @@ import androidx.compose.runtime.Stable
 import dev.nenoeldeeb.education.absencerecord.domain.models.ParsedStudentImportData
 import dev.nenoeldeeb.education.absencerecord.domain.models.Student
 import dev.nenoeldeeb.education.absencerecord.domain.models.StudentClass
-import dev.nenoeldeeb.education.absencerecord.presentation.screens.components.ClassFilter
 import dev.nenoeldeeb.education.absencerecord.presentation.utils.UiText
 
 @Stable
@@ -14,7 +13,7 @@ data class StudentsScreenState(
     val availableClasses: List<StudentClass> = emptyList(),
     val newStudentName: String = "",
     // Class filter
-    val selectedClassFilter: ClassFilter = ClassFilter.All,
+    val selectedClassIds: Set<Int> = emptySet(),
     val classDropdownExpanded: Boolean = false,
     val isClassFilterVisible: Boolean = false,
     val showManageClassesDialog: Boolean = false,

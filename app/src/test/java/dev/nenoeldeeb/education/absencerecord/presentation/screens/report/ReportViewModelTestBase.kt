@@ -2,6 +2,8 @@ package dev.nenoeldeeb.education.absencerecord.presentation.screens.report
 
 import android.net.Uri
 import dev.nenoeldeeb.education.absencerecord.MainDispatcherRule
+import dev.nenoeldeeb.education.absencerecord.data.repositories.ClassFilterRepositoryImpl
+import dev.nenoeldeeb.education.absencerecord.domain.repositories.ClassFilterRepository
 import dev.nenoeldeeb.education.absencerecord.domain.usecases.AttendanceUseCases
 import dev.nenoeldeeb.education.absencerecord.domain.usecases.ClassManagementUseCases
 import dev.nenoeldeeb.education.absencerecord.domain.usecases.ReportUseCases
@@ -14,6 +16,7 @@ import io.mockk.mockk
 import io.mockk.mockkStatic
 import io.mockk.unmockkStatic
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.MutableStateFlow
 import org.junit.jupiter.api.extension.RegisterExtension
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -55,13 +58,22 @@ open class ReportViewModelTestBase {
         unmockkStatic(Uri::class)
     }
 
-    protected fun createViewModel() {
+    protected fun createViewModel(classFilterRepository: ClassFilterRepository = mockk(relaxed = true)) {
+        val repository =
+            if (classFilterRepository is ClassFilterRepositoryImpl) {
+                classFilterRepository
+            } else {
+                classFilterRepository.also { repo ->
+                    every { repo.selectedClassIds } returns MutableStateFlow(emptySet())
+                }
+            }
         viewModel =
             ReportViewModel(
                 studentManagementUseCases,
                 attendanceUseCases,
                 reportUseCases,
-                mockk<ClassManagementUseCases>(relaxed = true)
+                mockk<ClassManagementUseCases>(relaxed = true),
+                repository
             )
     }
 }

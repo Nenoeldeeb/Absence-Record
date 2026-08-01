@@ -3,6 +3,7 @@ package dev.nenoeldeeb.education.absencerecord.presentation.screens.students
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dev.nenoeldeeb.education.absencerecord.domain.models.Student
+import dev.nenoeldeeb.education.absencerecord.domain.repositories.ClassFilterRepository
 import dev.nenoeldeeb.education.absencerecord.domain.usecases.ClassManagementUseCases
 import dev.nenoeldeeb.education.absencerecord.domain.usecases.StudentManagementUseCases
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.StudentsScreenEvent.AddClass
@@ -11,11 +12,11 @@ import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.Stud
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.StudentsScreenEvent.DeleteClass
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.StudentsScreenEvent.DismissBulkDeleteDialog
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.StudentsScreenEvent.RenameClass
-import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.StudentsScreenEvent.SelectClassFilter
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.StudentsScreenEvent.ShowBulkDeleteDialog
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.StudentsScreenEvent.ShowManageClassesDialog
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.StudentsScreenEvent.ShowStudentDialog
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.StudentsScreenEvent.ToggleClassDropdown
+import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.StudentsScreenEvent.ToggleClassFilter
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.StudentsScreenEvent.ToggleClassFilterVisibility
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.StudentsScreenEvent.ToggleSelectionMode
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.StudentsScreenEvent.ToggleStudentSelection
@@ -28,7 +29,7 @@ import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.dele
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.delegates.StudentActionDelegate
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.handlers.BulkActionHandler
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.handlers.ImportExportHandler
-import dev.nenoeldeeb.education.absencerecord.presentation.utils.applyClassFilter
+import dev.nenoeldeeb.education.absencerecord.presentation.utils.applyMultiClassFilter
 import dev.nenoeldeeb.education.absencerecord.presentation.utils.toUiText
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -48,7 +49,8 @@ open class StudentsViewModel(
     private val classActionDelegate: ClassActionDelegate = ClassActionDelegate(classManagementUseCases),
     private val importExportHandler: ImportExportHandler =
         ImportExportHandler(studentActionDelegate, importExportDelegate),
-    private val bulkActionHandler: BulkActionHandler = BulkActionHandler(studentActionDelegate)
+    private val bulkActionHandler: BulkActionHandler = BulkActionHandler(studentActionDelegate),
+    private val classFilterRepository: ClassFilterRepository
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(StudentsScreenState())
     val uiState: StateFlow<StudentsScreenState> = _uiState.asStateFlow()
@@ -56,6 +58,7 @@ open class StudentsViewModel(
 
     init {
         loadData()
+        observeClassFilter()
     }
 
     private fun loadData() {
@@ -68,7 +71,12 @@ open class StudentsViewModel(
                     studentsResult.onSuccess { students ->
                         rawStudents = students
                         _uiState.update { state ->
-                            state.copy(allStudents = students.applyClassFilter(state.selectedClassFilter))
+                            state.copy(
+                                allStudents =
+                                    students.applyMultiClassFilter(
+                                        classFilterRepository.selectedClassIds.value
+                                    )
+                            )
                         }
                     }.onFailure { e ->
                         _uiState.update {
@@ -77,6 +85,19 @@ open class StudentsViewModel(
                     }
                     classesResult.onSuccess { classes -> _uiState.update { it.copy(availableClasses = classes) } }
                 }
+        }
+    }
+
+    private fun observeClassFilter() {
+        viewModelScope.launch {
+            classFilterRepository.selectedClassIds.collectLatest { ids ->
+                _uiState.update { state ->
+                    state.copy(
+                        selectedClassIds = ids,
+                        allStudents = rawStudents.applyMultiClassFilter(ids)
+                    )
+                }
+            }
         }
     }
 
@@ -179,14 +200,9 @@ open class StudentsViewModel(
 
             is ShowBulkDeleteDialog -> _uiState.update { it.copy(showBulkDeleteDialog = true) }
             is DismissBulkDeleteDialog -> _uiState.update { it.copy(showBulkDeleteDialog = false) }
-            is SelectClassFilter ->
-                _uiState.update { state ->
-                    state.copy(
-                        selectedClassFilter = event.filter,
-                        classDropdownExpanded = false,
-                        allStudents = rawStudents.applyClassFilter(event.filter)
-                    )
-                }
+            is ToggleClassFilter -> {
+                classFilterRepository.toggleClass(event.classId)
+            }
 
             is ToggleClassFilterVisibility -> _uiState.update { it.copy(isClassFilterVisible = !it.isClassFilterVisible) }
             is ToggleClassDropdown -> _uiState.update { it.copy(classDropdownExpanded = event.expanded) }
@@ -209,18 +225,13 @@ open class StudentsViewModel(
                 viewModelScope.launch {
                     classActionDelegate.deleteClass(event.studentClass)
                         .onSuccess { toast ->
-                            val newFilter =
+                            val fallback =
                                 classActionDelegate.onDeletedClassFilterFallback(
-                                    _uiState.value.selectedClassFilter,
+                                    _uiState.value.selectedClassIds,
                                     event.studentClass
                                 )
-                            _uiState.update {
-                                it.copy(
-                                    toastMessage = toast,
-                                    selectedClassFilter = newFilter,
-                                    allStudents = rawStudents.applyClassFilter(newFilter)
-                                )
-                            }
+                            classFilterRepository.setSelectedClassIds(fallback)
+                            _uiState.update { it.copy(toastMessage = toast) }
                         }
                         .onFailure { error -> _uiState.update { state -> state.copy(error = error.toUiText()) } }
                 }

@@ -1,7 +1,6 @@
 package dev.nenoeldeeb.education.absencerecord.presentation.screens.report
 
 import dev.nenoeldeeb.education.absencerecord.domain.models.Student
-import dev.nenoeldeeb.education.absencerecord.presentation.screens.components.ClassFilter
 import dev.nenoeldeeb.education.absencerecord.presentation.utils.UiText
 import kotlinx.datetime.LocalDate
 
@@ -34,7 +33,7 @@ sealed interface ReportScreenEvent {
 
     data class ToggleMonthDropdown(val expanded: Boolean) : ReportScreenEvent
 
-    data class SelectClassFilter(val filter: ClassFilter) : ReportScreenEvent
+    data class ToggleClassFilter(val classId: Int) : ReportScreenEvent
 
     data object ToggleClassFilterVisibility : ReportScreenEvent
 

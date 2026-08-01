@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dev.nenoeldeeb.education.absencerecord.domain.models.Student
 import dev.nenoeldeeb.education.absencerecord.domain.models.StudentAttendance
+import dev.nenoeldeeb.education.absencerecord.domain.repositories.ClassFilterRepository
 import dev.nenoeldeeb.education.absencerecord.domain.usecases.AttendanceUseCases
 import dev.nenoeldeeb.education.absencerecord.domain.usecases.ClassManagementUseCases
 import dev.nenoeldeeb.education.absencerecord.domain.usecases.StudentManagementUseCases
@@ -26,7 +27,8 @@ import kotlinx.datetime.LocalDate
 class CalendarViewModel(
     private val attendanceUseCases: AttendanceUseCases,
     private val studentManagementUseCases: StudentManagementUseCases,
-    private val classManagementUseCases: ClassManagementUseCases
+    private val classManagementUseCases: ClassManagementUseCases,
+    private val classFilterRepository: ClassFilterRepository
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(CalendarScreenState())
     val uiState: StateFlow<CalendarScreenState> = _uiState.asStateFlow()
@@ -37,6 +39,7 @@ class CalendarViewModel(
         initializeStudents()
         initializeClasses()
         setupAttendanceListener()
+        observeClassFilter()
     }
 
     private fun initializeStudents() {
@@ -47,7 +50,7 @@ class CalendarViewModel(
                         rawStudents = students
                         _uiState.update { state ->
                             val filteredStudents =
-                                students.applyMultiClassFilter(state.selectedClassIds)
+                                students.applyMultiClassFilter(classFilterRepository.selectedClassIds.value)
                             val visibleIds = filteredStudents.map { it.id }.toSet()
                             state.copy(
                                 allStudents = filteredStudents,
@@ -142,26 +145,24 @@ class CalendarViewModel(
     }
 
     private fun toggleClassSelection(classId: Int) {
+        classFilterRepository.toggleClass(classId)
+    }
+
+    private fun observeClassFilter() {
         viewModelScope.launch {
-            val updatedIds = _uiState.value.selectedClassIds.toMutableSet()
-            if (classId in updatedIds) {
-                updatedIds.remove(classId)
-            } else {
-                updatedIds.add(classId)
-            }
-
-            val filteredStudents = rawStudents.applyMultiClassFilter(updatedIds)
-
-            _uiState.update { state ->
-                val visibleIds = filteredStudents.map { it.id }.toSet()
-                state.copy(
-                    selectedClassIds = updatedIds,
-                    allStudents = filteredStudents,
-                    studentsForSelectedDate =
-                        state.studentsForSelectedDate.filter {
-                            it.studentId in visibleIds
-                        }
-                )
+            classFilterRepository.selectedClassIds.collectLatest { ids ->
+                _uiState.update { state ->
+                    val filteredStudents = rawStudents.applyMultiClassFilter(ids)
+                    val visibleIds = filteredStudents.map { it.id }.toSet()
+                    state.copy(
+                        selectedClassIds = ids,
+                        allStudents = filteredStudents,
+                        studentsForSelectedDate =
+                            state.studentsForSelectedDate.filter {
+                                it.studentId in visibleIds
+                            }
+                    )
+                }
             }
         }
     }

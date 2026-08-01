@@ -29,7 +29,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import dev.nenoeldeeb.education.absencerecord.R
 import dev.nenoeldeeb.education.absencerecord.app.AppViewModelProvider
-import dev.nenoeldeeb.education.absencerecord.presentation.screens.components.ClassFilterDropdown
+import dev.nenoeldeeb.education.absencerecord.presentation.screens.components.ClassCheckboxFilter
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.components.EmptyStateMessage
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.components.StudentList
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.report.components.ReportControls
@@ -146,15 +146,15 @@ fun ReportScreen(
             }
 
             AnimatedVisibility(uiState.isClassFilterVisible) {
-                ClassFilterDropdown(
-                    selectedFilter = uiState.selectedClassFilter,
+                ClassCheckboxFilter(
                     availableClasses = uiState.availableClasses,
+                    selectedClassIds = uiState.selectedClassIds,
                     expanded = uiState.classDropdownExpanded,
                     onExpandedChange = {
                         viewModel.onEvent(ReportScreenEvent.ToggleClassDropdown(it))
                     },
-                    onFilterSelected = {
-                        viewModel.onEvent(ReportScreenEvent.SelectClassFilter(it))
+                    onClassToggle = { classId ->
+                        viewModel.onEvent(ReportScreenEvent.ToggleClassFilter(classId))
                     },
                     modifier =
                         Modifier
