@@ -1,0 +1,442 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-08-01T00:00:00Z",
+  "title": "Design System: Absence Record",
+  "extensions": {
+    "colorMeta": {
+      "daylight-blue": {
+        "role": "primary",
+        "displayName": "Daylight Blue",
+        "canonical": "#0062FF",
+        "tonalRamp": [
+          "#001432",
+          "#002864",
+          "#003C96",
+          "#0050C8",
+          "#0062FF",
+          "#3381FF",
+          "#99C0FF",
+          "#E6F0FF"
+        ]
+      },
+      "on-daylight-blue": {
+        "role": "on-primary",
+        "displayName": "On Daylight Blue",
+        "canonical": "#001432",
+        "tonalRamp": [
+          "#001432",
+          "#002864",
+          "#003C96",
+          "#0050C8",
+          "#0062FF",
+          "#3377FF",
+          "#668FFF",
+          "#99B2FF"
+        ]
+      },
+      "blue-chalk": {
+        "role": "primary-container",
+        "displayName": "Blue Chalk",
+        "canonical": "#66A1FF",
+        "tonalRamp": [
+          "#003C96",
+          "#3381FF",
+          "#66A1FF",
+          "#99C0FF",
+          "#CCE0FF",
+          "#E6F0FF",
+          "#F5F9FF",
+          "#FFFFFF"
+        ]
+      },
+      "deep-blue-chalk": {
+        "role": "primary-container-dark",
+        "displayName": "Deep Blue Chalk",
+        "canonical": "#003C96",
+        "tonalRamp": [
+          "#000A19",
+          "#001432",
+          "#002864",
+          "#003C96",
+          "#0050C8",
+          "#0062FF",
+          "#3377FF",
+          "#668FFF"
+        ]
+      },
+      "amethyst-chalk": {
+        "role": "secondary",
+        "displayName": "Amethyst Chalk",
+        "canonical": "#6E14EB",
+        "tonalRamp": [
+          "#16042F",
+          "#2C085E",
+          "#420C8D",
+          "#5810BC",
+          "#6E14EB",
+          "#9146FF",
+          "#C5A1F7",
+          "#F8EFFF"
+        ]
+      },
+      "on-amethyst-chalk": {
+        "role": "on-secondary",
+        "displayName": "On Amethyst Chalk",
+        "canonical": "#F8EFFF",
+        "tonalRamp": [
+          "#16042F",
+          "#2C085E",
+          "#420C8D",
+          "#5810BC",
+          "#6E14EB",
+          "#9146FF",
+          "#C5A1F7",
+          "#F8EFFF"
+        ]
+      },
+      "spring-chalk": {
+        "role": "tertiary",
+        "displayName": "Spring Chalk",
+        "canonical": "#69FF00",
+        "tonalRamp": [
+          "#143300",
+          "#276600",
+          "#3B9900",
+          "#4ECC00",
+          "#69FF00",
+          "#8BFF37",
+          "#C0FF99",
+          "#F0FFF6"
+        ]
+      },
+      "spring-chalk-deep": {
+        "role": "tertiary-dark",
+        "displayName": "Spring Chalk Deep",
+        "canonical": "#3B9900",
+        "tonalRamp": [
+          "#001400",
+          "#143300",
+          "#275400",
+          "#276600",
+          "#277800",
+          "#3B9900",
+          "#52B300",
+          "#4ECC00"
+        ]
+      },
+      "roll-call-red": {
+        "role": "error",
+        "displayName": "Roll-Call Red",
+        "canonical": "#FF0A00",
+        "tonalRamp": [
+          "#330100",
+          "#660200",
+          "#990300",
+          "#CC0300",
+          "#FF0A00",
+          "#FF4D3F",
+          "#FF9B99",
+          "#FFE6E6"
+        ]
+      },
+      "paper": {
+        "role": "background",
+        "displayName": "Paper",
+        "canonical": "#FFFFFF",
+        "tonalRamp": [
+          "#F2F2F2",
+          "#F5F5F5",
+          "#F8F8F8",
+          "#FAFAFA",
+          "#FCFCFC",
+          "#FDFDFD",
+          "#FEFEFE",
+          "#FFFFFF"
+        ]
+      },
+      "warm-paper": {
+        "role": "surface",
+        "displayName": "Warm Paper",
+        "canonical": "#F2F2F2",
+        "tonalRamp": [
+          "#E6E6E6",
+          "#EDEDED",
+          "#F2F2F2",
+          "#F5F5F5",
+          "#F7F7F7",
+          "#F9F9F9",
+          "#FBFBFB",
+          "#FDFDFD"
+        ]
+      },
+      "ink": {
+        "role": "on-surface",
+        "displayName": "Ink",
+        "canonical": "#1A1A1A",
+        "tonalRamp": [
+          "#0F0F0F",
+          "#1A1A1A",
+          "#242424",
+          "#333333",
+          "#404040",
+          "#4D4D4D",
+          "#666666",
+          "#808080"
+        ]
+      },
+      "graphite": {
+        "role": "outline",
+        "displayName": "Graphite",
+        "canonical": "#666666",
+        "tonalRamp": [
+          "#333333",
+          "#4D4D4D",
+          "#666666",
+          "#737373",
+          "#808080",
+          "#8C8C8C",
+          "#999999",
+          "#A6A6A6"
+        ]
+      },
+      "hairline": {
+        "role": "outline-variant",
+        "displayName": "Hairline",
+        "canonical": "#CCCCCC",
+        "tonalRamp": [
+          "#999999",
+          "#A6A6A6",
+          "#B3B3B3",
+          "#BFBFBF",
+          "#CCCCCC",
+          "#D9D9D9",
+          "#E6E6E6",
+          "#F2F2F2"
+        ]
+      },
+      "night-paper": {
+        "role": "surface-dark",
+        "displayName": "Night Paper",
+        "canonical": "#1A1A1A",
+        "tonalRamp": [
+          "#000000",
+          "#0F0F0F",
+          "#1A1A1A",
+          "#242424",
+          "#333333",
+          "#404040",
+          "#4D4D4D",
+          "#5C5C5C"
+        ]
+      },
+      "on-night-paper": {
+        "role": "on-surface-dark",
+        "displayName": "On Night Paper",
+        "canonical": "#E6E6E6",
+        "tonalRamp": [
+          "#B3B3B3",
+          "#BFBFBF",
+          "#CCCCCC",
+          "#D9D9D9",
+          "#E6E6E6",
+          "#F2F2F2",
+          "#F7F7F7",
+          "#FFFFFF"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Display",
+        "purpose": "Large month-title contexts; rarely used on small screens."
+      },
+      "headline": {
+        "displayName": "Headline",
+        "purpose": "Large modal contexts."
+      },
+      "title": {
+        "displayName": "Title",
+        "purpose": "Screen titles, the month header, sort announcements."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Student names, dialog content, calendar numerals."
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "Button text and dropdown entries."
+      }
+    },
+    "shadows": [],
+    "motion": [
+      {
+        "name": "standard",
+        "value": "cubic-bezier(0.2, 0, 0, 1)",
+        "purpose": "Material 3 standard easing for state transitions (150–300ms)."
+      },
+      {
+        "name": "standard-emphasized",
+        "value": "cubic-bezier(0.2, 0, 0, 1)",
+        "purpose": "Emphasized easing for larger moves such as dialogs and dropdowns."
+      },
+      {
+        "name": "duration-short",
+        "value": "150ms",
+        "purpose": "Press and hover feedback on buttons, day cells, list rows."
+      },
+      {
+        "name": "duration-medium",
+        "value": "300ms",
+        "purpose": "Surface changes and visibility transitions."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "compact",
+        "value": "<600dp",
+        "purpose": "Phone portrait; the primary usage scene. Calendar grid capped at 400dp wide."
+      },
+      {
+        "name": "medium",
+        "value": "600–839dp",
+        "purpose": "Foldables and tablets in portrait."
+      },
+      {
+        "name": "expanded",
+        "value": "≥840dp",
+        "purpose": "Tablets and desktop; calendar scales proportionally to height."
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "The confident action: add, save, sort toggle.",
+      "html": "<button class=\"ds-btn-primary\">Add Student</button>",
+      "css": ".ds-btn-primary { background: #0062FF; color: #001432; font-family: Roboto, sans-serif; font-size: 14px; font-weight: 500; line-height: 20px; letter-spacing: 0.1px; height: 40px; padding: 0 24px; border: none; border-radius: 9999px; cursor: pointer; transition: background 0.15s ease; } .ds-btn-primary:hover { background: #0050C8; } .ds-btn-primary:active { background: #003C96; } .ds-btn-primary:focus-visible { outline: 2px solid #003C96; outline-offset: 2px; }"
+    },
+    {
+      "name": "Outlined Button",
+      "kind": "button",
+      "refersTo": "button-outlined",
+      "description": "The class-filter trigger and secondary actions.",
+      "html": "<button class=\"ds-btn-outlined\">1 class selected</button>",
+      "css": ".ds-btn-outlined { background: transparent; color: #0062FF; font-family: Roboto, sans-serif; font-size: 14px; font-weight: 500; line-height: 20px; letter-spacing: 0.1px; height: 40px; padding: 0 24px; border: 1px solid #666666; border-radius: 9999px; cursor: pointer; transition: background 0.15s ease, border-color 0.15s ease; } .ds-btn-outlined:hover { background: rgba(0, 98, 255, 0.08); border-color: #0062FF; } .ds-btn-outlined:active { background: rgba(0, 98, 255, 0.12); } .ds-btn-outlined:focus-visible { outline: 2px solid #0062FF; outline-offset: 2px; }"
+    },
+    {
+      "name": "Text Button",
+      "kind": "button",
+      "refersTo": "button-text",
+      "description": "Dialog dismissal: Cancel, Close.",
+      "html": "<button class=\"ds-btn-text\">Cancel</button>",
+      "css": ".ds-btn-text { background: transparent; color: #0062FF; font-family: Roboto, sans-serif; font-size: 14px; font-weight: 500; line-height: 20px; letter-spacing: 0.1px; height: 40px; padding: 0 12px; border: none; border-radius: 9999px; cursor: pointer; } .ds-btn-text:hover { background: rgba(0, 98, 255, 0.08); } .ds-btn-text:active { background: rgba(0, 98, 255, 0.12); } .ds-btn-text:focus-visible { outline: 2px solid #0062FF; outline-offset: 2px; }"
+    },
+    {
+      "name": "Day Cell - Default",
+      "kind": "custom",
+      "refersTo": "day-cell",
+      "description": "A blank day on the wall calendar. Tap to open the attendance dialog.",
+      "html": "<div class=\"ds-day\">12</div>",
+      "css": ".ds-day { width: 48px; height: 48px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-family: Roboto, sans-serif; font-size: 16px; color: #1A1A1A; background: transparent; cursor: pointer; transition: background 0.15s ease; } .ds-day:hover { background: rgba(0, 98, 255, 0.08); } .ds-day:focus-visible { outline: 2px solid #0062FF; outline-offset: 2px; }"
+    },
+    {
+      "name": "Day Cell - Today",
+      "kind": "custom",
+      "refersTo": "day-cell-today",
+      "description": "The current day, filled with the primary chalk.",
+      "html": "<div class=\"ds-day-today\">12</div>",
+      "css": ".ds-day-today { width: 48px; height: 48px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-family: Roboto, sans-serif; font-size: 16px; background: #0062FF; color: #001432; cursor: pointer; transition: background 0.15s ease; } .ds-day-today:hover { background: #0050C8; } .ds-day-today:focus-visible { outline: 2px solid #003C96; outline-offset: 2px; }"
+    },
+    {
+      "name": "Day Cell - Marked",
+      "kind": "custom",
+      "refersTo": "day-cell-marked",
+      "description": "A day with attendance recorded, filled with the secondary chalk.",
+      "html": "<div class=\"ds-day-marked\">12</div>",
+      "css": ".ds-day-marked { width: 48px; height: 48px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-family: Roboto, sans-serif; font-size: 16px; background: #6E14EB; color: #F8EFFF; cursor: pointer; transition: background 0.15s ease; } .ds-day-marked:hover { background: #5810BC; } .ds-day-marked:focus-visible { outline: 2px solid #420C8D; outline-offset: 2px; }"
+    },
+    {
+      "name": "Attendance Row - Present",
+      "kind": "custom",
+      "refersTo": "attendance-present-row",
+      "description": "A student marked present: green wash, blue check icon.",
+      "html": "<div class=\"ds-row ds-row-present\"><svg width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"currentColor\" aria-hidden=\"true\"><path d=\"M9.55,17.18 L3.73,11.36 L5.14,9.95 L9.55,14.36 L18.86,5.05 L20.27,6.46 Z\"/></svg><span>Ahmed Khalil</span></div>",
+      "css": ".ds-row { display: flex; align-items: center; gap: 16px; padding: 12px 16px; font-family: Roboto, sans-serif; font-size: 16px; line-height: 24px; color: #1A1A1A; border-bottom: 1px solid #CCCCCC; background: transparent; cursor: pointer; } .ds-row-present { background: rgba(59, 153, 0, 0.5); } .ds-row-present svg { color: #0062FF; flex: none; } .ds-row:hover { background: rgba(0, 98, 255, 0.04); }"
+    },
+    {
+      "name": "Attendance Row - Absent",
+      "kind": "custom",
+      "refersTo": "attendance-absent-row",
+      "description": "A student not yet marked: transparent, gray close icon.",
+      "html": "<div class=\"ds-row\"><svg width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"currentColor\" aria-hidden=\"true\"><path d=\"M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12Z\"/></svg><span>Omar Youssef</span></div>",
+      "css": ".ds-row { display: flex; align-items: center; gap: 16px; padding: 12px 16px; font-family: Roboto, sans-serif; font-size: 16px; line-height: 24px; color: #1A1A1A; border-bottom: 1px solid #CCCCCC; background: transparent; cursor: pointer; } .ds-row svg { color: #666666; flex: none; } .ds-row:hover { background: rgba(0, 98, 255, 0.04); }"
+    },
+    {
+      "name": "List Item - Selected",
+      "kind": "card",
+      "refersTo": "list-item-selected",
+      "description": "A student row in multi-select mode: blue chalk fill, check icon.",
+      "html": "<div class=\"ds-listitem-selected\"><svg width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"currentColor\" aria-hidden=\"true\"><path d=\"M9.55,17.18 L3.73,11.36 L5.14,9.95 L9.55,14.36 L18.86,5.05 L20.27,6.46 Z\"/></svg><span>Layla Hassan</span></div>",
+      "css": ".ds-listitem-selected { display: flex; align-items: center; gap: 16px; padding: 12px 16px; background: #66A1FF; font-family: Roboto, sans-serif; font-size: 16px; line-height: 24px; color: #1A1A1A; border-bottom: 1px solid #CCCCCC; } .ds-listitem-selected svg { color: #0062FF; flex: none; }"
+    },
+    {
+      "name": "Empty State",
+      "kind": "custom",
+      "refersTo": "empty-state",
+      "description": "The quiet, friendly no-content message.",
+      "html": "<div class=\"ds-empty\">No students added yet.</div>",
+      "css": ".ds-empty { font-family: Roboto, sans-serif; font-size: 14px; line-height: 20px; color: #666666; text-align: center; padding: 24px; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Classroom Wall Calendar",
+    "overview": "Absence Record is the wall calendar that lives at the front of a real classroom — the one a teacher glances at mid-lesson to see the month in a second, then reaches over and touches one circle. The whole interface is built around that glance-and-touch rhythm: a big friendly month grid of perfect circles, three colors doing exactly three jobs, and a name list that reads like a well-kept roll-call register. There is nothing dashboard-y or spreadsheet-cold about it; the metaphor is physical, warm, and reassuringly familiar.\n\nThe system is governed end-to-end by Material Design 3: standard components, standard type scale, standard navigation and interaction. Brand expresses through Material theming — the palette, the circular calendar geometry, and the consistent green/purple/blue status grammar — never through off-spec controls. Density is comfortable and scannable, built for one-handed use in a 40-minute class period: touch targets are never smaller than 48dp, every row is a tap target, and a single glance at a circle tells you whether a day is marked.\n\nThe palette reads cheerful and friendly — bright paper whites and warm grays against three saturated chalk accents — while the structure stays quietly precise. Confirmations use snackbars, interruptions use Material dialogs, and the calendar is always the hero, never a widget buried in a page.",
+    "keyCharacteristics": [
+      "One hero element: the circular day cell (the classroom wall calendar)",
+      "Three chalk accents, three fixed meanings: today (blue), marked day (purple), present (green)",
+      "Material 3 defaults for shapes, elevation, and motion — the calendar geometry is the only signature",
+      "Bilingual by construction: names and dates render in content text direction, the grid stays LTR",
+      "Confident, friendly fill colors paired with dark-ink on-color text in light mode"
+    ],
+    "rules": [
+      {
+        "name": "The Three-Chalk Rule",
+        "body": "Daylight Blue, Amethyst Chalk, and Spring Chalk each claim exactly one meaning — today, marked, present — and never trade roles. If a new state needs a fourth meaning, add a role; do not repurpose an existing chalk.",
+        "section": "colors"
+      },
+      {
+        "name": "The Paper Body Rule",
+        "body": "Red (#FF0A00) is reserved for destructive actions, errors, and the absent mark. It never decorates; it always signals.",
+        "section": "colors"
+      },
+      {
+        "name": "The Wallpaper Caveat Rule",
+        "body": "Because Material You can recolor the app from a phone wallpaper, no UI decision may depend on a specific hue surviving — only on role contrast and the status grammar (icon + color, never color alone).",
+        "section": "colors"
+      },
+      {
+        "name": "The sp Rule",
+        "body": "All type is sized in sp and follows system font scaling. Never fixed px. Test name lists and calendar numerals at large font settings.",
+        "section": "typography"
+      }
+    ],
+    "dos": [
+      "Do keep the three chalk meanings fixed: blue = today/primary action, purple = marked day, green = present.",
+      "Do pair color with an icon or label for every status — TalkBack and color-blind users rely on it.",
+      "Do keep calendar cells circular and ≥48dp, with dates forced LTR even in Arabic UI.",
+      "Do use the shared class-filter component so all three screens feel like one app.",
+      "Do reach for snackbars for confirmations and transient feedback.",
+      "Do use Material 3 roles (MaterialTheme.colorScheme.*) rather than raw hex in Compose, so dynamic wallpaper theming keeps working."
+    ],
+    "donts": [
+      "Don't introduce arbitrary drop shadows — depth comes from tonal surface layering and Material defaults.",
+      "Don't repurpose Red for anything but destructive, error, or absent states.",
+      "Don't add a bottom navigation bar — navigation is the swipe pager.",
+      "Don't set type in fixed px; always sp.",
+      "Don't put a new status color in the grid without giving it an icon companion.",
+      "Don't rely on a specific hue surviving Material You recolor — design by role contrast."
+    ]
+  }
+}
