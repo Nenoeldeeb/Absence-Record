@@ -15,15 +15,22 @@ import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.Month
+import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
+
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class ReportViewModelSharingTest : ReportViewModelTestBase() {
     @BeforeEach
     fun setUp() {
         commonSetUp()
+    }
+
+    @AfterEach
+    fun tearDown() {
+        commonTearDown()
     }
 
     @Test
