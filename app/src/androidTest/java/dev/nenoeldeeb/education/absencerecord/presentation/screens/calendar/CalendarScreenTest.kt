@@ -1,8 +1,8 @@
 package dev.nenoeldeeb.education.absencerecord.presentation.screens.calendar
 
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.hasContentDescription
 import androidx.compose.ui.test.junit4.createComposeRule
-import androidx.compose.ui.test.onAllNodesWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -222,11 +222,27 @@ class CalendarScreenTest {
 
         // Verify correct content descriptions exist
         composeTestRule
-            .onAllNodesWithContentDescription(getString(R.string.content_description_present))
+            .onAllNodes(
+                hasContentDescription(
+                    getString(
+                        R.string.student_attendance_status,
+                        "Present Alice",
+                        getString(R.string.content_description_present)
+                    )
+                )
+            )
             .fetchSemanticsNodes()
             .isNotEmpty()
         composeTestRule
-            .onAllNodesWithContentDescription(getString(R.string.content_description_absent))
+            .onAllNodes(
+                hasContentDescription(
+                    getString(
+                        R.string.student_attendance_status,
+                        "Absent Bob",
+                        getString(R.string.content_description_absent)
+                    )
+                )
+            )
             .fetchSemanticsNodes()
             .isNotEmpty()
     }

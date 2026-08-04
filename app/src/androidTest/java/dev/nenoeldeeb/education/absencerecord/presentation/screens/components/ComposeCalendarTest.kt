@@ -1,6 +1,7 @@
 package dev.nenoeldeeb.education.absencerecord.presentation.screens.components
 
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.hasContentDescription
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
@@ -93,8 +94,10 @@ class ComposeCalendarTest {
             AbsenceRecordTheme { ComposeCalendar(onDateSelected = {}, initialMonth = today) }
         }
 
-        // Current day should have "Current day." content description
-        composeTestRule.onNodeWithContentDescription(getString(R.string.content_description_today)).assertIsDisplayed()
+        // Current day should have "Day <n>, Today" content description
+        composeTestRule
+            .onNode(hasContentDescription(getString(R.string.calendar_date_today, today.day.toString())))
+            .assertIsDisplayed()
     }
 
     @Test
@@ -112,8 +115,10 @@ class ComposeCalendarTest {
             }
         }
 
-        // Day 10 should have "Present" content description
-        composeTestRule.onNodeWithContentDescription(getString(R.string.content_description_present)).assertIsDisplayed()
+        // Day 10 should have "Day 10, Present" content description
+        composeTestRule
+            .onNode(hasContentDescription(getString(R.string.calendar_date_present, markedDate.day.toString())))
+            .assertIsDisplayed()
     }
 
     // endregion

@@ -20,7 +20,6 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 
-
 @OptIn(ExperimentalCoroutinesApi::class)
 class ReportViewModelSharingTest : ReportViewModelTestBase() {
     @BeforeEach
@@ -90,7 +89,6 @@ class ReportViewModelSharingTest : ReportViewModelTestBase() {
             // Given
             val student = Student(1, "S1")
             val month = LocalDate(2023, Month.JANUARY, 1)
-            val errorMsg = "History Error"
 
             coEvery { getStudentAttendanceDatesUseCase(1) } returns flowOf(Result.success(emptyList()))
             coEvery { getAttendanceHistoryForDateRangeUseCase(1, any(), any()) } returns
