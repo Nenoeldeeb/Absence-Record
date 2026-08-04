@@ -1,9 +1,9 @@
 package dev.nenoeldeeb.education.absencerecord.presentation.screens.calendar
 
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.hasContentDescription
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.createComposeRule
-import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -195,7 +195,15 @@ class AttendanceDialogDisplayTest {
         }
 
         composeTestRule
-            .onNodeWithContentDescription(getString(R.string.content_description_absent))
+            .onNode(
+                hasContentDescription(
+                    getString(
+                        R.string.student_attendance_status,
+                        "Absent Student",
+                        getString(R.string.content_description_absent)
+                    )
+                )
+            )
             .assertIsDisplayed()
     }
 
@@ -228,7 +236,15 @@ class AttendanceDialogDisplayTest {
         }
 
         composeTestRule
-            .onNodeWithContentDescription(getString(R.string.content_description_present))
+            .onNode(
+                hasContentDescription(
+                    getString(
+                        R.string.student_attendance_status,
+                        "Present Student",
+                        getString(R.string.content_description_present)
+                    )
+                )
+            )
             .assertIsDisplayed()
     }
 
