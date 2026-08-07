@@ -3,8 +3,10 @@ package dev.nenoeldeeb.education.absencerecord.presentation.screens.students
 import dev.nenoeldeeb.education.absencerecord.MainDispatcherRule
 import dev.nenoeldeeb.education.absencerecord.data.repositories.ClassFilterRepositoryImpl
 import dev.nenoeldeeb.education.absencerecord.domain.repositories.ClassFilterRepository
+import dev.nenoeldeeb.education.absencerecord.domain.usecases.AttendanceUseCases
 import dev.nenoeldeeb.education.absencerecord.domain.usecases.ClassManagementUseCases
 import dev.nenoeldeeb.education.absencerecord.domain.usecases.StudentManagementUseCases
+import dev.nenoeldeeb.education.absencerecord.domain.usecases.attendance.GetAvailableMonthsUseCase
 import dev.nenoeldeeb.education.absencerecord.domain.usecases.classes.DeleteClassUseCase
 import dev.nenoeldeeb.education.absencerecord.domain.usecases.student.AddStudentUseCase
 import dev.nenoeldeeb.education.absencerecord.domain.usecases.student.DeleteStudentsUseCase
@@ -43,6 +45,8 @@ open class StudentsViewModelTestBase {
     protected lateinit var viewModel: StudentsViewModel
     protected lateinit var classManagementUseCases: ClassManagementUseCases
     protected lateinit var deleteClassUseCase: DeleteClassUseCase
+    protected lateinit var attendanceUseCases: AttendanceUseCases
+    protected lateinit var getAvailableMonthsUseCase: GetAvailableMonthsUseCase
 
     fun commonSetUp() {
         addStudentUseCase = mockk(relaxed = true)
@@ -69,6 +73,11 @@ open class StudentsViewModelTestBase {
         deleteClassUseCase = mockk(relaxed = true)
         every { classManagementUseCases.deleteClassUseCase } returns deleteClassUseCase
         every { classManagementUseCases.getAllClassesUseCase() } returns flowOf(Result.success(emptyList()))
+
+        attendanceUseCases = mockk(relaxed = true)
+        getAvailableMonthsUseCase = mockk(relaxed = true)
+        every { attendanceUseCases.getAvailableMonthsUseCase } returns getAvailableMonthsUseCase
+        every { getAvailableMonthsUseCase() } returns flowOf(Result.success(emptyList()))
     }
 
     protected fun createViewModel(classFilterRepository: ClassFilterRepository = mockk(relaxed = true)) {
@@ -85,7 +94,8 @@ open class StudentsViewModelTestBase {
                 classManagementUseCases,
                 selectionDelegate,
                 importExportDelegate,
-                classFilterRepository = repository
+                classFilterRepository = repository,
+                attendanceUseCases = attendanceUseCases
             )
     }
 }

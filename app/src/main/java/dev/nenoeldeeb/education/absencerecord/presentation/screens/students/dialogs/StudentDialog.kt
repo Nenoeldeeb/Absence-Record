@@ -34,40 +34,27 @@ import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.style.TextDirection
 import androidx.compose.ui.unit.dp
 import dev.nenoeldeeb.education.absencerecord.R
-import dev.nenoeldeeb.education.absencerecord.domain.models.Student
 import dev.nenoeldeeb.education.absencerecord.domain.models.StudentClass
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun StudentDialog(
-    showEditDialog: Student?,
     newStudentName: String,
     availableClasses: List<StudentClass>,
     modifier: Modifier = Modifier,
     onStudentNameChange: (String) -> Unit,
-    onSave: (Student?, String, Int?) -> Unit,
+    onSave: (String, Int?) -> Unit,
     onImportClick: () -> Unit,
     onDismiss: () -> Unit
 ) {
-    val isEditMode = showEditDialog != null
-    val dialogTitle =
-        if (isEditMode) {
-            stringResource(R.string.edit_student)
-        } else {
-            stringResource(R.string.new_student_label)
-        }
-
-    // Initialize class selection from the student being edited (or null = unassigned)
-    var selectedClass by remember(showEditDialog) {
-        mutableStateOf(availableClasses.find { it.id == showEditDialog?.classId })
-    }
+    var selectedClass by remember { mutableStateOf<StudentClass?>(null) }
     var classDropdownExpanded by rememberSaveable { mutableStateOf(false) }
 
     val classLabel = selectedClass?.name ?: stringResource(R.string.class_unassigned_label)
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text(dialogTitle) },
+        title = { Text(stringResource(R.string.new_student_label)) },
         text = {
             Column {
                 OutlinedTextField(
@@ -168,38 +155,32 @@ internal fun StudentDialog(
                     }
                 }
 
-                if (!isEditMode) {
-                    Button(
-                        onClick = onImportClick,
-                        modifier =
-                            Modifier
-                                .padding(top = 16.dp)
-                                .fillMaxWidth()
-                                .wrapContentWidth()
-                    ) {
-                        Icon(
-                            imageVector =
-                                ImageVector.vectorResource(
-                                    id = R.drawable.outline_file_upload_24
-                                ),
-                            contentDescription = null,
-                            modifier = Modifier.padding(end = 8.dp)
-                        )
-                        Text(stringResource(R.string.import_students_action))
-                    }
+                Button(
+                    onClick = onImportClick,
+                    modifier =
+                        Modifier
+                            .padding(top = 16.dp)
+                            .fillMaxWidth()
+                            .wrapContentWidth()
+                ) {
+                    Icon(
+                        imageVector =
+                            ImageVector.vectorResource(
+                                id = R.drawable.outline_file_upload_24
+                            ),
+                        contentDescription = null,
+                        modifier = Modifier.padding(end = 8.dp)
+                    )
+                    Text(stringResource(R.string.import_students_action))
                 }
             }
         },
         confirmButton = {
             Button(
                 enabled = newStudentName.isNotBlank(),
-                onClick = { onSave(showEditDialog, newStudentName, selectedClass?.id) }
+                onClick = { onSave(newStudentName, selectedClass?.id) }
             ) {
-                Text(
-                    stringResource(
-                        if (isEditMode) R.string.action_save else R.string.action_add
-                    )
-                )
+                Text(stringResource(R.string.action_add))
             }
         },
         dismissButton = {

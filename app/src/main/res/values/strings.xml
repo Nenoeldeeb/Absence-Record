@@ -11,6 +11,8 @@
     <string name="error_display">Error: %1$s</string>
     <string name="filter_description">Filter</string>
     <string name="sort_description">Sort</string>
+    <string name="sort_select_month">Select month</string>
+    <string name="sort_toggle_description">Sort mode: %1$s, tap to switch</string>
 
     <!-- Students Screen -->
     <string name="new_student_label">Enter new student name</string>
@@ -129,6 +131,23 @@
     <string name="error_parsing_import_file">Error parsing import file.</string>
     <string name="error_writing_file">Error writing file.</string>
     <string name="error_generating_report">Failed to generate report.</string>
+
+    <!-- Student Detail Screen -->
+    <string name="student_detail_back_description">Back</string>
+    <string name="student_detail_title_placeholder">Student Details</string>
+    <string name="student_detail_edit_name_title">Edit Student Name</string>
+    <string name="student_detail_change_class_title">Change Class</string>
+    <string name="student_detail_delete_title">Delete Student</string>
+    <string name="student_detail_delete_message">This will permanently delete the student and all of their attendance records. This action cannot be undone.</string>
+    <string name="student_detail_share">Share</string>
+    <string name="student_detail_share_failed">Failed to share the attendance report.</string>
+    <string name="student_detail_select_month">Select attendance month</string>
+    <string name="student_detail_change_class_icon_description">Change student class</string>
+    <string name="student_detail_delete_icon_description">Delete student</string>
+    <plurals name="present_days_count">
+        <item quantity="one">%1$d day present</item>
+        <item quantity="other">%1$d days present</item>
+    </plurals>
 
     <!-- Class Filter -->
     <string name="class_filter_none">No filter</string>

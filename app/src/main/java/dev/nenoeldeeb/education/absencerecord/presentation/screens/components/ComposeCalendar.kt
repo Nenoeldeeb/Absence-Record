@@ -56,7 +56,8 @@ fun ComposeCalendar(
     modifier: Modifier = Modifier,
     initialMonth: LocalDate? = null,
     markedDates: Set<LocalDate> = emptySet(),
-    interactive: Boolean = true
+    interactive: Boolean = true,
+    showHeader: Boolean = true
 ) {
     val today =
         rememberSaveable {
@@ -95,17 +96,19 @@ fun ComposeCalendar(
                         .padding(8.dp)
                         .align(Alignment.Center)
             ) {
-                CalendarHeader(
-                    displayedMonth = displayedMonth,
-                    onPreviousMonth = {
-                        displayedMonth = displayedMonth.minus(1, DateTimeUnit.MONTH)
-                    },
-                    onNextMonth = { displayedMonth = displayedMonth.plus(1, DateTimeUnit.MONTH) },
-                    modifier =
-                        Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 8.dp)
-                )
+                if (showHeader) {
+                    CalendarHeader(
+                        displayedMonth = displayedMonth,
+                        onPreviousMonth = {
+                            displayedMonth = displayedMonth.minus(1, DateTimeUnit.MONTH)
+                        },
+                        onNextMonth = { displayedMonth = displayedMonth.plus(1, DateTimeUnit.MONTH) },
+                        modifier =
+                            Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 8.dp)
+                    )
+                }
                 DaysOfWeekHeader(modifier = Modifier.fillMaxWidth())
                 Spacer(modifier = Modifier.height(8.dp))
                 CalendarGrid(

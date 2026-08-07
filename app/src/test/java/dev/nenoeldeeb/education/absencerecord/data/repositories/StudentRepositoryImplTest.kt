@@ -13,6 +13,7 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 class StudentRepositoryImplTest {
@@ -35,6 +36,57 @@ class StudentRepositoryImplTest {
             assertEquals(1, students?.size)
             assertEquals(1, students?.first()?.id)
             assertEquals("Test Student", students?.first()?.name)
+        }
+
+    @Test
+    fun `getStudentById returns success with mapped student when found`() =
+        runTest {
+            // Arrange
+            val entity = StudentEntity(id = 2, name = "Existing", classId = 7)
+            every { studentDao.getStudentById(2) } returns flowOf(entity)
+
+            // Act
+            val result = repository.getStudentById(2).first()
+
+            // Assert
+            assertTrue(result.isSuccess)
+            val student = result.getOrNull()
+            assertEquals(2, student?.id)
+            assertEquals("Existing", student?.name)
+            assertEquals(7, student?.classId)
+        }
+
+    @Test
+    fun `getStudentById returns success with null for unknown id`() =
+        runTest {
+            // Arrange
+            every { studentDao.getStudentById(999) } returns flowOf(null)
+
+            // Act
+            val result = repository.getStudentById(999).first()
+
+            // Assert
+            assertTrue(result.isSuccess)
+            assertNull(result.getOrNull())
+        }
+
+    @Test
+    fun `getStudentById returns failure when dao fails`() =
+        runTest {
+            // Arrange
+            val exception = RuntimeException("Dao Error")
+            val errorFlow =
+                kotlinx.coroutines.flow.flow<StudentEntity?> {
+                    throw exception
+                }
+            every { studentDao.getStudentById(1) } returns errorFlow
+
+            // Act
+            val result = repository.getStudentById(1).first()
+
+            // Assert
+            assertTrue(result.isFailure)
+            assertEquals(StudentError.Database, result.exceptionOrNull())
         }
 
     @Test
