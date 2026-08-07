@@ -12,6 +12,8 @@
 
     <!-- Students Screen -->
     <string name="sort_description">ترتيب</string>
+    <string name="sort_select_month">اختر الشهر</string>
+    <string name="sort_toggle_description">وضع الترتيب: %1$s، اضغط للتبديل</string>
     <string name="new_student_label">أدخل اسم الطالب الجديد</string>
     <string name="no_students_message">لم يتم إضافة طلاب بعد.</string>
     <string name="students_title">الطلاب: %d</string>
@@ -127,6 +129,26 @@
     <string name="error_parsing_import_file">خطأ في تحليل ملف الاستيراد.</string>
     <string name="error_writing_file">خطأ في كتابة الملف.</string>
     <string name="error_generating_report">فشلت عملية توليد التقرير.</string>
+
+    <!-- Student Detail Screen -->
+    <string name="student_detail_back_description">رجوع</string>
+    <string name="student_detail_title_placeholder">تفاصيل الطالب</string>
+    <string name="student_detail_edit_name_title">تعديل اسم الطالب</string>
+    <string name="student_detail_change_class_title">تغيير الفصل</string>
+    <string name="student_detail_delete_title">حذف الطالب</string>
+    <string name="student_detail_delete_message">سيتم حذف الطالب وجميع سجلات حضوره نهائياً. لا يمكن التراجع عن هذا الإجراء.</string>
+    <string name="student_detail_share">مشاركة</string>
+    <string name="student_detail_share_failed">فشلت مشاركة تقرير الحضور.</string>
+    <string name="student_detail_select_month">اختر شهر الحضور</string>
+    <string name="student_detail_change_class_icon_description">تغيير فصل الطالب</string>
+    <string name="student_detail_delete_icon_description">حذف الطالب</string>
+    <plurals name="present_days_count">
+        <item quantity="zero">لا يوجد أيام حضور</item>
+        <item quantity="one">%1$d يوم حضور</item>
+        <item quantity="two">%1$d يومان حضور</item>
+        <item quantity="few">%1$d أيام حضور</item>
+        <item quantity="many">%1$d يوماً حضور</item>
+    </plurals>
 
     <!-- Class Filter -->
     <string name="class_filter_none">لا يوجد تصفية</string>

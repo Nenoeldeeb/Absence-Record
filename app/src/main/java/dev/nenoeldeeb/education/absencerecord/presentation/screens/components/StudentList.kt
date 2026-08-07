@@ -4,7 +4,9 @@ import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItem
@@ -28,12 +30,13 @@ import dev.nenoeldeeb.education.absencerecord.domain.models.Student
 internal fun StudentList(
     allStudents: List<Student>,
     modifier: Modifier = Modifier,
+    state: LazyListState = rememberLazyListState(),
     selectedStudentIds: Set<Int> = emptySet(),
     isMultiSelectionMode: Boolean = false,
     onStudentClick: (Student) -> Unit,
     onStudentLongClick: (Int) -> Unit
 ) {
-    LazyColumn(modifier = modifier) {
+    LazyColumn(modifier = modifier, state = state) {
         items(allStudents, key = { it.id }) { student ->
             val isSelected = selectedStudentIds.contains(student.id)
             val selectionText =

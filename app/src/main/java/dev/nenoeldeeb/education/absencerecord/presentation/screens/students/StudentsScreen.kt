@@ -12,14 +12,13 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -35,10 +34,13 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import dev.nenoeldeeb.education.absencerecord.R
 import dev.nenoeldeeb.education.absencerecord.app.AppViewModelProvider
+import dev.nenoeldeeb.education.absencerecord.domain.models.SortType
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.components.ClassCheckboxFilter
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.components.EmptyStateMessage
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.components.StudentList
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.components.MultiSelectionHeader
+import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.components.SortPanel
+import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.components.StudentsTopBar
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.dialogs.BulkDeleteConfirmationDialog
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.dialogs.ImportSelectionDialog
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.dialogs.ManageClassesDialog
@@ -47,6 +49,8 @@ import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.dial
 @Composable
 fun StudentsScreen(
     modifier: Modifier = Modifier,
+    onStudentClick: (Int) -> Unit = {},
+    listState: LazyListState,
     viewModel: StudentsViewModel = viewModel(factory = AppViewModelProvider.factory)
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -128,40 +132,60 @@ fun StudentsScreen(
             }
 
             if (!uiState.isMultiSelectionMode) {
-                TopAppBar(title = {
-                    Text(stringResource(R.string.students_title, uiState.allStudents.size))
-                }, actions = {
-                    IconButton(
-                        onClick = {
-                            viewModel.onEvent(
-                                StudentsScreenEvent.ToggleClassFilterVisibility
+                StudentsTopBar(
+                    title = stringResource(R.string.students_title, uiState.allStudents.size),
+                    onAddStudent = {
+                        viewModel.onEvent(
+                            StudentsScreenEvent.ShowStudentDialog(true)
+                        )
+                    },
+                    onToggleClassFilter = {
+                        viewModel.onEvent(
+                            StudentsScreenEvent.ToggleClassFilterVisibility
+                        )
+                    },
+                    onToggleSortPanel = {
+                        viewModel.onEvent(
+                            StudentsScreenEvent.ToggleSortPanelVisible(
+                                !uiState.isSortPanelVisible
                             )
-                        }
-                    ) {
-                        Icon(
-                            imageVector =
-                                ImageVector.vectorResource(
-                                    R.drawable.outline_filter_24
-                                ),
-                            contentDescription = stringResource(R.string.filter_description)
                         )
                     }
-                    IconButton(
-                        onClick = {
+                )
+
+                AnimatedVisibility(uiState.isSortPanelVisible) {
+                    SortPanel(
+                        sortType = uiState.sortType,
+                        selectedMonth = uiState.selectedMonth,
+                        availableMonths = uiState.availableMonths,
+                        monthDropdownExpanded = uiState.isMonthDropdownExpanded,
+                        onMonthDropdownExpandedChange = {
                             viewModel.onEvent(
-                                StudentsScreenEvent.ShowStudentDialog(null, true)
+                                StudentsScreenEvent.ToggleMonthDropdown(it)
                             )
-                        }
-                    ) {
-                        Icon(
-                            imageVector =
-                                ImageVector.vectorResource(
-                                    R.drawable.outline_add_24
-                                ),
-                            contentDescription = stringResource(R.string.new_student_label)
-                        )
-                    }
-                })
+                        },
+                        onMonthSelected = { month ->
+                            viewModel.onEvent(
+                                StudentsScreenEvent.UpdateSelectedMonth(month)
+                            )
+                        },
+                        onToggleSortType = {
+                            viewModel.onEvent(
+                                StudentsScreenEvent.UpdateSortType(
+                                    if (uiState.sortType == SortType.ByName) {
+                                        SortType.ByAttendance
+                                    } else {
+                                        SortType.ByName
+                                    }
+                                )
+                            )
+                        },
+                        modifier =
+                            Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 16.dp, vertical = 8.dp)
+                    )
+                }
 
                 AnimatedVisibility(uiState.isClassFilterVisible) {
                     Row(
@@ -199,48 +223,53 @@ fun StudentsScreen(
             } else {
                 StudentList(
                     allStudents = uiState.allStudents,
+                    state = listState,
                     selectedStudentIds = uiState.selectedStudentIds,
                     isMultiSelectionMode = uiState.isMultiSelectionMode,
                     onStudentClick = { student ->
-                        if (uiState.isMultiSelectionMode) {
-                            viewModel.onEvent(
-                                StudentsScreenEvent.ToggleStudentSelection(student.id)
-                            )
-                        } else {
-                            viewModel.onEvent(StudentsScreenEvent.ShowStudentDialog(student))
-                        }
+                        handleStudentClickBehavior(
+                            isMultiSelectionMode = uiState.isMultiSelectionMode,
+                            student = student,
+                            onNavigateToDetail = onStudentClick,
+                            onToggleStudentSelection = { studentId ->
+                                viewModel.onEvent(
+                                    StudentsScreenEvent.ToggleStudentSelection(studentId)
+                                )
+                            }
+                        )
                     },
                     onStudentLongClick = { studentId ->
-                        if (!uiState.isMultiSelectionMode) {
-                            viewModel.onEvent(StudentsScreenEvent.ToggleSelectionMode)
-                            viewModel.onEvent(
-                                StudentsScreenEvent.ToggleStudentSelection(studentId)
-                            )
-                        }
+                        handleStudentLongPressBehavior(
+                            isMultiSelectionMode = uiState.isMultiSelectionMode,
+                            studentId = studentId,
+                            onEnterSelectionMode = {
+                                viewModel.onEvent(StudentsScreenEvent.ToggleSelectionMode)
+                            },
+                            onSelectStudent = { id ->
+                                viewModel.onEvent(
+                                    StudentsScreenEvent.ToggleStudentSelection(id)
+                                )
+                            }
+                        )
                     }
                 )
             }
         }
     }
 
-    if (uiState.showEditDialog != null || uiState.showAddStudentDialog) {
+    if (uiState.showAddStudentDialog) {
         StudentDialog(
-            showEditDialog = uiState.showEditDialog,
             newStudentName = uiState.newStudentName,
             availableClasses = uiState.availableClasses,
             onStudentNameChange = {
                 viewModel.onEvent(StudentsScreenEvent.UpdateNewStudentName(it))
             },
-            onSave = { student, name, classId ->
-                if (student != null) {
-                    viewModel.onEvent(StudentsScreenEvent.UpdateStudent(student, name, classId))
-                } else {
-                    viewModel.onEvent(StudentsScreenEvent.AddStudent(name, classId))
-                }
+            onSave = { name, classId ->
+                viewModel.onEvent(StudentsScreenEvent.AddStudent(name, classId))
             },
             onImportClick = { importLauncher.launch(arrayOf("application/json", "*/*")) },
             onDismiss = {
-                viewModel.onEvent(StudentsScreenEvent.ShowStudentDialog(null, false))
+                viewModel.onEvent(StudentsScreenEvent.ShowStudentDialog(false))
             }
         )
     }
@@ -262,7 +291,7 @@ fun StudentsScreen(
             },
             onImport = {
                 viewModel.onEvent(StudentsScreenEvent.PerformImport)
-                viewModel.onEvent(StudentsScreenEvent.ShowStudentDialog(null, false))
+                viewModel.onEvent(StudentsScreenEvent.ShowStudentDialog(false))
             },
             onDismiss = { viewModel.onEvent(StudentsScreenEvent.CloseImportSelectionDialog) }
         )

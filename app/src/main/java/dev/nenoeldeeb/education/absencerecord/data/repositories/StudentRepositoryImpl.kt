@@ -19,6 +19,12 @@ class StudentRepositoryImpl(
             .catch { emit(Result.failure(StudentError.Database)) }
     }
 
+    override fun getStudentById(studentId: Int): Flow<Result<Student?>> {
+        return studentDao.getStudentById(studentId)
+            .map { entity -> Result.success(entity?.toStudent()) }
+            .catch { emit(Result.failure(StudentError.Database)) }
+    }
+
     override fun getAllStudentsSortedByAttendance(): Flow<Result<List<Student>>> {
         return studentDao.getAllStudentsSortedByAttendance()
             .map { entities -> Result.success(entities.map { it.toStudent() }) }

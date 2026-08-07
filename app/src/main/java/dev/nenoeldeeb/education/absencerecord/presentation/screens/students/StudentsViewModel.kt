@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dev.nenoeldeeb.education.absencerecord.domain.models.Student
 import dev.nenoeldeeb.education.absencerecord.domain.repositories.ClassFilterRepository
+import dev.nenoeldeeb.education.absencerecord.domain.usecases.AttendanceUseCases
 import dev.nenoeldeeb.education.absencerecord.domain.usecases.ClassManagementUseCases
 import dev.nenoeldeeb.education.absencerecord.domain.usecases.StudentManagementUseCases
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.StudentsScreenEvent.AddClass
@@ -18,11 +19,14 @@ import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.Stud
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.StudentsScreenEvent.ToggleClassDropdown
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.StudentsScreenEvent.ToggleClassFilter
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.StudentsScreenEvent.ToggleClassFilterVisibility
+import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.StudentsScreenEvent.ToggleMonthDropdown
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.StudentsScreenEvent.ToggleSelectionMode
+import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.StudentsScreenEvent.ToggleSortPanelVisible
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.StudentsScreenEvent.ToggleStudentSelection
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.StudentsScreenEvent.ToggleStudentsSelection
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.StudentsScreenEvent.UpdateNewStudentName
-import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.StudentsScreenEvent.UpdateStudent
+import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.StudentsScreenEvent.UpdateSelectedMonth
+import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.StudentsScreenEvent.UpdateSortType
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.delegates.ClassActionDelegate
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.delegates.ImportExportDelegate
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.delegates.SelectionStateDelegate
@@ -31,14 +35,19 @@ import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.hand
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.handlers.ImportExportHandler
 import dev.nenoeldeeb.education.absencerecord.presentation.utils.applyMultiClassFilter
 import dev.nenoeldeeb.education.absencerecord.presentation.utils.toUiText
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
+@OptIn(ExperimentalCoroutinesApi::class)
 open class StudentsViewModel(
     private val studentManagementUseCases: StudentManagementUseCases,
     private val classManagementUseCases: ClassManagementUseCases,
@@ -50,7 +59,8 @@ open class StudentsViewModel(
     private val importExportHandler: ImportExportHandler =
         ImportExportHandler(studentActionDelegate, importExportDelegate),
     private val bulkActionHandler: BulkActionHandler = BulkActionHandler(studentActionDelegate),
-    private val classFilterRepository: ClassFilterRepository
+    private val classFilterRepository: ClassFilterRepository,
+    private val attendanceUseCases: AttendanceUseCases
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(StudentsScreenState())
     val uiState: StateFlow<StudentsScreenState> = _uiState.asStateFlow()
@@ -59,16 +69,40 @@ open class StudentsViewModel(
     init {
         loadData()
         observeClassFilter()
+        observeAvailableMonths()
+    }
+
+    private fun observeAvailableMonths() {
+        viewModelScope.launch {
+            attendanceUseCases.getAvailableMonthsUseCase().collectLatest { result ->
+                result
+                    .onSuccess { months ->
+                        _uiState.update { it.copy(availableMonths = months) }
+                    }
+                    .onFailure { e ->
+                        _uiState.update { it.copy(error = e.toUiText()) }
+                    }
+            }
+        }
     }
 
     private fun loadData() {
         viewModelScope.launch {
             combine(
-                studentManagementUseCases.getAllStudentsUseCase(),
+                _uiState.map { it.sortType }.distinctUntilChanged(),
+                _uiState.map { it.selectedMonth }.distinctUntilChanged(),
                 classManagementUseCases.getAllClassesUseCase()
-            ) { s, c -> s to c }
-                .collectLatest { (studentsResult, classesResult) ->
-                    studentsResult.onSuccess { students ->
+            ) { sortType, month, classesResult -> Triple(sortType, month, classesResult) }
+                .flatMapLatest { (sortType, month, classesResult) ->
+                    classesResult.onSuccess { classes ->
+                        _uiState.update { it.copy(availableClasses = classes) }
+                    }.onFailure { e ->
+                        _uiState.update { it.copy(error = e.toUiText()) }
+                    }
+                    studentManagementUseCases.getAllStudentsUseCase(sortType, month)
+                }
+                .collectLatest { result ->
+                    result.onSuccess { students ->
                         rawStudents = students
                         _uiState.update { state ->
                             state.copy(
@@ -83,7 +117,6 @@ open class StudentsViewModel(
                             it.copy(error = e.toUiText())
                         }
                     }
-                    classesResult.onSuccess { classes -> _uiState.update { it.copy(availableClasses = classes) } }
                 }
         }
     }
@@ -104,6 +137,16 @@ open class StudentsViewModel(
     open fun onEvent(event: StudentsScreenEvent) {
         when (event) {
             is UpdateNewStudentName -> _uiState.update { it.copy(newStudentName = event.name) }
+            is UpdateSortType ->
+                _uiState.update {
+                    it.copy(sortType = event.sortType)
+                }
+            is ToggleSortPanelVisible -> _uiState.update { it.copy(isSortPanelVisible = event.show) }
+            is UpdateSelectedMonth ->
+                _uiState.update {
+                    it.copy(selectedMonth = event.month, isMonthDropdownExpanded = false)
+                }
+            is ToggleMonthDropdown -> _uiState.update { it.copy(isMonthDropdownExpanded = event.expanded) }
             is AddStudent ->
                 viewModelScope.launch {
                     studentActionDelegate.addStudent(event.name, event.classId)
@@ -111,15 +154,6 @@ open class StudentsViewModel(
                             _uiState.update { state ->
                                 state.copy(toastMessage = toast, newStudentName = "", showAddStudentDialog = false)
                             }
-                        }
-                        .onFailure { error -> _uiState.update { state -> state.copy(error = error.toUiText()) } }
-                }
-
-            is UpdateStudent ->
-                viewModelScope.launch {
-                    studentActionDelegate.updateStudent(event.student, event.newName, event.newClassId)
-                        .onSuccess { toast ->
-                            _uiState.update { state -> state.copy(toastMessage = toast, showEditDialog = null) }
                         }
                         .onFailure { error -> _uiState.update { state -> state.copy(error = error.toUiText()) } }
                 }
@@ -143,9 +177,8 @@ open class StudentsViewModel(
             is ShowStudentDialog ->
                 _uiState.update {
                     it.copy(
-                        showEditDialog = event.student,
                         showAddStudentDialog = event.show,
-                        newStudentName = event.student?.name ?: ""
+                        newStudentName = if (event.show) "" else it.newStudentName
                     )
                 }
 
