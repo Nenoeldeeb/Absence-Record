@@ -8,6 +8,7 @@ import dev.nenoeldeeb.education.absencerecord.domain.services.SerializationServi
 import dev.nenoeldeeb.education.absencerecord.domain.usecases.student.AddStudentUseCase
 import dev.nenoeldeeb.education.absencerecord.domain.usecases.student.DeleteStudentsUseCase
 import dev.nenoeldeeb.education.absencerecord.domain.usecases.student.GetAllStudentsUseCase
+import dev.nenoeldeeb.education.absencerecord.domain.usecases.student.GetStudentByIdUseCase
 import dev.nenoeldeeb.education.absencerecord.domain.usecases.student.UpdateStudentUseCase
 import dev.nenoeldeeb.education.absencerecord.domain.usecases.transfer.ExportStudentsUseCase
 import dev.nenoeldeeb.education.absencerecord.domain.usecases.transfer.ParseImportFileUseCase
@@ -24,6 +25,7 @@ data class StudentManagementUseCases(
     val updateStudentUseCase: UpdateStudentUseCase = UpdateStudentUseCase(studentRepository)
     val deleteStudentsUseCase: DeleteStudentsUseCase = DeleteStudentsUseCase(studentRepository)
     val getAllStudentsUseCase: GetAllStudentsUseCase = GetAllStudentsUseCase(studentRepository)
+    val getStudentByIdUseCase: GetStudentByIdUseCase = GetStudentByIdUseCase(studentRepository)
     val parseImportFileUseCase: ParseImportFileUseCase = ParseImportFileUseCase(storageRepository, serializationService)
     val performImportUseCase: PerformImportUseCase =
         PerformImportUseCase(studentRepository, attendanceRepository, studentClassRepository)
