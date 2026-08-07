@@ -35,9 +35,9 @@
 - **Strings**: Use `strings.xml` (with `values-ar/` support) and the `UiText` wrapper state. NO hardcoded strings.
 - **Serialization**: Use `kotlinx.serialization` (`@Serializable`).
 - **DI**: Manual via `AppContainer` and `AppViewModelProvider`.
-- **Class Filter Pattern**: Unified multi-select class filter shared across Calendar (attendance dialog), Report, and Students screens.
-  - `ClassFilterRepository` (domain/repositories/) + `ClassFilterRepositoryImpl` (data/repositories/) share an in-memory `selectedClassIds: StateFlow<Set<Int>>` (default `emptySet()`) observed by all three ViewModels.
-  - `ClassCheckboxFilter` (presentation/screens/components/) is the shared multi-select checkbox dropdown used by all three screens.
+- **Class Filter Pattern**: Unified multi-select class filter shared across Calendar (attendance dialog) and Students screens.
+  - `ClassFilterRepository` (domain/repositories/) + `ClassFilterRepositoryImpl` (data/repositories/) share an in-memory `selectedClassIds: StateFlow<Set<Int>>` (default `emptySet()`) observed by both ViewModels.
+  - `ClassCheckboxFilter` (presentation/screens/components/) is the shared multi-select checkbox dropdown used by both screens.
   - Filter semantics: empty set = unassigned students only; checked classes = enrolled students in those classes; no "Select All" entry.
 
 ## Testing (JUnit 6 + MockK)
@@ -66,6 +66,8 @@ specs/004-unified-error-handling/plan.md
 
 ## Recent Changes
 
+- 006-student-detail-screen: Added Student Detail screen (view/edit name, change class, delete, month-filtered attendance calendar with per-month share image) reachable by tapping a student. Composition-based navigation in `app/navigation/` (`AppDestination` sealed interface + `AppNavigation` with `rememberSaveable` back-stack, `BackHandler`, `AnimatedContent`) — NO navigation library. Retired the Report screen: pager is now exactly 2 pages (0: Students, 1: Calendar) and `presentation/screens/report/**` + its tests were deleted; share/attendance reporting moved into Student Detail (ReportUseCases kept for Detail share). Added a sort control on the Students top bar: `StudentsTopBar` with a `SortType` `DropdownMenu` (ByName/ByAttendance, existing 2-value enum — NOT expanded), threaded through `StudentsViewModel.loadData()` via `_uiState.map { it.sortType }.distinctUntilChanged()` + `flatMapLatest`. DI: `AppViewModelProvider.studentDetailFactory(studentId)` added; ReportViewModel
+  initializer removed.
 - 005-unified-class-filter: Unified class filter via `ClassFilterRepository`/`ClassFilterRepositoryImpl` (in-memory `selectedClassIds: StateFlow<Set<Int>>`), shared `ClassCheckboxFilter` across Calendar/Report/Students, and removed `ClassFilterDropdown`/`ClassFilter`.
 - 002-class-filter-refactor: Moved class filter from top bar into attendance dialog as multi-select checkbox dropdown. Added `applyMultiClassFilter` extension, `ClassCheckboxFilter` composable, `Set<Int>` filter state, dynamic count, and attendance count clamping. Removed old filter icon and `ClassFilterDropdown` from calendar screen.
 - 001-refactor-students-viewmodel: Added Kotlin 2.4.0+ / Kotlin JVM 25 + Jetpack Compose, Room, Kotlinx Datetime, Kotlinx Serialization
