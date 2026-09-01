@@ -5,6 +5,7 @@ import androidx.lifecycle.viewmodel.CreationExtras
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.calendar.CalendarViewModel
+import dev.nenoeldeeb.education.absencerecord.presentation.screens.schedule.ScheduleViewModel
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.studentdetail.StudentDetailViewModel
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.StudentsViewModel
 
@@ -25,6 +26,12 @@ object AppViewModelProvider {
                     classManagementUseCases = app().appContainer.classManagementUseCases,
                     classFilterRepository = app().appContainer.classFilterRepository,
                     attendanceUseCases = app().appContainer.attendanceUseCases
+                )
+            }
+            initializer {
+                ScheduleViewModel(
+                    scheduleUseCases = app().appContainer.scheduleUseCases,
+                    studentManagementUseCases = app().appContainer.studentManagementUseCases
                 )
             }
         }

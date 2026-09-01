@@ -74,6 +74,10 @@ android {
     buildFeatures { compose = true }
     lint { abortOnError = false }
     testOptions { unitTests { all { it.useJUnitPlatform() } } }
+
+    sourceSets {
+        getByName("androidTest").assets.srcDir(files("$projectDir/schemas"))
+    }
 }
 
 ksp { arg("room.schemaLocation", "$projectDir/schemas") }
