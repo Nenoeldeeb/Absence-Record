@@ -1,6 +1,7 @@
 package dev.nenoeldeeb.education.absencerecord.presentation.screens.students
 
 import dev.nenoeldeeb.education.absencerecord.domain.models.Student
+import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.components.handleStudentClickBehavior
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue

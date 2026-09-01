@@ -1,4 +1,4 @@
-package dev.nenoeldeeb.education.absencerecord.data.utils
+package dev.nenoeldeeb.education.absencerecord.data.services
 
 import kotlinx.serialization.Serializable
 import org.junit.jupiter.api.Test
