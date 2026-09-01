@@ -93,6 +93,13 @@
     <string name="data_exported_successfully">تم تصدير البيانات بنجاح.</string>
     <string name="error_reading_or_parsing_file">خطأ في قراءة أو تحليل الملف: %1$s</string>
     <string name="error_during_import">خطأ أثناء الاستيراد: %1$s</string>
+    <plurals name="import_complete_new_students_added">
+        <item quantity="zero">اكتمل الاستيراد. لم تتم إضافة أي طالب جديد.</item>
+        <item quantity="one">اكتمل الاستيراد. تمت إضافة طالب واحد جديد.</item>
+        <item quantity="two">اكتمل الاستيراد. تمت إضافة طالبين جديدين.</item>
+        <item quantity="few">اكتمل الاستيراد. تمت إضافة %1$d طلاب جدد.</item>
+        <item quantity="many">اكتمل الاستيراد. تمت إضافة %1$d طالبًا جديدًا.</item>
+    </plurals>
     <plurals name="existing_students_had_dates_merged">
         <item quantity="zero">لم يتم دمج تواريخ أي من الطلاب الموجودين.</item>
         <item quantity="one">تم دمج تواريخ طالب واحد من الطلاب الموجودين.</item>
@@ -107,6 +114,48 @@
         <item quantity="few">تم تخطي %1$d تواريخ بسبب الأخطاء.</item>
         <item quantity="many">تم تخطي %1$d تاريخًا بسبب الأخطاء.</item>
     </plurals>
+    <plurals name="import_complete_hours_added">
+        <item quantity="zero">لم يتم استيراد أي ساعات توفر.</item>
+        <item quantity="one">تم استيراد ساعة توفر واحدة.</item>
+        <item quantity="two">تم استيراد ساعتي توفر.</item>
+        <item quantity="few">تم استيراد %1$d ساعات توفر.</item>
+        <item quantity="many">تم استيراد %1$d ساعة توفر.</item>
+    </plurals>
+    <plurals name="import_complete_hours_overlap_skipped">
+        <item quantity="zero">لم يتم تخطي أي ساعات توفر.</item>
+        <item quantity="one">تم تخطي ساعة توفر واحدة (تتداخل مع ساعة موجودة).</item>
+        <item quantity="two">تم تخطي ساعتي توفر (تتداخلان مع ساعات موجودة).</item>
+        <item quantity="few">تم تخطي %1$d ساعات توفر (تتداخل مع ساعات موجودة).</item>
+        <item quantity="many">تم تخطي %1$d ساعة توفر (تتداخل مع ساعات موجودة).</item>
+    </plurals>
+    <plurals name="import_complete_lessons_added">
+        <item quantity="zero">لم يتم استيراد أي حصص.</item>
+        <item quantity="one">تم استيراد حصة واحدة.</item>
+        <item quantity="two">تم استيراد حصتين.</item>
+        <item quantity="few">تم استيراد %1$d حصص.</item>
+        <item quantity="many">تم استيراد %1$d حصة.</item>
+    </plurals>
+    <plurals name="import_complete_lessons_removed_busy">
+        <item quantity="zero">لم تتم إزالة أي حصص بسبب مواعيد الانشغال.</item>
+        <item quantity="one">تمت إزالة حصة واحدة بسبب موعد انشغال.</item>
+        <item quantity="two">تمت إزالة حصتين بسبب مواعيد الانشغال.</item>
+        <item quantity="few">تمت إزالة %1$d حصص بسبب مواعيد الانشغال.</item>
+        <item quantity="many">تمت إزالة %1$d حصة بسبب مواعيد الانشغال.</item>
+    </plurals>
+    <plurals name="import_complete_lessons_skipped">
+        <item quantity="zero">لم يتم تخطي أي حصص.</item>
+        <item quantity="one">تم تخطي حصة واحدة (لا توجد ساعة مناسبة، أو تكرار، أو تعارض مع الانشغال).</item>
+        <item quantity="two">تم تخطي حصتين (لا توجد ساعة مناسبة، أو تكرار، أو تعارض مع الانشغال).</item>
+        <item quantity="few">تم تخطي %1$d حصص (لا توجد ساعة مناسبة، أو تكرار، أو تعارض مع الانشغال).</item>
+        <item quantity="many">تم تخطي %1$d حصة (لا توجد ساعة مناسبة، أو تكرار، أو تعارض مع الانشغال).</item>
+    </plurals>
+    <plurals name="import_complete_malformed_skipped">
+        <item quantity="zero">لم يتم تخطي أي مدخلات غير صالحة.</item>
+        <item quantity="one">تم تخطي مدخل واحد غير صالح.</item>
+        <item quantity="two">تم تخطي مدخلين غير صالحين.</item>
+        <item quantity="few">تم تخطي %1$d مدخلات غير صالحة.</item>
+        <item quantity="many">تم تخطي %1$d مدخلًا غير صالح.</item>
+    </plurals>
     <string name="error_student_not_selected_history">خطأ: لم يتم اختيار طالب للسجل.</string>
     <string name="error_preparing_image">خطأ في تجهيز الصورة: %1$s</string>
     <string name="error_fetching_history">خطأ في جلب السجل: %1$s</string>
@@ -120,6 +169,7 @@
     <string name="error_database_operation_failed">فشلت عملية قاعدة البيانات.</string>
     <string name="error_reading_file">خطأ في قراءة الملف.</string>
     <string name="error_parsing_import_file">خطأ في تحليل ملف الاستيراد.</string>
+    <string name="error_unsupported_backup_version">نسخة هذه النسخة الاحتياطية (%1$d) غير مدعومة.</string>
     <string name="error_writing_file">خطأ في كتابة الملف.</string>
     <string name="error_generating_report">فشلت عملية توليد التقرير.</string>
 

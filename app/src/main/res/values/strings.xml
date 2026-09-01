@@ -101,6 +101,11 @@
     <string name="data_exported_successfully">Data exported successfully.</string>
     <string name="error_reading_or_parsing_file">Error reading or parsing file: %1$s</string>
     <string name="error_during_import">Error during import: %1$s</string>
+    <plurals name="import_complete_new_students_added">
+        <item quantity="zero">Import complete. No students imported.</item>
+        <item quantity="one">Import complete. %1$d new student added.</item>
+        <item quantity="other">Import complete. %1$d new students added.</item>
+    </plurals>
     <plurals name="existing_students_had_dates_merged">
         <item quantity="zero">"No existing students\' dates to merge."</item>
         <item quantity="one">" %1$d existing student had dates merged."</item>
@@ -110,6 +115,36 @@
         <item quantity="zero">"No skipped dates due to errors."</item>
         <item quantity="one">" %1$d date skipped due to errors."</item>
         <item quantity="other">" %1$d dates skipped due to errors."</item>
+    </plurals>
+    <plurals name="import_complete_hours_added">
+        <item quantity="zero">No availability hours imported.</item>
+        <item quantity="one">%1$d availability hour imported.</item>
+        <item quantity="other">%1$d availability hours imported.</item>
+    </plurals>
+    <plurals name="import_complete_hours_overlap_skipped">
+        <item quantity="zero">No availability hours skipped.</item>
+        <item quantity="one">%1$d availability hour skipped (overlaps an existing hour).</item>
+        <item quantity="other">%1$d availability hours skipped (overlap existing hours).</item>
+    </plurals>
+    <plurals name="import_complete_lessons_added">
+        <item quantity="zero">No lessons imported.</item>
+        <item quantity="one">%1$d lesson imported.</item>
+        <item quantity="other">%1$d lessons imported.</item>
+    </plurals>
+    <plurals name="import_complete_lessons_removed_busy">
+        <item quantity="zero">No lessons removed by busy appointments.</item>
+        <item quantity="one">%1$d lesson removed by a busy appointment.</item>
+        <item quantity="other">%1$d lessons removed by busy appointments.</item>
+    </plurals>
+    <plurals name="import_complete_lessons_skipped">
+        <item quantity="zero">No lessons skipped.</item>
+        <item quantity="one">%1$d lesson skipped (no matching hour, duplicate, or busy conflict).</item>
+        <item quantity="other">%1$d lessons skipped (no matching hour, duplicate, or busy conflict).</item>
+    </plurals>
+    <plurals name="import_complete_malformed_skipped">
+        <item quantity="zero">No malformed entries skipped.</item>
+        <item quantity="one">%1$d malformed entry skipped.</item>
+        <item quantity="other">%1$d malformed entries skipped.</item>
     </plurals>
     <string name="error_student_not_selected_history">Error: Student not selected for history.</string>
     <string name="error_preparing_image">Error preparing image: %1$s</string>
@@ -124,6 +159,7 @@
     <string name="error_database_operation_failed">Database operation failed.</string>
     <string name="error_reading_file">Error reading file.</string>
     <string name="error_parsing_import_file">Error parsing import file.</string>
+    <string name="error_unsupported_backup_version">This backup uses an unsupported format version (%1$d).</string>
     <string name="error_writing_file">Error writing file.</string>
     <string name="error_generating_report">Failed to generate report.</string>
 

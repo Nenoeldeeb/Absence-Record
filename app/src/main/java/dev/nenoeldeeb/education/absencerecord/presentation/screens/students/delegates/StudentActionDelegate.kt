@@ -1,7 +1,7 @@
 package dev.nenoeldeeb.education.absencerecord.presentation.screens.students.delegates
 
 import dev.nenoeldeeb.education.absencerecord.R
-import dev.nenoeldeeb.education.absencerecord.domain.models.ParsedStudentImportData
+import dev.nenoeldeeb.education.absencerecord.domain.models.ParsedImportData
 import dev.nenoeldeeb.education.absencerecord.domain.models.Student
 import dev.nenoeldeeb.education.absencerecord.domain.models.StudentError
 import dev.nenoeldeeb.education.absencerecord.domain.usecases.StudentManagementUseCases
@@ -93,7 +93,7 @@ class StudentActionDelegate(
             )
     }
 
-    suspend fun prepareImportSelectionDialog(uriString: String): Result<List<ParsedStudentImportData>> {
+    suspend fun prepareImportSelectionDialog(uriString: String): Result<ParsedImportData> {
         return studentManagementUseCases.parseImportFileUseCase(uriString)
             .fold(
                 onSuccess = { Result.success(it) },
@@ -102,10 +102,10 @@ class StudentActionDelegate(
     }
 
     suspend fun performImport(
-        parsedStudents: List<ParsedStudentImportData>,
+        parsedData: ParsedImportData,
         selectionMap: Map<Int, Boolean>
     ): Result<UiText?> {
-        return studentManagementUseCases.performImportUseCase(parsedStudents, selectionMap)
+        return studentManagementUseCases.performImportUseCase(parsedData, selectionMap)
             .fold(
                 onSuccess = { Result.success(importExportDelegate.buildImportResultMessage(it) as UiText?) },
                 onFailure = { e -> Result.failure(e) }
