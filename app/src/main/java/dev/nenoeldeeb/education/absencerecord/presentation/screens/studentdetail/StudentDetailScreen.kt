@@ -27,6 +27,8 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import dev.nenoeldeeb.education.absencerecord.R
 import dev.nenoeldeeb.education.absencerecord.app.AppViewModelProvider
+import dev.nenoeldeeb.education.absencerecord.presentation.screens.studentdetail.components.StudentDetailBody
+import dev.nenoeldeeb.education.absencerecord.presentation.screens.studentdetail.components.StudentDetailDialogs
 import dev.nenoeldeeb.education.absencerecord.presentation.utils.UiText
 
 @Composable
