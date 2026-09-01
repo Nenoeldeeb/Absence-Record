@@ -44,7 +44,8 @@ object AppViewModelProvider {
                     studentManagementUseCases = app().appContainer.studentManagementUseCases,
                     attendanceUseCases = app().appContainer.attendanceUseCases,
                     reportUseCases = app().appContainer.reportUseCases,
-                    classManagementUseCases = app().appContainer.classManagementUseCases
+                    classManagementUseCases = app().appContainer.classManagementUseCases,
+                    scheduleUseCases = app().appContainer.scheduleUseCases
                 )
             }
         }

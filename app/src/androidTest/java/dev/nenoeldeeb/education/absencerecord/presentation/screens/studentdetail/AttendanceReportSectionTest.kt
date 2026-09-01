@@ -8,6 +8,7 @@ import androidx.compose.ui.test.performClick
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import dev.nenoeldeeb.education.absencerecord.R
+import dev.nenoeldeeb.education.absencerecord.presentation.screens.studentdetail.components.AttendanceReportSection
 import dev.nenoeldeeb.education.absencerecord.presentation.theme.AbsenceRecordTheme
 import kotlinx.datetime.LocalDate
 import org.junit.Assert.assertEquals
