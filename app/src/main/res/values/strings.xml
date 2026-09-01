@@ -101,11 +101,6 @@
     <string name="data_exported_successfully">Data exported successfully.</string>
     <string name="error_reading_or_parsing_file">Error reading or parsing file: %1$s</string>
     <string name="error_during_import">Error during import: %1$s</string>
-    <plurals name="import_complete_new_students_added">
-        <item quantity="zero">Import complete. No students imported.</item>
-        <item quantity="one">Import complete. %1$d new student added.</item>
-        <item quantity="other">Import complete. %1$d new students added.</item>
-    </plurals>
     <plurals name="existing_students_had_dates_merged">
         <item quantity="zero">"No existing students\' dates to merge."</item>
         <item quantity="one">" %1$d existing student had dates merged."</item>
@@ -208,4 +203,61 @@
     <string name="day_short_friday">Fri</string>
     <string name="day_short_saturday">Sat</string>
     <string name="day_short_sunday">Sun</string>
+
+    <!-- Schedule (Lesson Scheduling) -->
+    <string name="error_hour_overlap">This hour overlaps an existing appointment.</string>
+    <string name="error_hour_full">This hour is already full.</string>
+    <string name="error_assignment_exists">This student already has a lesson that day.</string>
+    <string name="error_busy_conflict">This hour overlaps a busy appointment of this student.</string>
+    <string name="schedule_add_hour">Add hour</string>
+    <string name="schedule_add_hour_title">Add lesson hour</string>
+    <string name="schedule_edit_hour_title">Edit lesson hour</string>
+    <string name="schedule_no_hours_for_day">No lesson hours set for this day yet.</string>
+    <string name="schedule_occupancy">%1$d / %2$d</string>
+    <string name="time_range">%1$s – %2$s</string>
+    <string name="schedule_hour_full">Full</string>
+    <string name="schedule_start_time">Start time</string>
+    <string name="schedule_hour_ends_at">Ends at %1$s</string>
+    <string name="error_hour_passes_midnight">Lesson ends after midnight.</string>
+    <string name="schedule_max_students">Max students</string>
+    <string name="error_capacity_invalid">Max students must be at least 1.</string>
+    <string name="error_max_below_assigned">Max students cannot be lower than the number of assigned students.</string>
+    <string name="schedule_delete_hour_title">Delete this lesson hour?</string>
+    <string name="schedule_delete_hour_message">This will remove this hour and all students assigned to it. This action cannot be undone.</string>
+    <string name="schedule_assign_students_description">Assign students to %1$s</string>
+    <string name="schedule_edit_hour_description">Edit hour %1$s</string>
+    <string name="schedule_delete_hour_description">Delete hour %1$s</string>
+    <string name="schedule_expand_hour_description">Expand hour %1$s</string>
+    <string name="schedule_collapse_hour_description">Collapse hour %1$s</string>
+    <string name="schedule_no_students_assigned">No students assigned to this hour.</string>
+    <plurals name="removed_from_hour">
+        <item quantity="one">Removed from %1$s: %2$s</item>
+        <item quantity="other">Removed from %1$s: %2$s</item>
+    </plurals>
+    <string name="assign_reason_hour_full">Hour is full</string>
+    <string name="assign_reason_busy_conflict">Overlaps busy appointment</string>
+    <string name="schedule_add_busy_appointment">Add busy appointment</string>
+    <string name="schedule_add_busy_title">Add busy appointment</string>
+    <string name="schedule_edit_busy_title">Edit busy appointment</string>
+    <string name="schedule_busy_duration">Duration</string>
+    <string name="schedule_busy_duration_hours">%1$d h</string>
+    <string name="schedule_busy_duration_range">0.5 h – 6 h</string>
+    <string name="schedule_busy_ends_at">Ends at %1$s</string>
+    <string name="schedule_edit_busy_description">Edit busy appointment %1$s</string>
+    <string name="schedule_delete_busy_description">Delete busy appointment %1$s</string>
+    <string name="error_busy_duration_invalid">Duration must be between 0.5 and 6 hours, in 30-minute steps, and end by midnight.</string>
+    <string name="student_schedule_title">Weekly schedule</string>
+    <string name="student_detail_tab_lessons">Lessons</string>
+    <string name="student_detail_tab_busy">Busy</string>
+    <string name="student_detail_lessons_empty">No lessons for this student on this day.</string>
+    <string name="student_detail_add_lesson">Add lesson</string>
+    <string name="student_detail_add_lesson_title">Add lesson</string>
+    <string name="student_detail_lesson_already_booked">This student already has a lesson on this day.</string>
+    <string name="student_detail_no_hours_for_day">No lesson hours set for this day. Add hours on the Schedule page first.</string>
+    <string name="student_detail_select_hour">Select an hour</string>
+    <string name="student_detail_lesson_unassign_description">Unassign %1$s</string>
+    <string name="student_detail_no_busy_for_day">No busy appointments for this student on this day.</string>
+    <string name="student_detail_busy_conflict_title">Overlapping lessons</string>
+    <string name="student_detail_busy_conflict_message">This busy appointment overlaps these lessons, which will be removed:</string>
+    <string name="student_detail_busy_conflict_confirm">Remove lessons and save</string>
 </resources>
