@@ -187,6 +187,6 @@ class StudentsViewModelCrudTest : StudentsViewModelTestBase() {
 
             viewModel.onEvent(StudentsScreenEvent.CloseImportSelectionDialog)
             assert(!viewModel.uiState.value.showImportSelectionDialog)
-            assertNull(viewModel.uiState.value.parsedStudentsFromFile)
+            assertNull(viewModel.uiState.value.parsedImportData)
         }
 }

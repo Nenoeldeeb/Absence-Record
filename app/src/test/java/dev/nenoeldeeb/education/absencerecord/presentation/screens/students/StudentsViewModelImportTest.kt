@@ -3,6 +3,7 @@ package dev.nenoeldeeb.education.absencerecord.presentation.screens.students
 import android.net.Uri
 import dev.nenoeldeeb.education.absencerecord.R
 import dev.nenoeldeeb.education.absencerecord.domain.models.ImportResult
+import dev.nenoeldeeb.education.absencerecord.domain.models.ParsedImportData
 import dev.nenoeldeeb.education.absencerecord.domain.models.ParsedStudentImportData
 import dev.nenoeldeeb.education.absencerecord.domain.models.StudentError
 import dev.nenoeldeeb.education.absencerecord.domain.models.StudentExportData
@@ -31,9 +32,13 @@ class StudentsViewModelImportTest : StudentsViewModelTestBase() {
     fun `PrepareImportSelectionDialog with valid Uri parses file`() =
         runTest {
             // Given
-            val parsedData = listOf(ParsedStudentImportData(StudentExportData("S1", "", emptyList()), 1))
+            val parsedImportData =
+                ParsedImportData(
+                    students = listOf(ParsedStudentImportData(StudentExportData("S1", "", emptyList()), 1)),
+                    availableHours = emptyList()
+                )
             every { getAllStudentsUseCase(any(), any()) } returns flowOf(Result.success(emptyList()))
-            coEvery { parseImportFileUseCase(any()) } returns Result.success(parsedData)
+            coEvery { parseImportFileUseCase(any()) } returns Result.success(parsedImportData)
             createViewModel()
             advanceUntilIdle()
 
@@ -45,7 +50,7 @@ class StudentsViewModelImportTest : StudentsViewModelTestBase() {
             advanceUntilIdle()
 
             // Then
-            assertEquals(parsedData, viewModel.uiState.value.parsedStudentsFromFile)
+            assertEquals(parsedImportData, viewModel.uiState.value.parsedImportData)
             assertTrue(viewModel.uiState.value.showImportSelectionDialog)
         }
 
@@ -92,10 +97,38 @@ class StudentsViewModelImportTest : StudentsViewModelTestBase() {
         }
 
     @Test
+    fun `PrepareImportSelectionDialog unsupported version sets error`() =
+        runTest {
+            // Given
+            every { getAllStudentsUseCase(any(), any()) } returns flowOf(Result.success(emptyList()))
+            coEvery { parseImportFileUseCase(any()) } returns
+                Result.failure(StudentError.UnsupportedBackupVersion(9))
+            createViewModel()
+            advanceUntilIdle()
+
+            val uri = mockk<Uri>()
+            every { uri.toString() } returns "uri"
+
+            // When
+            viewModel.onEvent(StudentsScreenEvent.PrepareImportSelectionDialog(uri))
+            advanceUntilIdle()
+
+            // Then
+            assertEquals(
+                UiText.StringResource(R.string.error_unsupported_backup_version, 9),
+                viewModel.uiState.value.error
+            )
+        }
+
+    @Test
     fun `PerformImport calls use case`() =
         runTest {
             // Given
-            val parsedData = listOf(ParsedStudentImportData(StudentExportData("S1", "", emptyList()), 1))
+            val parsedImportData =
+                ParsedImportData(
+                    students = listOf(ParsedStudentImportData(StudentExportData("S1", "", emptyList()), 1)),
+                    availableHours = emptyList()
+                )
 
             // Mock import result
             val importResult =
@@ -106,7 +139,7 @@ class StudentsViewModelImportTest : StudentsViewModelTestBase() {
                     datesProcessedCount = 0
                 )
 
-            coEvery { parseImportFileUseCase(any()) } returns Result.success(parsedData)
+            coEvery { parseImportFileUseCase(any()) } returns Result.success(parsedImportData)
             coEvery { performImportUseCase(any(), any()) } returns
                 Result.success(importResult)
 
@@ -123,7 +156,7 @@ class StudentsViewModelImportTest : StudentsViewModelTestBase() {
             advanceUntilIdle()
 
             // Then
-            coVerify { performImportUseCase(parsedData, any()) }
+            coVerify { performImportUseCase(parsedImportData, any()) }
             assertEquals(false, viewModel.uiState.value.showImportSelectionDialog)
         }
 
@@ -131,9 +164,13 @@ class StudentsViewModelImportTest : StudentsViewModelTestBase() {
     fun `PerformImport failure sets error`() =
         runTest {
             // Given
-            val parsedData = listOf(ParsedStudentImportData(StudentExportData("S1", "", emptyList()), 1))
+            val parsedImportData =
+                ParsedImportData(
+                    students = listOf(ParsedStudentImportData(StudentExportData("S1", "", emptyList()), 1)),
+                    availableHours = emptyList()
+                )
 
-            coEvery { parseImportFileUseCase(any()) } returns Result.success(parsedData)
+            coEvery { parseImportFileUseCase(any()) } returns Result.success(parsedImportData)
             coEvery { performImportUseCase(any(), any()) } returns
                 Result.failure(StudentError.Database)
 

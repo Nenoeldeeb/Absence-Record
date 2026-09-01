@@ -10,7 +10,8 @@ Absence Record is a comprehensive Android application designed to streamline stu
 
 - **Student Management**: Efficiently manage student profiles. Facilitates adding new students, editing existing details with support for photos and personal information, and viewing a comprehensive list of all students. Tapping a student opens a Student Detail screen where you can rename them, change their class, delete them, and view their attendance history. The Students top bar includes a sort control (by name or by attendance) and a multi-select class filter.
 - **Calendar & Attendance Tracking**: A visual calendar interface designed for easy attendance recording. Allows quick toggling of student presence or absence for specific dates directly from a calendar view. The attendance dialog includes a shared multi-select class filter (also used on the Students screen) with checkboxes for filtering students by one or more classes, with dynamic count updates and attendance clamping.
-- **Comprehensive Reporting**: Per-student attendance reports are generated from the Student Detail screen — filter by month and share a calendar image of the month's attendance. The old standalone Reports page has been retired; pager navigation is now exactly two pages (Students ↔ Calendar).
+- **Lesson Scheduling**: A dedicated Schedule page (pager page 2) holds the weekly availability plan — per-weekday lesson hours with a start time (entered via a standard Material3 time picker at exact-minute granularity) and max student capacity (overlap validation), each expandable to show assigned student names (read-only; tapping a name opens that student's profile). Per-student lesson assignment and busy appointments (start via a Material3 time picker, 0.5h–6h duration slider in 30-minute steps, with a live end-time preview and midnight-crossing validation) are managed from the Student Detail screen via **Lessons** and **Busy** tabs; busy appointments that would overlap a lesson are previewed in the dialog and applied only after the teacher confirms. Scheduling data is persisted in Room (`available_lesson_hours`, `lesson_assignments`, `busy_appointments` tables).
+- **Comprehensive Reporting**: Per-student attendance reports are generated from the Student Detail screen — filter by month and share a calendar image of the month's attendance. The old standalone Reports page has been retired; pager navigation is now exactly three pages (Students ↔ Calendar ↔ Schedule).
 - **Data Import/Export**: Robust data management capabilities allowing users to export database records for backup purposes and import them to restore data or migrate between devices. Support for JSON format ensures compatibility.
 
 ## Tech Stack
@@ -88,7 +89,7 @@ To get this project up and running on your local machine:
 ./gradlew testDebugUnitTest --tests "dev.nenoeldeeb.education.absencerecord.presentation.utils.DateFormatterTest"
 
 # Instrumented test example (requires connected device/emulator)
-./gradlew connectedDebugAndroidTest --tests "dev.nenoeldeeb.education.absencerecord.presentation.screens.students.StudentsScreenTest"
+./gradlew connectedDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.class="dev.nenoeldeeb.education.absencerecord.presentation.screens.schedule.ScheduleScreenAppointmentsTest"
 ```
 
 ### Code Quality & Linting
