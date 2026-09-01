@@ -14,6 +14,9 @@ sealed class StudentError(
 
     data object ImportParse : StudentError("Error parsing import file")
 
+    data class UnsupportedBackupVersion(val version: Int) :
+        StudentError("Unsupported backup version")
+
     data object ReportGeneration : StudentError("Failed to generate report")
 
     data object HourOverlap : StudentError("This hour overlaps an existing appointment")
