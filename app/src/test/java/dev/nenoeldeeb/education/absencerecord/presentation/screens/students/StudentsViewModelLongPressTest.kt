@@ -1,6 +1,8 @@
 package dev.nenoeldeeb.education.absencerecord.presentation.screens.students
 
 import dev.nenoeldeeb.education.absencerecord.domain.models.Student
+import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.components.handleStudentClickBehavior
+import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.components.handleStudentLongPressBehavior
 import io.mockk.every
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.flowOf
