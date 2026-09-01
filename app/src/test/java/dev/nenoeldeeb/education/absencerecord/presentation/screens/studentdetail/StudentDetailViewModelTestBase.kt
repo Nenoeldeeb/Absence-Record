@@ -10,6 +10,14 @@ import dev.nenoeldeeb.education.absencerecord.domain.usecases.StudentManagementU
 import dev.nenoeldeeb.education.absencerecord.domain.usecases.attendance.GetAttendanceHistoryForDateRangeUseCase
 import dev.nenoeldeeb.education.absencerecord.domain.usecases.attendance.GetStudentAttendanceDatesUseCase
 import dev.nenoeldeeb.education.absencerecord.domain.usecases.report.ShareReportUseCase
+import dev.nenoeldeeb.education.absencerecord.domain.usecases.schedule.AssignStudentUseCase
+import dev.nenoeldeeb.education.absencerecord.domain.usecases.schedule.DeleteBusyAppointmentUseCase
+import dev.nenoeldeeb.education.absencerecord.domain.usecases.schedule.InsertBusyAppointmentUseCase
+import dev.nenoeldeeb.education.absencerecord.domain.usecases.schedule.ObserveHoursForWeekdayUseCase
+import dev.nenoeldeeb.education.absencerecord.domain.usecases.schedule.ObserveStudentScheduleUseCase
+import dev.nenoeldeeb.education.absencerecord.domain.usecases.schedule.ScheduleUseCases
+import dev.nenoeldeeb.education.absencerecord.domain.usecases.schedule.UnassignStudentUseCase
+import dev.nenoeldeeb.education.absencerecord.domain.usecases.schedule.UpdateBusyAppointmentUseCase
 import dev.nenoeldeeb.education.absencerecord.domain.usecases.student.DeleteStudentsUseCase
 import dev.nenoeldeeb.education.absencerecord.domain.usecases.student.GetStudentByIdUseCase
 import dev.nenoeldeeb.education.absencerecord.domain.usecases.student.UpdateStudentUseCase
@@ -38,6 +46,14 @@ open class StudentDetailViewModelTestBase {
     protected lateinit var reportUseCases: ReportUseCases
     protected lateinit var shareReportUseCase: ShareReportUseCase
     protected lateinit var classManagementUseCases: ClassManagementUseCases
+    protected lateinit var scheduleUseCases: ScheduleUseCases
+    protected lateinit var observeStudentScheduleUseCase: ObserveStudentScheduleUseCase
+    protected lateinit var observeHoursForWeekdayUseCase: ObserveHoursForWeekdayUseCase
+    protected lateinit var assignStudentUseCase: AssignStudentUseCase
+    protected lateinit var unassignStudentUseCase: UnassignStudentUseCase
+    protected lateinit var insertBusyAppointmentUseCase: InsertBusyAppointmentUseCase
+    protected lateinit var updateBusyAppointmentUseCase: UpdateBusyAppointmentUseCase
+    protected lateinit var deleteBusyAppointmentUseCase: DeleteBusyAppointmentUseCase
     protected lateinit var viewModel: StudentDetailViewModel
 
     fun commonSetUp() {
@@ -65,6 +81,24 @@ open class StudentDetailViewModelTestBase {
         classManagementUseCases = mockk(relaxed = true)
         every { classManagementUseCases.getAllClassesUseCase() } returns
             flowOf(Result.success(emptyList<StudentClass>()))
+
+        scheduleUseCases = mockk(relaxed = true)
+
+        observeStudentScheduleUseCase = mockk(relaxed = true)
+        observeHoursForWeekdayUseCase = mockk(relaxed = true)
+        assignStudentUseCase = mockk(relaxed = true)
+        unassignStudentUseCase = mockk(relaxed = true)
+        insertBusyAppointmentUseCase = mockk(relaxed = true)
+        updateBusyAppointmentUseCase = mockk(relaxed = true)
+        deleteBusyAppointmentUseCase = mockk(relaxed = true)
+
+        every { scheduleUseCases.observeStudentScheduleUseCase } returns observeStudentScheduleUseCase
+        every { scheduleUseCases.observeHoursForWeekdayUseCase } returns observeHoursForWeekdayUseCase
+        every { scheduleUseCases.assignStudentUseCase } returns assignStudentUseCase
+        every { scheduleUseCases.unassignStudentUseCase } returns unassignStudentUseCase
+        every { scheduleUseCases.insertBusyAppointmentUseCase } returns insertBusyAppointmentUseCase
+        every { scheduleUseCases.updateBusyAppointmentUseCase } returns updateBusyAppointmentUseCase
+        every { scheduleUseCases.deleteBusyAppointmentUseCase } returns deleteBusyAppointmentUseCase
     }
 
     protected fun createViewModel(studentId: Int = 1) {
@@ -74,7 +108,8 @@ open class StudentDetailViewModelTestBase {
                 studentManagementUseCases,
                 attendanceUseCases,
                 reportUseCases,
-                classManagementUseCases
+                classManagementUseCases,
+                scheduleUseCases
             )
     }
 

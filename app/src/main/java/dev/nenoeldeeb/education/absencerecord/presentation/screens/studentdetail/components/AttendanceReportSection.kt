@@ -1,4 +1,4 @@
-package dev.nenoeldeeb.education.absencerecord.presentation.screens.studentdetail
+package dev.nenoeldeeb.education.absencerecord.presentation.screens.studentdetail.components
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
