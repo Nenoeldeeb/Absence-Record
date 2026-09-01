@@ -1,7 +1,5 @@
 package dev.nenoeldeeb.education.absencerecord.presentation.screens.studentdetail
 
-import android.net.Uri
-import androidx.core.net.toUri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dev.nenoeldeeb.education.absencerecord.domain.models.Student
@@ -10,7 +8,11 @@ import dev.nenoeldeeb.education.absencerecord.domain.usecases.AttendanceUseCases
 import dev.nenoeldeeb.education.absencerecord.domain.usecases.ClassManagementUseCases
 import dev.nenoeldeeb.education.absencerecord.domain.usecases.ReportUseCases
 import dev.nenoeldeeb.education.absencerecord.domain.usecases.StudentManagementUseCases
-import dev.nenoeldeeb.education.absencerecord.presentation.utils.UiText
+import dev.nenoeldeeb.education.absencerecord.domain.usecases.schedule.ScheduleUseCases
+import dev.nenoeldeeb.education.absencerecord.presentation.screens.studentdetail.delegates.BusyManagementDelegate
+import dev.nenoeldeeb.education.absencerecord.presentation.screens.studentdetail.delegates.StudentDetailReportDelegate
+import dev.nenoeldeeb.education.absencerecord.presentation.screens.studentdetail.delegates.StudentScheduleDelegate
+import dev.nenoeldeeb.education.absencerecord.presentation.screens.studentdetail.delegates.StudentScheduleTabsDelegate
 import dev.nenoeldeeb.education.absencerecord.presentation.utils.toUiText
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -22,20 +24,15 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlinx.datetime.DateTimeUnit
 import kotlinx.datetime.LocalDate
-import kotlinx.datetime.TimeZone
-import kotlinx.datetime.minus
-import kotlinx.datetime.plus
-import kotlinx.datetime.toLocalDateTime
-import kotlin.time.Clock
 
 class StudentDetailViewModel(
     private val studentId: Int,
     private val studentManagementUseCases: StudentManagementUseCases,
     private val attendanceUseCases: AttendanceUseCases,
     private val reportUseCases: ReportUseCases,
-    private val classManagementUseCases: ClassManagementUseCases
+    private val classManagementUseCases: ClassManagementUseCases,
+    private val scheduleUseCases: ScheduleUseCases
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(StudentDetailScreenState())
     val uiState: StateFlow<StudentDetailScreenState> = _uiState.asStateFlow()
@@ -43,8 +40,37 @@ class StudentDetailViewModel(
     private val _uiEffect = MutableSharedFlow<StudentDetailUiEffect>()
     val uiEffect: SharedFlow<StudentDetailUiEffect> = _uiEffect.asSharedFlow()
 
+    private val studentScheduleDelegate =
+        StudentScheduleDelegate(
+            observeStudentScheduleUseCase = scheduleUseCases.observeStudentScheduleUseCase,
+            scope = viewModelScope,
+            onScheduleUpdated = { schedule ->
+                _uiState.update { it.copy(studentSchedule = schedule) }
+            },
+            onFailure = { e ->
+                _uiState.update { it.copy(error = e.toUiText()) }
+            }
+        )
+
+    private val scheduleTabsDelegate =
+        StudentScheduleTabsDelegate(scheduleUseCases, _uiState, viewModelScope) { _uiState.update(it) }
+
+    private val busyManagementDelegate =
+        BusyManagementDelegate(scheduleUseCases, viewModelScope) { _uiState.update(it) }
+
+    private val reportDelegate =
+        StudentDetailReportDelegate(
+            studentId = studentId,
+            attendanceUseCases = attendanceUseCases,
+            reportUseCases = reportUseCases,
+            uiState = _uiState,
+            scope = viewModelScope,
+            updateState = { _uiState.update(it) }
+        )
+
     init {
         initializeData()
+        scheduleTabsDelegate.observeHours()
     }
 
     private fun initializeData() {
@@ -57,6 +83,7 @@ class StudentDetailViewModel(
                 mergeLoadResults(studentResult, classesResult, datesResult)
             }.collectLatest { }
         }
+        studentScheduleDelegate.observe(studentId)
     }
 
     private fun mergeLoadResults(
@@ -127,10 +154,52 @@ class StudentDetailViewModel(
             is StudentDetailScreenEvent.SelectMonth ->
                 _uiState.update { it.copy(selectedMonth = event.month) }
 
-            is StudentDetailScreenEvent.ShareAttendanceReport -> shareAttendanceReport()
+            is StudentDetailScreenEvent.ShareAttendanceReport -> reportDelegate.shareAttendanceReport()
 
             is StudentDetailScreenEvent.ShareFileResult ->
-                handleShareFileResult(event.uri, event.error)
+                reportDelegate.handleShareFileResult(event.uri, event.error)
+
+            is StudentDetailScreenEvent.SelectScheduleWeekday ->
+                scheduleTabsDelegate.selectWeekday(event.weekday)
+
+            is StudentDetailScreenEvent.SelectScheduleTab ->
+                scheduleTabsDelegate.selectTab(event.tab)
+
+            is StudentDetailScreenEvent.OpenAddLessonDialog ->
+                scheduleTabsDelegate.openAddLessonDialog(_uiState.value)
+
+            is StudentDetailScreenEvent.DismissAddLessonDialog ->
+                scheduleTabsDelegate.dismissAddLessonDialog()
+
+            is StudentDetailScreenEvent.SelectLessonHour ->
+                scheduleTabsDelegate.selectLessonHour(event.hourId)
+
+            is StudentDetailScreenEvent.ConfirmAddLesson ->
+                scheduleTabsDelegate.confirmAddLesson(_uiState.value)
+
+            is StudentDetailScreenEvent.UnassignLesson ->
+                scheduleTabsDelegate.unassignLesson(_uiState.value, event.lesson)
+
+            is StudentDetailScreenEvent.OpenBusyDialog ->
+                busyManagementDelegate.openBusyDialog(event.busy)
+
+            is StudentDetailScreenEvent.DismissBusyDialog ->
+                busyManagementDelegate.dismissBusyDialog()
+
+            is StudentDetailScreenEvent.SetBusyStart ->
+                busyManagementDelegate.setBusyStart(event.minutes)
+
+            is StudentDetailScreenEvent.SetBusyDuration ->
+                busyManagementDelegate.setBusyDuration(event.duration)
+
+            is StudentDetailScreenEvent.SaveBusyAppointment ->
+                busyManagementDelegate.saveBusyAppointment(_uiState.value)
+
+            is StudentDetailScreenEvent.ConfirmBusyConflict ->
+                busyManagementDelegate.confirmBusyConflict(_uiState.value)
+
+            is StudentDetailScreenEvent.DeleteBusyAppointment ->
+                busyManagementDelegate.deleteBusyAppointment(event.id)
 
             is StudentDetailScreenEvent.ConsumeError ->
                 _uiState.update { it.copy(error = null) }
@@ -200,50 +269,5 @@ class StudentDetailViewModel(
                     }
                 }
         }
-    }
-
-    private fun shareAttendanceReport() {
-        val state = _uiState.value
-        val student = state.student ?: return
-        val month = state.selectedMonth ?: currentMonth()
-        val startOfMonth = LocalDate(month.year, month.month, 1)
-        val endOfMonth = startOfMonth.plus(1, DateTimeUnit.MONTH).minus(1, DateTimeUnit.DAY)
-
-        viewModelScope.launch {
-            attendanceUseCases.getAttendanceHistoryForDateRangeUseCase(
-                studentId,
-                startOfMonth,
-                endOfMonth
-            ).collectLatest { result ->
-                result.onSuccess { items ->
-                    reportUseCases.shareReportUseCase(
-                        student.name,
-                        month,
-                        items.map { it.date }
-                    ).onSuccess { filePath ->
-                        _uiState.update { it.copy(shareFileUri = filePath.toUri()) }
-                    }.onFailure { e ->
-                        _uiState.update { it.copy(toastMessage = e.toUiText()) }
-                    }
-                }.onFailure { e ->
-                    _uiState.update { it.copy(toastMessage = e.toUiText()) }
-                }
-            }
-        }
-    }
-
-    private fun currentMonth(): LocalDate {
-        val now = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault())
-        return LocalDate(now.year, now.month, 1)
-    }
-
-    private fun handleShareFileResult(
-        uri: Uri,
-        error: UiText?
-    ) {
-        if (error != null) {
-            _uiState.update { it.copy(toastMessage = error) }
-        }
-        _uiState.update { it.copy(shareFileUri = null) }
     }
 }
