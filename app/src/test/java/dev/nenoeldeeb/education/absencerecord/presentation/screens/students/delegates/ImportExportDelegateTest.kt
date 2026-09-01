@@ -55,7 +55,7 @@ class ImportExportDelegateTest {
 
         assertTrue(uiText is UiText.Joined)
         val parts = uiText.parts
-        assertEquals(3, parts.size)
+        assertEquals(5, parts.size)
         // Check first part (new students)
         assertEquals(
             UiText.PluralResource(R.plurals.import_complete_new_students_added, 2, 2),

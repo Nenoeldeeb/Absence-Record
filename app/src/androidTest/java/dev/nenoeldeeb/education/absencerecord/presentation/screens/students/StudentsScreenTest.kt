@@ -9,6 +9,7 @@ import androidx.compose.ui.test.performClick
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import dev.nenoeldeeb.education.absencerecord.R
+import dev.nenoeldeeb.education.absencerecord.domain.models.ParsedImportData
 import dev.nenoeldeeb.education.absencerecord.domain.models.ParsedStudentImportData
 import dev.nenoeldeeb.education.absencerecord.domain.models.StudentExportData
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.components.EmptyStateMessage
@@ -180,17 +181,22 @@ class StudentsScreenTest {
                     originalData = StudentExportData(name = "Bob", dates = emptyList())
                 )
             )
+        val parsedImportData =
+            ParsedImportData(
+                students = parsedStudents,
+                availableHours = emptyList()
+            )
         val uiState =
             StudentsScreenState(
                 showImportSelectionDialog = true,
-                parsedStudentsFromFile = parsedStudents,
+                parsedImportData = parsedImportData,
                 importSelectionMap = mapOf(1 to true, 2 to false)
             )
 
         composeTestRule.setContent {
             AbsenceRecordTheme {
                 ImportSelectionDialog(
-                    parsedStudentsFromFile = uiState.parsedStudentsFromFile,
+                    parsedStudentsFromFile = uiState.parsedImportData?.students,
                     importSelectionMap = uiState.importSelectionMap,
                     onToggleSelection = {},
                     onSelectAll = {},
@@ -213,17 +219,22 @@ class StudentsScreenTest {
                     originalData = StudentExportData(name = "Alice", dates = emptyList())
                 )
             )
+        val parsedImportData =
+            ParsedImportData(
+                students = parsedStudents,
+                availableHours = emptyList()
+            )
         val uiState =
             StudentsScreenState(
                 showImportSelectionDialog = true,
-                parsedStudentsFromFile = parsedStudents,
+                parsedImportData = parsedImportData,
                 importSelectionMap = mapOf(1 to false)
             )
 
         composeTestRule.setContent {
             AbsenceRecordTheme {
                 ImportSelectionDialog(
-                    parsedStudentsFromFile = uiState.parsedStudentsFromFile,
+                    parsedStudentsFromFile = uiState.parsedImportData?.students,
                     importSelectionMap = uiState.importSelectionMap,
                     onToggleSelection = {},
                     onSelectAll = {},

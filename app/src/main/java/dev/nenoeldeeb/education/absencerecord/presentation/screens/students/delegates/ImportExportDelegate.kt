@@ -79,6 +79,58 @@ class ImportExportDelegate {
             )
         }
 
+        // Show schedule outcomes
+        parts.add(
+            UiText.PluralResource(
+                R.plurals.import_complete_hours_added,
+                result.hoursAddedCount,
+                result.hoursAddedCount
+            )
+        )
+        if (result.hoursSkippedOverlapCount > 0) {
+            parts.add(
+                UiText.PluralResource(
+                    R.plurals.import_complete_hours_overlap_skipped,
+                    result.hoursSkippedOverlapCount,
+                    result.hoursSkippedOverlapCount
+                )
+            )
+        }
+        parts.add(
+            UiText.PluralResource(
+                R.plurals.import_complete_lessons_added,
+                result.lessonsAddedCount,
+                result.lessonsAddedCount
+            )
+        )
+        if (result.lessonsRemovedBusyWinsCount > 0) {
+            parts.add(
+                UiText.PluralResource(
+                    R.plurals.import_complete_lessons_removed_busy,
+                    result.lessonsRemovedBusyWinsCount,
+                    result.lessonsRemovedBusyWinsCount
+                )
+            )
+        }
+        if (result.lessonsSkippedCount > 0) {
+            parts.add(
+                UiText.PluralResource(
+                    R.plurals.import_complete_lessons_skipped,
+                    result.lessonsSkippedCount,
+                    result.lessonsSkippedCount
+                )
+            )
+        }
+        if (result.malformedEntriesSkippedCount > 0) {
+            parts.add(
+                UiText.PluralResource(
+                    R.plurals.import_complete_malformed_skipped,
+                    result.malformedEntriesSkippedCount,
+                    result.malformedEntriesSkippedCount
+                )
+            )
+        }
+
         return UiText.Joined(parts, "\n")
     }
 }
