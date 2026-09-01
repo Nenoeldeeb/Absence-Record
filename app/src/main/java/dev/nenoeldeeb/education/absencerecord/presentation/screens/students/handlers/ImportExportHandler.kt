@@ -30,17 +30,18 @@ class ImportExportHandler(
         viewModelScope.launch {
             studentActionDelegate.prepareImportSelectionDialog(resolvedUri.toString())
                 .onSuccess { parsedData ->
-                    val (data, selectionMap, showDialog) = importExportDelegate.prepareImportDialog(parsedData)
+                    val (data, selectionMap, showDialog) =
+                        importExportDelegate.prepareImportDialog(parsedData.students)
                     _uiState.update {
                         if (data == null) {
                             it.copy(
-                                parsedStudentsFromFile = null,
+                                parsedImportData = null,
                                 importSelectionMap = emptyMap(),
                                 toastMessage = UiText.StringResource(R.string.no_students_found_in_file)
                             )
                         } else {
                             it.copy(
-                                parsedStudentsFromFile = data,
+                                parsedImportData = parsedData,
                                 importSelectionMap = selectionMap,
                                 showImportSelectionDialog = showDialog
                             )
@@ -53,7 +54,7 @@ class ImportExportHandler(
 
     fun handleCloseImportSelectionDialog(_uiState: MutableStateFlow<StudentsScreenState>) {
         _uiState.update {
-            it.copy(showImportSelectionDialog = false, parsedStudentsFromFile = null, importSelectionMap = emptyMap())
+            it.copy(showImportSelectionDialog = false, parsedImportData = null, importSelectionMap = emptyMap())
         }
     }
 
@@ -73,13 +74,13 @@ class ImportExportHandler(
         viewModelScope: CoroutineScope
     ) {
         viewModelScope.launch {
-            val parsedStudents = _uiState.value.parsedStudentsFromFile ?: return@launch
-            studentActionDelegate.performImport(parsedStudents, _uiState.value.importSelectionMap)
+            val parsedData = _uiState.value.parsedImportData ?: return@launch
+            studentActionDelegate.performImport(parsedData, _uiState.value.importSelectionMap)
                 .onSuccess { toast ->
                     _uiState.update { state ->
                         state.copy(
                             showImportSelectionDialog = false,
-                            parsedStudentsFromFile = null,
+                            parsedImportData = null,
                             importSelectionMap = emptyMap(),
                             toastMessage = toast
                         )

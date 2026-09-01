@@ -1,10 +1,12 @@
 package dev.nenoeldeeb.education.absencerecord.domain.usecases.transfer
 
+import dev.nenoeldeeb.education.absencerecord.domain.models.ParsedImportData
 import dev.nenoeldeeb.education.absencerecord.domain.models.ParsedStudentImportData
 import dev.nenoeldeeb.education.absencerecord.domain.models.Student
 import dev.nenoeldeeb.education.absencerecord.domain.models.StudentError
 import dev.nenoeldeeb.education.absencerecord.domain.models.StudentExportData
 import dev.nenoeldeeb.education.absencerecord.domain.repositories.AttendanceRepository
+import dev.nenoeldeeb.education.absencerecord.domain.repositories.ScheduleRepository
 import dev.nenoeldeeb.education.absencerecord.domain.repositories.StudentClassRepository
 import dev.nenoeldeeb.education.absencerecord.domain.repositories.StudentRepository
 import io.mockk.coEvery
@@ -26,6 +28,7 @@ class PerformImportUseCaseTest {
     private lateinit var studentRepository: StudentRepository
     private lateinit var attendanceRepository: AttendanceRepository
     private lateinit var studentClassRepository: StudentClassRepository
+    private lateinit var scheduleRepository: ScheduleRepository
     private lateinit var useCase: PerformImportUseCase
 
     @BeforeEach
@@ -33,10 +36,26 @@ class PerformImportUseCaseTest {
         studentRepository = mockk()
         attendanceRepository = mockk()
         studentClassRepository = mockk()
-        useCase = PerformImportUseCase(studentRepository, attendanceRepository, studentClassRepository)
+        scheduleRepository = mockk()
+        useCase =
+            PerformImportUseCase(
+                studentRepository,
+                attendanceRepository,
+                studentClassRepository,
+                scheduleRepository
+            )
         coEvery { studentClassRepository.getOrCreateClassByName(any()) } returns Result.success(1)
         coEvery { studentRepository.updateStudent(any()) } returns Result.success(Unit)
+        every { scheduleRepository.observeHours() } returns flowOf(Result.success(emptyList()))
+        every { scheduleRepository.observeAssignments() } returns flowOf(Result.success(emptyList()))
+        every { scheduleRepository.observeBusyAppointments() } returns flowOf(Result.success(emptyList()))
     }
+
+    private fun parsedData(studentData: StudentExportData): ParsedImportData =
+        ParsedImportData(
+            students = listOf(ParsedStudentImportData(studentData, 1)),
+            availableHours = emptyList()
+        )
 
     @Nested
     @DisplayName("invoke Tests")
@@ -44,10 +63,10 @@ class PerformImportUseCaseTest {
         @Test
         fun `should fail if no students selected`() =
             runTest {
-                val parsedData = listOf(ParsedStudentImportData(StudentExportData("John", "", emptyList())))
-                val selectionMap = mapOf(parsedData[0].id to false)
+                val data = parsedData(StudentExportData("John", "", emptyList()))
+                val selectionMap = mapOf(data.students[0].id to false)
 
-                val result = useCase(parsedData, selectionMap)
+                val result = useCase(data, selectionMap)
 
                 assertTrue(result.isFailure)
                 assertIs<StudentError.Validation>(result.exceptionOrNull())
@@ -56,16 +75,15 @@ class PerformImportUseCaseTest {
         @Test
         fun `should import new student with attendance`() =
             runTest {
-                val exportData = StudentExportData("John", "", listOf("2024-01-01"))
-                val parsedData = listOf(ParsedStudentImportData(exportData))
-                val selectionMap = mapOf(parsedData[0].id to true)
+                val data = parsedData(StudentExportData("John", "", listOf("2024-01-01")))
+                val selectionMap = mapOf(data.students[0].id to true)
 
                 every { studentRepository.getAllStudents() } returns
                     flowOf(Result.success(emptyList()))
                 coEvery { studentRepository.insertStudent(any()) } returns Result.success(1L)
                 coEvery { attendanceRepository.insertAttendance(any()) } returns Result.success(1L)
 
-                val result = useCase(parsedData, selectionMap)
+                val result = useCase(data, selectionMap)
 
                 assertTrue(result.isSuccess)
                 val importResult = result.getOrNull()
@@ -84,16 +102,15 @@ class PerformImportUseCaseTest {
         @Test
         fun `should merge with existing student`() =
             runTest {
-                val exportData = StudentExportData("John", "", listOf("2024-01-01"))
-                val parsedData = listOf(ParsedStudentImportData(exportData))
-                val selectionMap = mapOf(parsedData[0].id to true)
+                val data = parsedData(StudentExportData("John", "", listOf("2024-01-01")))
+                val selectionMap = mapOf(data.students[0].id to true)
                 val existingStudent = Student(id = 1, name = "John")
 
                 every { studentRepository.getAllStudents() } returns
                     flowOf(Result.success(listOf(existingStudent)))
                 coEvery { attendanceRepository.insertAttendance(any()) } returns Result.success(1L)
 
-                val result = useCase(parsedData, selectionMap)
+                val result = useCase(data, selectionMap)
 
                 assertTrue(result.isSuccess)
                 val importResult = result.getOrNull()
@@ -112,15 +129,14 @@ class PerformImportUseCaseTest {
         @Test
         fun `should handle invalid dates in import`() =
             runTest {
-                val exportData = StudentExportData("John", "", listOf("invalid-date"))
-                val parsedData = listOf(ParsedStudentImportData(exportData))
-                val selectionMap = mapOf(parsedData[0].id to true)
+                val data = parsedData(StudentExportData("John", "", listOf("invalid-date")))
+                val selectionMap = mapOf(data.students[0].id to true)
 
                 every { studentRepository.getAllStudents() } returns
                     flowOf(Result.success(emptyList()))
                 coEvery { studentRepository.insertStudent(any()) } returns Result.success(1L)
 
-                val result = useCase(parsedData, selectionMap)
+                val result = useCase(data, selectionMap)
 
                 assertTrue(result.isSuccess)
                 val importResult = result.getOrNull()
@@ -131,16 +147,16 @@ class PerformImportUseCaseTest {
         @Test
         fun `should handle mixed selection`() =
             runTest {
-                val data1 = ParsedStudentImportData(StudentExportData("John", "", emptyList()))
-                val data2 = ParsedStudentImportData(StudentExportData("Jane", "", emptyList()))
-                val parsedData = listOf(data1, data2)
-                val selectionMap = mapOf(data1.id to true, data2.id to false)
+                val john = ParsedStudentImportData(StudentExportData("John", "", emptyList()), 1)
+                val jane = ParsedStudentImportData(StudentExportData("Jane", "", emptyList()), 2)
+                val data = ParsedImportData(listOf(john, jane), emptyList())
+                val selectionMap = mapOf(john.id to true, jane.id to false)
 
                 every { studentRepository.getAllStudents() } returns
                     flowOf(Result.success(emptyList()))
                 coEvery { studentRepository.insertStudent(any()) } returns Result.success(1L)
 
-                val result = useCase(parsedData, selectionMap)
+                val result = useCase(data, selectionMap)
 
                 assertTrue(result.isSuccess)
                 val importResult = result.getOrNull()
@@ -153,13 +169,13 @@ class PerformImportUseCaseTest {
         @Test
         fun `should return failure when exception occurs during import`() =
             runTest {
-                val parsedData = listOf(ParsedStudentImportData(StudentExportData("John", "", emptyList())))
-                val selectionMap = mapOf(parsedData[0].id to true)
+                val data = parsedData(StudentExportData("John", "", emptyList()))
+                val selectionMap = mapOf(data.students[0].id to true)
 
                 every { studentRepository.getAllStudents() } returns
                     flowOf(Result.failure(Exception("DB Error")))
 
-                val result = useCase(parsedData, selectionMap)
+                val result = useCase(data, selectionMap)
 
                 assertTrue(result.isFailure)
                 assertEquals("DB Error", result.exceptionOrNull()?.message)
@@ -168,9 +184,8 @@ class PerformImportUseCaseTest {
         @Test
         fun `should import new student with class`() =
             runTest {
-                val exportData = StudentExportData("John", "Class A", emptyList())
-                val parsedData = listOf(ParsedStudentImportData(exportData))
-                val selectionMap = mapOf(parsedData[0].id to true)
+                val data = parsedData(StudentExportData("John", "Class A", emptyList()))
+                val selectionMap = mapOf(data.students[0].id to true)
 
                 every { studentRepository.getAllStudents() } returns
                     flowOf(Result.success(emptyList()))
@@ -178,7 +193,7 @@ class PerformImportUseCaseTest {
                     Result.success(10)
                 coEvery { studentRepository.insertStudent(any()) } returns Result.success(1L)
 
-                useCase(parsedData, selectionMap)
+                useCase(data, selectionMap)
 
                 coVerify {
                     studentRepository.insertStudent(match { it.name == "John" && it.classId == 10 })
@@ -188,9 +203,8 @@ class PerformImportUseCaseTest {
         @Test
         fun `should update existing student class when merging`() =
             runTest {
-                val exportData = StudentExportData("John", "Class B", emptyList())
-                val parsedData = listOf(ParsedStudentImportData(exportData))
-                val selectionMap = mapOf(parsedData[0].id to true)
+                val data = parsedData(StudentExportData("John", "Class B", emptyList()))
+                val selectionMap = mapOf(data.students[0].id to true)
                 val existingStudent = Student(id = 1, name = "John", classId = null)
 
                 every { studentRepository.getAllStudents() } returns
@@ -200,11 +214,26 @@ class PerformImportUseCaseTest {
                 coEvery { studentRepository.updateStudent(any()) } returns Result.success(Unit)
                 coEvery { attendanceRepository.insertAttendance(any()) } returns Result.success(1L)
 
-                useCase(parsedData, selectionMap)
+                useCase(data, selectionMap)
 
                 coVerify {
                     studentRepository.updateStudent(match { it.id == 1 && it.classId == 20 })
                 }
+            }
+
+        @Test
+        fun `should return failure when schedule repository fails`() =
+            runTest {
+                val data = parsedData(StudentExportData("John", "", emptyList()))
+                val selectionMap = mapOf(data.students[0].id to true)
+
+                every { scheduleRepository.observeHours() } returns
+                    flowOf(Result.failure(StudentError.Database))
+
+                val result = useCase(data, selectionMap)
+
+                assertTrue(result.isFailure)
+                assertEquals(StudentError.Database, result.exceptionOrNull())
             }
     }
 }

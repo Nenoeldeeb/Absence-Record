@@ -41,10 +41,8 @@ import dev.nenoeldeeb.education.absencerecord.presentation.screens.components.St
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.components.MultiSelectionHeader
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.components.SortPanel
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.components.StudentsTopBar
-import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.dialogs.BulkDeleteConfirmationDialog
-import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.dialogs.ImportSelectionDialog
-import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.dialogs.ManageClassesDialog
-import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.dialogs.StudentDialog
+import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.components.handleStudentClickBehavior
+import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.components.handleStudentLongPressBehavior
 
 @Composable
 fun StudentsScreen(
@@ -257,65 +255,9 @@ fun StudentsScreen(
         }
     }
 
-    if (uiState.showAddStudentDialog) {
-        StudentDialog(
-            newStudentName = uiState.newStudentName,
-            availableClasses = uiState.availableClasses,
-            onStudentNameChange = {
-                viewModel.onEvent(StudentsScreenEvent.UpdateNewStudentName(it))
-            },
-            onSave = { name, classId ->
-                viewModel.onEvent(StudentsScreenEvent.AddStudent(name, classId))
-            },
-            onImportClick = { importLauncher.launch(arrayOf("application/json", "*/*")) },
-            onDismiss = {
-                viewModel.onEvent(StudentsScreenEvent.ShowStudentDialog(false))
-            }
-        )
-    }
-
-    if (uiState.showImportSelectionDialog) {
-        ImportSelectionDialog(
-            parsedStudentsFromFile = uiState.parsedStudentsFromFile,
-            importSelectionMap = uiState.importSelectionMap,
-            onToggleSelection = {
-                viewModel.onEvent(StudentsScreenEvent.ToggleImportSelection(it))
-            },
-            onSelectAll = { shouldSelect ->
-                val items = uiState.parsedStudentsFromFile ?: emptyList()
-                items.forEach { item ->
-                    if (uiState.importSelectionMap[item.id] != shouldSelect) {
-                        viewModel.onEvent(StudentsScreenEvent.ToggleImportSelection(item.id))
-                    }
-                }
-            },
-            onImport = {
-                viewModel.onEvent(StudentsScreenEvent.PerformImport)
-                viewModel.onEvent(StudentsScreenEvent.ShowStudentDialog(false))
-            },
-            onDismiss = { viewModel.onEvent(StudentsScreenEvent.CloseImportSelectionDialog) }
-        )
-    }
-
-    if (uiState.showBulkDeleteDialog) {
-        BulkDeleteConfirmationDialog(
-            selectedStudentIds = uiState.selectedStudentIds,
-            onConfirmDelete = { viewModel.onEvent(StudentsScreenEvent.DeleteSelectedStudents) },
-            onDismiss = { viewModel.onEvent(StudentsScreenEvent.DismissBulkDeleteDialog) }
-        )
-    }
-
-    if (uiState.showManageClassesDialog) {
-        ManageClassesDialog(
-            classes = uiState.availableClasses,
-            onAddClass = { viewModel.onEvent(StudentsScreenEvent.AddClass(it)) },
-            onRenameClass = { cls, name ->
-                viewModel.onEvent(StudentsScreenEvent.RenameClass(cls, name))
-            },
-            onDeleteClass = { viewModel.onEvent(StudentsScreenEvent.DeleteClass(it)) },
-            onDismiss = {
-                viewModel.onEvent(StudentsScreenEvent.ShowManageClassesDialog(false))
-            }
-        )
-    }
+    StudentsDialogs(
+        uiState = uiState,
+        onEvent = viewModel::onEvent,
+        onImportClick = { importLauncher.launch(arrayOf("application/json", "*/*")) }
+    )
 }
