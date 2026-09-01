@@ -13,6 +13,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import dev.nenoeldeeb.education.absencerecord.app.navigation.AppNavigation
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.calendar.CalendarScreen
+import dev.nenoeldeeb.education.absencerecord.presentation.screens.schedule.ScheduleScreen
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.StudentsScreen
 import dev.nenoeldeeb.education.absencerecord.presentation.theme.AbsenceRecordTheme
 
@@ -36,7 +37,7 @@ fun MainScreen(
     studentsListState: LazyListState,
     onStudentClick: (Int) -> Unit
 ) {
-    // 0: Students, 1: Calendar
+    // 0: Students, 1: Calendar, 2: Schedule
     HorizontalPager(
         state = pagerState,
         contentPadding = contentPadding
@@ -49,6 +50,11 @@ fun MainScreen(
                     onStudentClick = onStudentClick
                 )
             1 -> CalendarScreen(modifier = Modifier.fillMaxSize())
+            2 ->
+                ScheduleScreen(
+                    modifier = Modifier.fillMaxSize(),
+                    onStudentClick = onStudentClick
+                )
         }
     }
 }
