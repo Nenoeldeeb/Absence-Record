@@ -1,4 +1,4 @@
-package dev.nenoeldeeb.education.absencerecord.presentation.screens.students
+package dev.nenoeldeeb.education.absencerecord.presentation.screens.students.components
 
 import dev.nenoeldeeb.education.absencerecord.domain.models.Student
 

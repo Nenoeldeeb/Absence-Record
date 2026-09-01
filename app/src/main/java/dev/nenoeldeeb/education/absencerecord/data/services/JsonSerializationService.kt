@@ -1,4 +1,4 @@
-package dev.nenoeldeeb.education.absencerecord.data.utils
+package dev.nenoeldeeb.education.absencerecord.data.services
 
 import dev.nenoeldeeb.education.absencerecord.domain.services.SerializationService
 import kotlinx.serialization.KSerializer

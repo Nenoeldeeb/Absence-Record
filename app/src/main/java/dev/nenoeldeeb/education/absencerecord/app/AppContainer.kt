@@ -8,8 +8,8 @@ import dev.nenoeldeeb.education.absencerecord.data.repositories.ReportRepository
 import dev.nenoeldeeb.education.absencerecord.data.repositories.StorageRepositoryImpl
 import dev.nenoeldeeb.education.absencerecord.data.repositories.StudentClassRepositoryImpl
 import dev.nenoeldeeb.education.absencerecord.data.repositories.StudentRepositoryImpl
-import dev.nenoeldeeb.education.absencerecord.data.utils.DefaultDispatcherProvider
-import dev.nenoeldeeb.education.absencerecord.data.utils.JsonSerializationService
+import dev.nenoeldeeb.education.absencerecord.data.services.DefaultDispatcherProvider
+import dev.nenoeldeeb.education.absencerecord.data.services.JsonSerializationService
 import dev.nenoeldeeb.education.absencerecord.domain.repositories.AttendanceRepository
 import dev.nenoeldeeb.education.absencerecord.domain.repositories.ClassFilterRepository
 import dev.nenoeldeeb.education.absencerecord.domain.repositories.ReportRepository
