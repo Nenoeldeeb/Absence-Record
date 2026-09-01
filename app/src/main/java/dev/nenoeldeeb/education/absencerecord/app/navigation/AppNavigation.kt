@@ -54,7 +54,7 @@ fun AppNavigation(contentPadding: PaddingValues) {
         stateSaver = AppDestinationListSaver
     ) { mutableStateOf(listOf(AppDestination.MainPager)) }
 
-    val pagerState = rememberPagerState(initialPage = 1, pageCount = { 2 })
+    val pagerState = rememberPagerState(initialPage = 1, pageCount = { 3 })
     val studentsListState = rememberLazyListState()
 
     BackHandler(enabled = backStack.size > 1) {

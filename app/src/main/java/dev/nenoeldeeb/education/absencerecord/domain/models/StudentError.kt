@@ -16,6 +16,17 @@ sealed class StudentError(
 
     data object ReportGeneration : StudentError("Failed to generate report")
 
+    data object HourOverlap : StudentError("This hour overlaps an existing appointment")
+
+    data object HourFull : StudentError("This hour is already full")
+
+    data object AssignmentExists : StudentError("This student already has a lesson that day")
+
+    data object BusyConflict : StudentError("This hour overlaps a busy appointment of this student")
+
+    data object MaxBelowAssigned :
+        StudentError("Max students cannot be lower than the number of assigned students")
+
     data class Validation(override val message: String) : StudentError(message)
 
     data object Cancelled : StudentError("Operation cancelled")

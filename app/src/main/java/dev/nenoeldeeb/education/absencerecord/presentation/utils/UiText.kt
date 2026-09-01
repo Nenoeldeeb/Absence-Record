@@ -65,6 +65,13 @@ sealed interface UiText {
         val separator: String = ""
     ) : UiText
 
+    data class FormattedTimeText(val minutes: Int) : UiText {
+        @Composable
+        override fun asString(): String = TimeFormatter.formatTime(minutes)
+
+        override fun asString(context: Context): String = TimeFormatter.format(minutes, context)
+    }
+
     @Composable
     fun asString(): String {
         return when (this) {
@@ -86,6 +93,8 @@ sealed interface UiText {
             }
 
             is Joined -> parts.map { it.asString() }.fastJoinToString(separator)
+
+            is FormattedTimeText -> asString()
         }
     }
 
@@ -109,6 +118,8 @@ sealed interface UiText {
             }
 
             is Joined -> parts.joinToString(separator) { it.asString(context) }
+
+            is FormattedTimeText -> asString(context)
         }
     }
 }
