@@ -14,6 +14,9 @@ interface StudentDao {
     @Query("SELECT * FROM students ORDER BY name COLLATE NOCASE ASC")
     fun getAllStudents(): Flow<List<StudentEntity>>
 
+    @Query("SELECT * FROM students WHERE id = :studentId")
+    fun getStudentById(studentId: Int): Flow<StudentEntity?>
+
     @Query(
         """
         SELECT students.*

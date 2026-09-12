@@ -2,6 +2,7 @@ package dev.nenoeldeeb.education.absencerecord.presentation.screens.students.del
 
 import dev.nenoeldeeb.education.absencerecord.R
 import dev.nenoeldeeb.education.absencerecord.domain.models.ImportResult
+import dev.nenoeldeeb.education.absencerecord.domain.models.ParsedImportData
 import dev.nenoeldeeb.education.absencerecord.domain.models.ParsedStudentImportData
 import dev.nenoeldeeb.education.absencerecord.domain.models.Student
 import dev.nenoeldeeb.education.absencerecord.domain.models.StudentError
@@ -220,7 +221,11 @@ class StudentActionDelegateTest {
     @Test
     fun `prepareImportSelectionDialog with valid file returns parsed data`() =
         runTest {
-            val parsedData = listOf(ParsedStudentImportData(StudentExportData("S1", "", emptyList()), 1))
+            val parsedData =
+                ParsedImportData(
+                    students = listOf(ParsedStudentImportData(StudentExportData("S1", "", emptyList()), 1)),
+                    availableHours = emptyList()
+                )
             coEvery { parseImportFileUseCase(any()) } returns Result.success(parsedData)
 
             val result = delegate.prepareImportSelectionDialog("content://file")
@@ -232,7 +237,11 @@ class StudentActionDelegateTest {
     @Test
     fun `performImport with valid selections returns success toast`() =
         runTest {
-            val parsedData = listOf(ParsedStudentImportData(StudentExportData("S1", "", emptyList()), 1))
+            val parsedData =
+                ParsedImportData(
+                    students = listOf(ParsedStudentImportData(StudentExportData("S1", "", emptyList()), 1)),
+                    availableHours = emptyList()
+                )
             val importResult =
                 ImportResult(
                     newStudentsCount = 1,
@@ -250,7 +259,11 @@ class StudentActionDelegateTest {
     @Test
     fun `performImport with DB failure returns Database error`() =
         runTest {
-            val parsedData = listOf(ParsedStudentImportData(StudentExportData("S1", "", emptyList()), 1))
+            val parsedData =
+                ParsedImportData(
+                    students = listOf(ParsedStudentImportData(StudentExportData("S1", "", emptyList()), 1)),
+                    availableHours = emptyList()
+                )
             coEvery { performImportUseCase(any(), any()) } returns
                 Result.failure(StudentError.Database)
 

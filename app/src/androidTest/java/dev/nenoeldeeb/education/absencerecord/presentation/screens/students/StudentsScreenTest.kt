@@ -9,8 +9,8 @@ import androidx.compose.ui.test.performClick
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import dev.nenoeldeeb.education.absencerecord.R
+import dev.nenoeldeeb.education.absencerecord.domain.models.ParsedImportData
 import dev.nenoeldeeb.education.absencerecord.domain.models.ParsedStudentImportData
-import dev.nenoeldeeb.education.absencerecord.domain.models.Student
 import dev.nenoeldeeb.education.absencerecord.domain.models.StudentExportData
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.components.EmptyStateMessage
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.components.MultiSelectionHeader
@@ -56,11 +56,10 @@ class StudentsScreenTest {
         composeTestRule.setContent {
             AbsenceRecordTheme {
                 StudentDialog(
-                    showEditDialog = uiState.showEditDialog,
                     newStudentName = uiState.newStudentName,
                     availableClasses = emptyList(),
                     onStudentNameChange = {},
-                    onSave = { _, _, _ -> },
+                    onSave = { _, _ -> },
                     onImportClick = {},
                     onDismiss = {}
                 )
@@ -73,42 +72,16 @@ class StudentsScreenTest {
     }
 
     @Test
-    fun studentDialog_displaysEditTitle_inEditMode() {
-        val student = Student(id = 1, name = "Alice")
-        val uiState = StudentsScreenState(showEditDialog = student, newStudentName = "Alice")
-
-        composeTestRule.setContent {
-            AbsenceRecordTheme {
-                StudentDialog(
-                    showEditDialog = uiState.showEditDialog,
-                    newStudentName = uiState.newStudentName,
-                    availableClasses = emptyList(),
-                    onStudentNameChange = {},
-                    onSave = { _, _, _ -> },
-                    onImportClick = {},
-                    onDismiss = {}
-                )
-            }
-        }
-
-        composeTestRule.onNodeWithText(getString(R.string.edit_student)).assertIsDisplayed()
-        composeTestRule.onNodeWithText(getString(R.string.import_students_action)).assertDoesNotExist()
-        composeTestRule.onNodeWithText(getString(R.string.action_save)).assertIsDisplayed()
-        composeTestRule.onNodeWithText("Alice").assertIsDisplayed()
-    }
-
-    @Test
     fun studentDialog_confirmButtonDisabled_whenNameBlank() {
         val uiState = StudentsScreenState(showAddStudentDialog = true, newStudentName = "")
 
         composeTestRule.setContent {
             AbsenceRecordTheme {
                 StudentDialog(
-                    showEditDialog = uiState.showEditDialog,
                     newStudentName = uiState.newStudentName,
                     availableClasses = emptyList(),
                     onStudentNameChange = {},
-                    onSave = { _, _, _ -> },
+                    onSave = { _, _ -> },
                     onImportClick = {},
                     onDismiss = {}
                 )
@@ -208,17 +181,22 @@ class StudentsScreenTest {
                     originalData = StudentExportData(name = "Bob", dates = emptyList())
                 )
             )
+        val parsedImportData =
+            ParsedImportData(
+                students = parsedStudents,
+                availableHours = emptyList()
+            )
         val uiState =
             StudentsScreenState(
                 showImportSelectionDialog = true,
-                parsedStudentsFromFile = parsedStudents,
+                parsedImportData = parsedImportData,
                 importSelectionMap = mapOf(1 to true, 2 to false)
             )
 
         composeTestRule.setContent {
             AbsenceRecordTheme {
                 ImportSelectionDialog(
-                    parsedStudentsFromFile = uiState.parsedStudentsFromFile,
+                    parsedStudentsFromFile = uiState.parsedImportData?.students,
                     importSelectionMap = uiState.importSelectionMap,
                     onToggleSelection = {},
                     onSelectAll = {},
@@ -241,17 +219,22 @@ class StudentsScreenTest {
                     originalData = StudentExportData(name = "Alice", dates = emptyList())
                 )
             )
+        val parsedImportData =
+            ParsedImportData(
+                students = parsedStudents,
+                availableHours = emptyList()
+            )
         val uiState =
             StudentsScreenState(
                 showImportSelectionDialog = true,
-                parsedStudentsFromFile = parsedStudents,
+                parsedImportData = parsedImportData,
                 importSelectionMap = mapOf(1 to false)
             )
 
         composeTestRule.setContent {
             AbsenceRecordTheme {
                 ImportSelectionDialog(
-                    parsedStudentsFromFile = uiState.parsedStudentsFromFile,
+                    parsedStudentsFromFile = uiState.parsedImportData?.students,
                     importSelectionMap = uiState.importSelectionMap,
                     onToggleSelection = {},
                     onSelectAll = {},

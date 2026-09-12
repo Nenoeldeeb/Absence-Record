@@ -11,7 +11,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 
 @Composable
-internal fun EmptyStateMessage(
+fun EmptyStateMessage(
     @StringRes message: Int,
     modifier: Modifier = Modifier
 ) {
@@ -23,7 +23,7 @@ internal fun EmptyStateMessage(
             stringResource(message),
             style = MaterialTheme.typography.bodyMedium,
             textAlign = TextAlign.Center,
-            color = MaterialTheme.colorScheme.outline
+            color = MaterialTheme.colorScheme.onSurfaceVariant
         )
     }
 }

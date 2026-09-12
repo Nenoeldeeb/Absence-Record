@@ -1,8 +1,9 @@
 package dev.nenoeldeeb.education.absencerecord.presentation.screens.students
 
 import android.net.Uri
-import dev.nenoeldeeb.education.absencerecord.domain.models.Student
+import dev.nenoeldeeb.education.absencerecord.domain.models.SortType
 import dev.nenoeldeeb.education.absencerecord.domain.models.StudentClass
+import kotlinx.datetime.LocalDate
 
 sealed interface StudentsScreenEvent {
     // UI Interactions
@@ -10,8 +11,14 @@ sealed interface StudentsScreenEvent {
 
     data class AddStudent(val name: String, val classId: Int?) : StudentsScreenEvent
 
-    data class UpdateStudent(val student: Student, val newName: String, val newClassId: Int?) :
-        StudentsScreenEvent
+    // Sort
+    data class UpdateSortType(val sortType: SortType) : StudentsScreenEvent
+
+    data class ToggleSortPanelVisible(val show: Boolean) : StudentsScreenEvent
+
+    data class UpdateSelectedMonth(val month: LocalDate?) : StudentsScreenEvent
+
+    data class ToggleMonthDropdown(val expanded: Boolean) : StudentsScreenEvent
 
     // Dialogs
     data class PrepareImportSelectionDialog(val uri: Uri?) : StudentsScreenEvent
@@ -44,7 +51,7 @@ sealed interface StudentsScreenEvent {
 
     data object DismissBulkDeleteDialog : StudentsScreenEvent
 
-    data class ShowStudentDialog(val student: Student?, val show: Boolean = false) :
+    data class ShowStudentDialog(val show: Boolean = false) :
         StudentsScreenEvent
 
     // Class management

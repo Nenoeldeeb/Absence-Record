@@ -6,11 +6,16 @@
     <string name="action_close">Close</string>
     <string name="action_cancel">Cancel</string>
     <string name="action_save">Save</string>
+    <string name="action_set">Set</string>
     <string name="action_add">Add</string>
     <string name="action_delete">Delete</string>
+    <string name="action_undo">Undo</string>
+    <string name="action_retry">Retry</string>
     <string name="error_display">Error: %1$s</string>
     <string name="filter_description">Filter</string>
     <string name="sort_description">Sort</string>
+    <string name="sort_select_month">Select month</string>
+    <string name="sort_toggle_description">Sort mode: %1$s, tap to switch</string>
 
     <!-- Students Screen -->
     <string name="new_student_label">Enter new student name</string>
@@ -114,6 +119,36 @@
         <item quantity="one">" %1$d date skipped due to errors."</item>
         <item quantity="other">" %1$d dates skipped due to errors."</item>
     </plurals>
+    <plurals name="import_complete_hours_added">
+        <item quantity="zero">No availability hours imported.</item>
+        <item quantity="one">%1$d availability hour imported.</item>
+        <item quantity="other">%1$d availability hours imported.</item>
+    </plurals>
+    <plurals name="import_complete_hours_overlap_skipped">
+        <item quantity="zero">No availability hours skipped.</item>
+        <item quantity="one">%1$d availability hour skipped (overlaps an existing hour).</item>
+        <item quantity="other">%1$d availability hours skipped (overlap existing hours).</item>
+    </plurals>
+    <plurals name="import_complete_lessons_added">
+        <item quantity="zero">No lessons imported.</item>
+        <item quantity="one">%1$d lesson imported.</item>
+        <item quantity="other">%1$d lessons imported.</item>
+    </plurals>
+    <plurals name="import_complete_lessons_removed_busy">
+        <item quantity="zero">No lessons removed by busy appointments.</item>
+        <item quantity="one">%1$d lesson removed by a busy appointment.</item>
+        <item quantity="other">%1$d lessons removed by busy appointments.</item>
+    </plurals>
+    <plurals name="import_complete_lessons_skipped">
+        <item quantity="zero">No lessons skipped.</item>
+        <item quantity="one">%1$d lesson skipped (no matching hour, duplicate, or busy conflict).</item>
+        <item quantity="other">%1$d lessons skipped (no matching hour, duplicate, or busy conflict).</item>
+    </plurals>
+    <plurals name="import_complete_malformed_skipped">
+        <item quantity="zero">No malformed entries skipped.</item>
+        <item quantity="one">%1$d malformed entry skipped.</item>
+        <item quantity="other">%1$d malformed entries skipped.</item>
+    </plurals>
     <string name="error_student_not_selected_history">Error: Student not selected for history.</string>
     <string name="error_preparing_image">Error preparing image: %1$s</string>
     <string name="error_fetching_history">Error fetching history: %1$s</string>
@@ -127,8 +162,26 @@
     <string name="error_database_operation_failed">Database operation failed.</string>
     <string name="error_reading_file">Error reading file.</string>
     <string name="error_parsing_import_file">Error parsing import file.</string>
+    <string name="error_unsupported_backup_version">This backup uses an unsupported format version (%1$d).</string>
     <string name="error_writing_file">Error writing file.</string>
     <string name="error_generating_report">Failed to generate report.</string>
+
+    <!-- Student Detail Screen -->
+    <string name="student_detail_back_description">Back</string>
+    <string name="student_detail_title_placeholder">Student Details</string>
+    <string name="student_detail_edit_name_title">Edit Student Name</string>
+    <string name="student_detail_change_class_title">Change Class</string>
+    <string name="student_detail_delete_title">Delete Student</string>
+    <string name="student_detail_delete_message">This will permanently delete the student and all of their attendance records. This action cannot be undone.</string>
+    <string name="student_detail_share">Share</string>
+    <string name="student_detail_share_failed">Failed to share the attendance report.</string>
+    <string name="student_detail_select_month">Select attendance month</string>
+    <string name="student_detail_change_class_icon_description">Change student class</string>
+    <string name="student_detail_delete_icon_description">Delete student</string>
+    <plurals name="present_days_count">
+        <item quantity="one">%1$d day present</item>
+        <item quantity="other">%1$d days present</item>
+    </plurals>
 
     <!-- Class Filter -->
     <string name="class_filter_none">No filter</string>
@@ -189,4 +242,80 @@
     <string name="day_short_friday">Fri</string>
     <string name="day_short_saturday">Sat</string>
     <string name="day_short_sunday">Sun</string>
+
+    <!-- Schedule (Lesson Scheduling) -->
+    <string name="error_hour_overlap">This hour overlaps an existing appointment.</string>
+    <string name="error_hour_full">This hour is already full.</string>
+    <string name="error_assignment_exists">This student already has a lesson that day.</string>
+    <string name="error_busy_conflict">This hour overlaps a busy appointment of this student.</string>
+    <string name="schedule_add_hour">Add hour</string>
+    <string name="schedule_add_hour_title">Add lesson hour</string>
+    <string name="schedule_edit_hour_title">Edit lesson hour</string>
+    <string name="schedule_no_hours_for_day">No lesson hours set for this day yet.</string>
+    <string name="schedule_occupancy">%1$d/%2$d seats</string>
+    <string name="time_range">%1$s – %2$s</string>
+    <string name="schedule_hour_full">Full</string>
+    <string name="schedule_start_time">Start time</string>
+    <string name="schedule_hour_ends_at">Ends at %1$s</string>
+    <string name="error_hour_passes_midnight">Lesson ends after midnight.</string>
+    <string name="schedule_max_students">Max students</string>
+    <string name="error_capacity_invalid">Max students must be at least 1.</string>
+    <string name="error_max_below_assigned">Max students cannot be lower than the number of assigned students.</string>
+    <string name="schedule_delete_hour_named">Delete the %1$s hour?</string>
+    <string name="schedule_delete_hour_message_empty">This will remove this hour. You can undo right after from the snackbar.</string>
+    <plurals name="schedule_delete_hour_message_with_students">
+        <item quantity="one">This will remove this hour and unassign %1$d student (%2$s). You can undo right after from the snackbar.</item>
+        <item quantity="other">This will remove this hour and unassign %1$d students (%2$s). You can undo right after from the snackbar.</item>
+    </plurals>
+    <string name="schedule_hour_deleted">Lesson hour deleted</string>
+    <string name="schedule_edit_hour_description">Edit hour %1$s</string>
+    <string name="schedule_delete_hour_description">Delete hour %1$s</string>
+    <string name="schedule_expand_hour_description">Expand hour %1$s</string>
+    <string name="schedule_collapse_hour_description">Collapse hour %1$s</string>
+    <string name="schedule_expand_action">Expand</string>
+    <string name="schedule_collapse_action">Collapse</string>
+    <string name="schedule_open_profile_action">Open profile</string>
+    <string name="schedule_change_start_time_action">Change start time</string>
+    <string name="schedule_hour_options_description">More options for %1$s</string>
+    <string name="schedule_open_student_profile_description">Open profile for %1$s</string>
+    <string name="schedule_day_counts">%1$s · %2$s</string>
+    <string name="schedule_hours_loading">Loading hours</string>
+    <string name="schedule_today">Today</string>
+    <string name="schedule_decrease_capacity">Decrease max students</string>
+    <string name="schedule_increase_capacity">Increase max students</string>
+    <plurals name="schedule_day_summary_hours">
+        <item quantity="one">%1$d hour</item>
+        <item quantity="other">%1$d hours</item>
+    </plurals>
+    <string name="schedule_no_students_assigned">No students yet — assign from a student profile (Lessons → Add lesson).</string>
+    <plurals name="removed_from_hour">
+        <item quantity="one">Removed from %1$s: %2$s</item>
+        <item quantity="other">Removed from %1$s: %2$s</item>
+    </plurals>
+    <string name="assign_reason_hour_full">Hour is full</string>
+    <string name="assign_reason_busy_conflict">Overlaps busy appointment</string>
+    <string name="schedule_add_busy_appointment">Add busy appointment</string>
+    <string name="schedule_add_busy_title">Add busy appointment</string>
+    <string name="schedule_edit_busy_title">Edit busy appointment</string>
+    <string name="schedule_busy_duration">Duration</string>
+    <string name="schedule_busy_duration_hours">%1$s h</string>
+    <string name="schedule_busy_duration_range">0.5 h – 6 h</string>
+    <string name="schedule_busy_ends_at">Ends at %1$s</string>
+    <string name="schedule_edit_busy_description">Edit busy appointment %1$s</string>
+    <string name="schedule_delete_busy_description">Delete busy appointment %1$s</string>
+    <string name="error_busy_duration_invalid">Duration must be between 0.5 and 6 hours, in 30-minute steps, and end by midnight.</string>
+    <string name="student_schedule_title">Weekly schedule</string>
+    <string name="student_detail_tab_lessons">Lessons</string>
+    <string name="student_detail_tab_busy">Busy</string>
+    <string name="student_detail_lessons_empty">No lessons for this student on this day.</string>
+    <string name="student_detail_add_lesson">Add lesson</string>
+    <string name="student_detail_add_lesson_title">Add lesson</string>
+    <string name="student_detail_lesson_already_booked">This student already has a lesson on this day.</string>
+    <string name="student_detail_no_hours_for_day">No lesson hours set for this day. Add hours on the Schedule page first.</string>
+    <string name="student_detail_select_hour">Select an hour</string>
+    <string name="student_detail_lesson_unassign_description">Unassign %1$s</string>
+    <string name="student_detail_no_busy_for_day">No busy appointments for this student on this day.</string>
+    <string name="student_detail_busy_conflict_title">Overlapping lessons</string>
+    <string name="student_detail_busy_conflict_message">This busy appointment overlaps these lessons, which will be removed:</string>
+    <string name="student_detail_busy_conflict_confirm">Remove lessons and save</string>
 </resources>

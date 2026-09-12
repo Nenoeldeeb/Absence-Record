@@ -7,11 +7,16 @@
     <string name="action_close">إغلاق</string>
     <string name="action_cancel">إلغاء</string>
     <string name="action_save">حفظ</string>
+    <string name="action_set">تعيين</string>
     <string name="action_delete">حذف</string>
+    <string name="action_undo">تراجع</string>
+    <string name="action_retry">إعادة المحاولة</string>
     <string name="error_display">خطأ: %1$s</string>
 
     <!-- Students Screen -->
     <string name="sort_description">ترتيب</string>
+    <string name="sort_select_month">اختر الشهر</string>
+    <string name="sort_toggle_description">وضع الترتيب: %1$s، اضغط للتبديل</string>
     <string name="new_student_label">أدخل اسم الطالب الجديد</string>
     <string name="no_students_message">لم يتم إضافة طلاب بعد.</string>
     <string name="students_title">الطلاب: %d</string>
@@ -112,6 +117,48 @@
         <item quantity="few">تم تخطي %1$d تواريخ بسبب الأخطاء.</item>
         <item quantity="many">تم تخطي %1$d تاريخًا بسبب الأخطاء.</item>
     </plurals>
+    <plurals name="import_complete_hours_added">
+        <item quantity="zero">لم يتم استيراد أي ساعات توفر.</item>
+        <item quantity="one">تم استيراد ساعة توفر واحدة.</item>
+        <item quantity="two">تم استيراد ساعتي توفر.</item>
+        <item quantity="few">تم استيراد %1$d ساعات توفر.</item>
+        <item quantity="many">تم استيراد %1$d ساعة توفر.</item>
+    </plurals>
+    <plurals name="import_complete_hours_overlap_skipped">
+        <item quantity="zero">لم يتم تخطي أي ساعات توفر.</item>
+        <item quantity="one">تم تخطي ساعة توفر واحدة (تتداخل مع ساعة موجودة).</item>
+        <item quantity="two">تم تخطي ساعتي توفر (تتداخلان مع ساعات موجودة).</item>
+        <item quantity="few">تم تخطي %1$d ساعات توفر (تتداخل مع ساعات موجودة).</item>
+        <item quantity="many">تم تخطي %1$d ساعة توفر (تتداخل مع ساعات موجودة).</item>
+    </plurals>
+    <plurals name="import_complete_lessons_added">
+        <item quantity="zero">لم يتم استيراد أي حصص.</item>
+        <item quantity="one">تم استيراد حصة واحدة.</item>
+        <item quantity="two">تم استيراد حصتين.</item>
+        <item quantity="few">تم استيراد %1$d حصص.</item>
+        <item quantity="many">تم استيراد %1$d حصة.</item>
+    </plurals>
+    <plurals name="import_complete_lessons_removed_busy">
+        <item quantity="zero">لم تتم إزالة أي حصص بسبب مواعيد الانشغال.</item>
+        <item quantity="one">تمت إزالة حصة واحدة بسبب موعد انشغال.</item>
+        <item quantity="two">تمت إزالة حصتين بسبب مواعيد الانشغال.</item>
+        <item quantity="few">تمت إزالة %1$d حصص بسبب مواعيد الانشغال.</item>
+        <item quantity="many">تمت إزالة %1$d حصة بسبب مواعيد الانشغال.</item>
+    </plurals>
+    <plurals name="import_complete_lessons_skipped">
+        <item quantity="zero">لم يتم تخطي أي حصص.</item>
+        <item quantity="one">تم تخطي حصة واحدة (لا توجد ساعة مناسبة، أو تكرار، أو تعارض مع الانشغال).</item>
+        <item quantity="two">تم تخطي حصتين (لا توجد ساعة مناسبة، أو تكرار، أو تعارض مع الانشغال).</item>
+        <item quantity="few">تم تخطي %1$d حصص (لا توجد ساعة مناسبة، أو تكرار، أو تعارض مع الانشغال).</item>
+        <item quantity="many">تم تخطي %1$d حصة (لا توجد ساعة مناسبة، أو تكرار، أو تعارض مع الانشغال).</item>
+    </plurals>
+    <plurals name="import_complete_malformed_skipped">
+        <item quantity="zero">لم يتم تخطي أي مدخلات غير صالحة.</item>
+        <item quantity="one">تم تخطي مدخل واحد غير صالح.</item>
+        <item quantity="two">تم تخطي مدخلين غير صالحين.</item>
+        <item quantity="few">تم تخطي %1$d مدخلات غير صالحة.</item>
+        <item quantity="many">تم تخطي %1$d مدخلًا غير صالح.</item>
+    </plurals>
     <string name="error_student_not_selected_history">خطأ: لم يتم اختيار طالب للسجل.</string>
     <string name="error_preparing_image">خطأ في تجهيز الصورة: %1$s</string>
     <string name="error_fetching_history">خطأ في جلب السجل: %1$s</string>
@@ -125,8 +172,29 @@
     <string name="error_database_operation_failed">فشلت عملية قاعدة البيانات.</string>
     <string name="error_reading_file">خطأ في قراءة الملف.</string>
     <string name="error_parsing_import_file">خطأ في تحليل ملف الاستيراد.</string>
+    <string name="error_unsupported_backup_version">نسخة هذه النسخة الاحتياطية (%1$d) غير مدعومة.</string>
     <string name="error_writing_file">خطأ في كتابة الملف.</string>
     <string name="error_generating_report">فشلت عملية توليد التقرير.</string>
+
+    <!-- Student Detail Screen -->
+    <string name="student_detail_back_description">رجوع</string>
+    <string name="student_detail_title_placeholder">تفاصيل الطالب</string>
+    <string name="student_detail_edit_name_title">تعديل اسم الطالب</string>
+    <string name="student_detail_change_class_title">تغيير الفصل</string>
+    <string name="student_detail_delete_title">حذف الطالب</string>
+    <string name="student_detail_delete_message">سيتم حذف الطالب وجميع سجلات حضوره نهائياً. لا يمكن التراجع عن هذا الإجراء.</string>
+    <string name="student_detail_share">مشاركة</string>
+    <string name="student_detail_share_failed">فشلت مشاركة تقرير الحضور.</string>
+    <string name="student_detail_select_month">اختر شهر الحضور</string>
+    <string name="student_detail_change_class_icon_description">تغيير فصل الطالب</string>
+    <string name="student_detail_delete_icon_description">حذف الطالب</string>
+    <plurals name="present_days_count">
+        <item quantity="zero">لا يوجد أيام حضور</item>
+        <item quantity="one">%1$d يوم حضور</item>
+        <item quantity="two">%1$d يومان حضور</item>
+        <item quantity="few">%1$d أيام حضور</item>
+        <item quantity="many">%1$d يوماً حضور</item>
+    </plurals>
 
     <!-- Class Filter -->
     <string name="class_filter_none">لا يوجد تصفية</string>
@@ -203,4 +271,92 @@
     <string name="error_class_name_already_exists">يوجد بالفعل صف بنفس الاسم</string>
     <string name="delete_class_title">أحذف الصف</string>
     <string name="filter_description">تصفية</string>
+
+    <!-- Schedule (Lesson Scheduling) -->
+    <string name="error_hour_overlap">هذه الساعة تتداخل مع موعد موجود.</string>
+    <string name="error_hour_full">هذه الساعة ممتلئة بالفعل.</string>
+    <string name="error_assignment_exists">هذا الطالب لديه بالفعل درس في ذلك اليوم.</string>
+    <string name="error_busy_conflict">هذه الساعة تتداخل مع موعد مشغول لهذا الطالب.</string>
+    <string name="schedule_add_hour">أضف ساعة</string>
+    <string name="schedule_add_hour_title">أضف ساعة درس</string>
+    <string name="schedule_edit_hour_title">تعديل ساعة الدرس</string>
+    <string name="schedule_no_hours_for_day">لم يتم تعيين ساعات دراسية لهذا اليوم بعد.</string>
+    <string name="schedule_occupancy">%1$d/%2$d مقاعد</string>
+    <string name="time_range">%1$s – %2$s</string>
+    <string name="schedule_hour_full">ممتلئ</string>
+    <string name="schedule_start_time">وقت البدء</string>
+    <string name="schedule_hour_ends_at">ينتهي في %1$s</string>
+    <string name="error_hour_passes_midnight">ينتهي الدرس بعد منتصف الليل.</string>
+    <string name="schedule_max_students">الحد الأقصى للطلاب</string>
+    <string name="error_capacity_invalid">يجب أن يكون الحد الأقصى للطلاب 1 على الأقل.</string>
+    <string name="error_max_below_assigned">لا يمكن أن يكون الحد الأقصى للطلاب أقل من عدد الطلاب المسجلين.</string>
+    <string name="schedule_delete_hour_named">حذف ساعة %1$s؟</string>
+    <string name="schedule_delete_hour_message_empty">سيؤدي هذا إلى إزالة هذه الساعة. يمكنك التراجع مباشرة من شريط الإشعار.</string>
+    <plurals name="schedule_delete_hour_message_with_students">
+        <item quantity="zero">سيؤدي هذا إلى إزالة هذه الساعة. يمكنك التراجع مباشرة من شريط الإشعار.</item>
+        <item quantity="one">سيؤدي هذا إلى إزالة هذه الساعة وإلغاء تسجيل طالب واحد (%2$s). يمكنك التراجع مباشرة من شريط الإشعار.</item>
+        <item quantity="two">سيؤدي هذا إلى إزالة هذه الساعة وإلغاء تسجيل طالبين (%2$s). يمكنك التراجع مباشرة من شريط الإشعار.</item>
+        <item quantity="few">سيؤدي هذا إلى إزالة هذه الساعة وإلغاء تسجيل %1$d طلاب (%2$s). يمكنك التراجع مباشرة من شريط الإشعار.</item>
+        <item quantity="many">سيؤدي هذا إلى إزالة هذه الساعة وإلغاء تسجيل %1$d طالبًا (%2$s). يمكنك التراجع مباشرة من شريط الإشعار.</item>
+        <item quantity="other">سيؤدي هذا إلى إزالة هذه الساعة وإلغاء تسجيل %1$d طالب (%2$s). يمكنك التراجع مباشرة من شريط الإشعار.</item>
+    </plurals>
+    <string name="schedule_hour_deleted">تم حذف الساعة الدراسية</string>
+    <string name="schedule_edit_hour_description">تعديل ساعة %1$s</string>
+    <string name="schedule_delete_hour_description">حذف ساعة %1$s</string>
+    <string name="schedule_expand_hour_description">توسيع ساعة %1$s</string>
+    <string name="schedule_collapse_hour_description">طي ساعة %1$s</string>
+    <string name="schedule_expand_action">توسيع</string>
+    <string name="schedule_collapse_action">طي</string>
+    <string name="schedule_open_profile_action">فتح الملف</string>
+    <string name="schedule_change_start_time_action">تغيير وقت البدء</string>
+    <string name="schedule_hour_options_description">خيارات إضافية لساعة %1$s</string>
+    <string name="schedule_open_student_profile_description">فتح ملف الطالب %1$s</string>
+    <string name="schedule_day_counts">%1$s · %2$s</string>
+    <string name="schedule_hours_loading">جارٍ تحميل الساعات</string>
+    <string name="schedule_today">اليوم</string>
+    <string name="schedule_decrease_capacity">إنقاص الحد الأقصى للطلاب</string>
+    <string name="schedule_increase_capacity">زيادة الحد الأقصى للطلاب</string>
+    <plurals name="schedule_day_summary_hours">
+        <item quantity="zero">لا ساعات</item>
+        <item quantity="one">ساعة واحدة</item>
+        <item quantity="two">ساعتان</item>
+        <item quantity="few">%1$d ساعات</item>
+        <item quantity="many">%1$d ساعة</item>
+        <item quantity="other">%1$d ساعة</item>
+    </plurals>
+    <string name="schedule_no_students_assigned">لا يوجد طلاب بعد — سجّل من صفحة الطالب (الدروس → إضافة درس).</string>
+    <plurals name="removed_from_hour">
+        <item quantity="zero">تمت الإزالة من %1$s: %2$s</item>
+        <item quantity="one">تمت الإزالة من %1$s: %2$s</item>
+        <item quantity="two">تمت الإزالة من %1$s: %2$s</item>
+        <item quantity="few">تمت الإزالة من %1$s: %2$s</item>
+        <item quantity="many">تمت الإزالة من %1$s: %2$s</item>
+        <item quantity="other">تمت الإزالة من %1$s: %2$s</item>
+    </plurals>
+    <string name="assign_reason_hour_full">الساعة ممتلئة</string>
+    <string name="assign_reason_busy_conflict">يتداخل مع موعد مشغول</string>
+    <string name="schedule_add_busy_appointment">أضف موعداً مشغولاً</string>
+    <string name="schedule_add_busy_title">أضف موعداً مشغولاً</string>
+    <string name="schedule_edit_busy_title">تعديل الموعد المشغول</string>
+    <string name="schedule_busy_duration">المدة</string>
+    <string name="schedule_busy_duration_hours">%1$s س</string>
+    <string name="schedule_busy_duration_range">0.5 ساعة – 6 ساعات</string>
+    <string name="schedule_busy_ends_at">ينتهي في %1$s</string>
+    <string name="schedule_edit_busy_description">تعديل موعد مشغول %1$s</string>
+    <string name="schedule_delete_busy_description">حذف موعد مشغول %1$s</string>
+    <string name="error_busy_duration_invalid">يجب أن تكون المدة بين 0.5 و6 ساعات، بخطوات 30 دقيقة، ولا تتجاوز منتصف الليل.</string>
+    <string name="student_schedule_title">الجدول الأسبوعي</string>
+    <string name="student_detail_tab_lessons">الدروس</string>
+    <string name="student_detail_tab_busy">مشغول</string>
+    <string name="student_detail_lessons_empty">لا توجد دروس لهذا الطالب في هذا اليوم.</string>
+    <string name="student_detail_add_lesson">إضافة درس</string>
+    <string name="student_detail_add_lesson_title">إضافة درس</string>
+    <string name="student_detail_lesson_already_booked">لدى هذا الطالب درس بالفعل في هذا اليوم.</string>
+    <string name="student_detail_no_hours_for_day">لم يتم تحديد ساعات دراسية لهذا اليوم. أضف الساعات من صفحة الجدول أولاً.</string>
+    <string name="student_detail_select_hour">اختر ساعة</string>
+    <string name="student_detail_lesson_unassign_description">إلغاء تسجيل %1$s</string>
+    <string name="student_detail_no_busy_for_day">لا توجد مواعيد مشغولة لهذا الطالب في هذا اليوم.</string>
+    <string name="student_detail_busy_conflict_title">دروس متداخلة</string>
+    <string name="student_detail_busy_conflict_message">يتداخل هذا الموعد المشغول مع الدروس التالية، وسيتم إزالتها:</string>
+    <string name="student_detail_busy_conflict_confirm">إزالة الدروس وحفظ</string>
 </resources>

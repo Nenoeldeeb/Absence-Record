@@ -111,91 +111,6 @@ class StudentsViewModelCrudTest : StudentsViewModelTestBase() {
         }
 
     @Test
-    fun `UpdateStudent event calls use case`() =
-        runTest {
-            // Given
-            val student = Student(id = 1, name = "Old Name")
-            every { getAllStudentsUseCase(any(), any()) } returns
-                flowOf(Result.success(listOf(student)))
-            coEvery { updateStudentUseCase(any()) } returns Result.success(Unit)
-            createViewModel()
-            advanceUntilIdle()
-
-            // When
-            viewModel.onEvent(
-                StudentsScreenEvent.UpdateStudent(
-                    student,
-                    "New Name",
-                    newClassId = null
-                )
-            )
-            advanceUntilIdle()
-
-            // Then
-            coVerify { updateStudentUseCase(match { it.id == 1 && it.name == "New Name" }) }
-            assertEquals(
-                UiText.StringResource(R.string.student_updated, "New Name"),
-                viewModel.uiState.value.toastMessage
-            )
-        }
-
-    @Test
-    fun `UpdateStudent with empty name sets error`() =
-        runTest {
-            // Given
-            val student = Student(id = 1, name = "Old Name")
-            every { getAllStudentsUseCase(any(), any()) } returns
-                flowOf(Result.success(listOf(student)))
-            createViewModel()
-            advanceUntilIdle()
-
-            // When
-            viewModel.onEvent(
-                StudentsScreenEvent.UpdateStudent(
-                    student,
-                    "  ",
-                    newClassId = null
-                )
-            )
-            advanceUntilIdle()
-
-            // Then
-            coVerify(exactly = 0) { updateStudentUseCase(any()) }
-            assertEquals(
-                UiText.DynamicString("Name must not be blank"),
-                viewModel.uiState.value.error
-            )
-        }
-
-    @Test
-    fun `UpdateStudent failure sets error msg`() =
-        runTest {
-            // Given
-            val student = Student(id = 1, name = "Old Name")
-            every { getAllStudentsUseCase(any(), any()) } returns
-                flowOf(Result.success(listOf(student)))
-            coEvery { updateStudentUseCase(any()) } returns Result.failure(StudentError.Database)
-            createViewModel()
-            advanceUntilIdle()
-
-            // When
-            viewModel.onEvent(
-                StudentsScreenEvent.UpdateStudent(
-                    student,
-                    "New Name",
-                    newClassId = null
-                )
-            )
-            advanceUntilIdle()
-
-            // Then
-            assertEquals(
-                UiText.StringResource(R.string.error_database_operation_failed),
-                viewModel.uiState.value.error
-            )
-        }
-
-    @Test
     fun `DeleteSelectedStudents calls use case`() =
         runTest {
             // Given
@@ -260,10 +175,9 @@ class StudentsViewModelCrudTest : StudentsViewModelTestBase() {
             viewModel.onEvent(StudentsScreenEvent.ConsumeToastMessage)
             assertNull(viewModel.uiState.value.toastMessage)
 
-            val student = Student(1, "S1")
-            viewModel.onEvent(StudentsScreenEvent.ShowStudentDialog(student = student, show = true))
+            viewModel.onEvent(StudentsScreenEvent.ShowStudentDialog(show = true))
             assertTrue(viewModel.uiState.value.showAddStudentDialog)
-            assertEquals(student, viewModel.uiState.value.showEditDialog)
+            assertEquals("", viewModel.uiState.value.newStudentName)
 
             viewModel.onEvent(StudentsScreenEvent.ShowBulkDeleteDialog)
             assertTrue(viewModel.uiState.value.showBulkDeleteDialog)
@@ -273,6 +187,6 @@ class StudentsViewModelCrudTest : StudentsViewModelTestBase() {
 
             viewModel.onEvent(StudentsScreenEvent.CloseImportSelectionDialog)
             assert(!viewModel.uiState.value.showImportSelectionDialog)
-            assertNull(viewModel.uiState.value.parsedStudentsFromFile)
+            assertNull(viewModel.uiState.value.parsedImportData)
         }
 }

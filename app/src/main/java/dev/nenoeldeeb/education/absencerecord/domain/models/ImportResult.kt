@@ -8,5 +8,11 @@ data class ImportResult(
     val newStudentsCount: Int,
     val existingStudentsMergedCount: Int,
     val datesProcessedCount: Int,
-    val datesSkippedCount: Int
+    val datesSkippedCount: Int,
+    val hoursAddedCount: Int = 0,
+    val hoursSkippedOverlapCount: Int = 0,
+    val lessonsAddedCount: Int = 0,
+    val lessonsRemovedBusyWinsCount: Int = 0,
+    val lessonsSkippedCount: Int = 0,
+    val malformedEntriesSkippedCount: Int = 0
 )

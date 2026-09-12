@@ -5,7 +5,8 @@ import androidx.lifecycle.viewmodel.CreationExtras
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.calendar.CalendarViewModel
-import dev.nenoeldeeb.education.absencerecord.presentation.screens.report.ReportViewModel
+import dev.nenoeldeeb.education.absencerecord.presentation.screens.schedule.ScheduleViewModel
+import dev.nenoeldeeb.education.absencerecord.presentation.screens.studentdetail.StudentDetailViewModel
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.StudentsViewModel
 
 object AppViewModelProvider {
@@ -23,16 +24,28 @@ object AppViewModelProvider {
                 StudentsViewModel(
                     studentManagementUseCases = app().appContainer.studentManagementUseCases,
                     classManagementUseCases = app().appContainer.classManagementUseCases,
-                    classFilterRepository = app().appContainer.classFilterRepository
+                    classFilterRepository = app().appContainer.classFilterRepository,
+                    attendanceUseCases = app().appContainer.attendanceUseCases
                 )
             }
             initializer {
-                ReportViewModel(
+                ScheduleViewModel(
+                    scheduleUseCases = app().appContainer.scheduleUseCases,
+                    studentManagementUseCases = app().appContainer.studentManagementUseCases
+                )
+            }
+        }
+
+    fun studentDetailFactory(studentId: Int): ViewModelProvider.Factory =
+        viewModelFactory {
+            initializer {
+                StudentDetailViewModel(
+                    studentId = studentId,
                     studentManagementUseCases = app().appContainer.studentManagementUseCases,
                     attendanceUseCases = app().appContainer.attendanceUseCases,
                     reportUseCases = app().appContainer.reportUseCases,
                     classManagementUseCases = app().appContainer.classManagementUseCases,
-                    classFilterRepository = app().appContainer.classFilterRepository
+                    scheduleUseCases = app().appContainer.scheduleUseCases
                 )
             }
         }

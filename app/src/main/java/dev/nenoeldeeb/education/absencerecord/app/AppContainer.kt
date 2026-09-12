@@ -5,14 +5,16 @@ import dev.nenoeldeeb.education.absencerecord.data.datasources.local.AppDatabase
 import dev.nenoeldeeb.education.absencerecord.data.repositories.AttendanceRepositoryImpl
 import dev.nenoeldeeb.education.absencerecord.data.repositories.ClassFilterRepositoryImpl
 import dev.nenoeldeeb.education.absencerecord.data.repositories.ReportRepositoryImpl
+import dev.nenoeldeeb.education.absencerecord.data.repositories.ScheduleRepositoryImpl
 import dev.nenoeldeeb.education.absencerecord.data.repositories.StorageRepositoryImpl
 import dev.nenoeldeeb.education.absencerecord.data.repositories.StudentClassRepositoryImpl
 import dev.nenoeldeeb.education.absencerecord.data.repositories.StudentRepositoryImpl
-import dev.nenoeldeeb.education.absencerecord.data.utils.DefaultDispatcherProvider
-import dev.nenoeldeeb.education.absencerecord.data.utils.JsonSerializationService
+import dev.nenoeldeeb.education.absencerecord.data.services.DefaultDispatcherProvider
+import dev.nenoeldeeb.education.absencerecord.data.services.JsonSerializationService
 import dev.nenoeldeeb.education.absencerecord.domain.repositories.AttendanceRepository
 import dev.nenoeldeeb.education.absencerecord.domain.repositories.ClassFilterRepository
 import dev.nenoeldeeb.education.absencerecord.domain.repositories.ReportRepository
+import dev.nenoeldeeb.education.absencerecord.domain.repositories.ScheduleRepository
 import dev.nenoeldeeb.education.absencerecord.domain.repositories.StorageRepository
 import dev.nenoeldeeb.education.absencerecord.domain.repositories.StudentClassRepository
 import dev.nenoeldeeb.education.absencerecord.domain.repositories.StudentRepository
@@ -22,6 +24,7 @@ import dev.nenoeldeeb.education.absencerecord.domain.usecases.AttendanceUseCases
 import dev.nenoeldeeb.education.absencerecord.domain.usecases.ClassManagementUseCases
 import dev.nenoeldeeb.education.absencerecord.domain.usecases.ReportUseCases
 import dev.nenoeldeeb.education.absencerecord.domain.usecases.StudentManagementUseCases
+import dev.nenoeldeeb.education.absencerecord.domain.usecases.schedule.ScheduleUseCases
 
 interface AppContainer {
     val studentManagementUseCases: StudentManagementUseCases
@@ -29,6 +32,8 @@ interface AppContainer {
     val reportUseCases: ReportUseCases
     val classManagementUseCases: ClassManagementUseCases
     val classFilterRepository: ClassFilterRepository
+    val scheduleRepository: ScheduleRepository
+    val scheduleUseCases: ScheduleUseCases
 }
 
 class DefaultAppContainer(private val context: Context) : AppContainer {
@@ -60,13 +65,22 @@ class DefaultAppContainer(private val context: Context) : AppContainer {
         ClassFilterRepositoryImpl()
     }
 
+    override val scheduleRepository: ScheduleRepository by lazy {
+        ScheduleRepositoryImpl(AppDatabase.getDatabase(context).scheduleDao())
+    }
+
+    override val scheduleUseCases: ScheduleUseCases by lazy {
+        ScheduleUseCases(scheduleRepository)
+    }
+
     override val studentManagementUseCases: StudentManagementUseCases by lazy {
         StudentManagementUseCases(
             studentRepository = studentRepository,
             attendanceRepository = attendanceRepository,
             storageRepository = storageRepository,
             serializationService = serializationService,
-            studentClassRepository = studentClassRepository
+            studentClassRepository = studentClassRepository,
+            scheduleRepository = scheduleRepository
         )
     }
 
