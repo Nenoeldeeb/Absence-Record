@@ -23,6 +23,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
+import androidx.compose.ui.semantics.Role
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import dev.nenoeldeeb.education.absencerecord.R
@@ -143,11 +144,16 @@ private fun StudentDetailTopBar(
 ) {
     TopAppBar(
         title = {
+            val editNameActionLabel = stringResource(R.string.student_detail_edit_name_title)
             Text(
                 text = title,
                 modifier =
                     if (hasStudent) {
-                        Modifier.clickable(onClick = onEditName)
+                        Modifier.clickable(
+                            role = Role.Button,
+                            onClickLabel = editNameActionLabel,
+                            onClick = onEditName
+                        )
                     } else {
                         Modifier
                     }

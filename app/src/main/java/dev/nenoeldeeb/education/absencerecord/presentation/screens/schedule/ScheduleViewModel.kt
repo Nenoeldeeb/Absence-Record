@@ -12,6 +12,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
@@ -59,9 +60,10 @@ class ScheduleViewModel(
 
     private fun observeHoursForWeekday() {
         viewModelScope.launch {
-            _uiState
-                .map { it.selectedWeekday }
-                .distinctUntilChanged()
+            combine(
+                _uiState.map { it.selectedWeekday }.distinctUntilChanged(),
+                _uiState.map { it.hoursRetryToken }.distinctUntilChanged()
+            ) { weekday, _ -> weekday }
                 .flatMapLatest { weekday ->
                     scheduleUseCases.observeHoursForWeekdayUseCase(weekday)
                 }
@@ -69,12 +71,21 @@ class ScheduleViewModel(
                     result
                         .onSuccess { hours ->
                             _uiState.update {
-                                it.copy(hoursForWeekday = hours, isLoading = false)
+                                it.copy(
+                                    hoursForWeekday = hours,
+                                    isLoading = false,
+                                    isHoursLoading = false,
+                                    hoursError = null
+                                )
                             }
                         }
                         .onFailure { e ->
                             _uiState.update {
-                                it.copy(error = e.toUiText(), isLoading = false)
+                                it.copy(
+                                    isLoading = false,
+                                    isHoursLoading = false,
+                                    hoursError = e.toUiText()
+                                )
                             }
                         }
                 }
@@ -119,11 +130,26 @@ class ScheduleViewModel(
             is ScheduleScreenEvent.DismissDeleteHourDialog ->
                 hourManagementDelegate.dismissDeleteHourDialog()
 
+            is ScheduleScreenEvent.UndoDeleteHour ->
+                hourManagementDelegate.undoDeleteHour(_uiState.value)
+
+            is ScheduleScreenEvent.ConsumeDeletedHour ->
+                _uiState.update { it.copy(deletedHour = null, deletedHourAssignedIds = emptyList()) }
+
             is ScheduleScreenEvent.ConsumeError ->
                 _uiState.update { it.copy(error = null) }
 
             is ScheduleScreenEvent.ConsumeToastMessage ->
                 _uiState.update { it.copy(toastMessage = null) }
+
+            is ScheduleScreenEvent.RetryLoadHours ->
+                _uiState.update {
+                    it.copy(
+                        hoursRetryToken = it.hoursRetryToken + 1,
+                        isHoursLoading = true,
+                        hoursError = null
+                    )
+                }
         }
     }
 }

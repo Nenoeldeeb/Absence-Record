@@ -22,7 +22,13 @@ sealed interface ScheduleScreenEvent {
 
     data object DismissDeleteHourDialog : ScheduleScreenEvent
 
+    data object UndoDeleteHour : ScheduleScreenEvent
+
+    data object ConsumeDeletedHour : ScheduleScreenEvent
+
     data object ConsumeError : ScheduleScreenEvent
 
     data object ConsumeToastMessage : ScheduleScreenEvent
+
+    data object RetryLoadHours : ScheduleScreenEvent
 }
