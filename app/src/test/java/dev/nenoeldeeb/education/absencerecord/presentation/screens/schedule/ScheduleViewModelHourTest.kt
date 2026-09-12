@@ -7,6 +7,7 @@ import dev.nenoeldeeb.education.absencerecord.domain.models.HourWithOccupancy
 import dev.nenoeldeeb.education.absencerecord.domain.models.SortType
 import dev.nenoeldeeb.education.absencerecord.domain.models.Student
 import dev.nenoeldeeb.education.absencerecord.domain.models.StudentError
+import dev.nenoeldeeb.education.absencerecord.domain.services.ScheduleRules
 import dev.nenoeldeeb.education.absencerecord.presentation.utils.UiText
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -45,8 +46,14 @@ class ScheduleViewModelHourTest : ScheduleViewModelTestBase() {
 
             val state = viewModel.uiState.value
             assertEquals(false, state.isHourDialogOpen)
-            assertEquals(0, state.hourStartMinutes)
-            assertEquals("", state.hourMaxStudents)
+            assertEquals(
+                ScheduleRules.DEFAULT_NEW_HOUR_START_MINUTES,
+                state.hourStartMinutes
+            )
+            assertEquals(
+                ScheduleRules.DEFAULT_NEW_HOUR_MAX_STUDENTS.toString(),
+                state.hourMaxStudents
+            )
             assertEquals(null, state.hourValidationError)
         }
 

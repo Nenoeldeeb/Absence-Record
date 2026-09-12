@@ -41,7 +41,8 @@ class StudentDetailBodyPagerTest {
             student = Student(id = 1, name = studentName, classId = null),
             assignedClassName = "Grade 1",
             selectedScheduleWeekday = DayOfWeek.SATURDAY,
-            selectedScheduleTab = StudentScheduleTab.Lessons
+            selectedScheduleTab = StudentScheduleTab.Lessons,
+            isLoading = false
         )
 
     private fun setBody(onPagerState: (PagerState) -> Unit) {
@@ -151,7 +152,7 @@ class StudentDetailBodyPagerTest {
         composeTestRule.waitForIdle()
 
         assertEquals(1, pagerState.currentPage)
-        composeTestRule.onNodeWithText(getString(R.string.day_friday)).assertIsDisplayed()
+        composeTestRule.onNodeWithText(getString(R.string.day_short_friday)).assertIsDisplayed()
 
         chips.performTouchInput { swipeRight() }
         composeTestRule.waitForIdle()

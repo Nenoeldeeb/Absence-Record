@@ -82,7 +82,7 @@ class MainScreenPagerTest {
         composeTestRule.waitUntil(timeoutMillis = 5_000) { pagerState.currentPage == 2 }
         composeTestRule.waitForIdle()
 
-        composeTestRule.onNodeWithText("Saturday").assertIsDisplayed()
+        composeTestRule.onNodeWithText(getString(R.string.day_short_saturday)).assertIsDisplayed()
     }
 
     @Test

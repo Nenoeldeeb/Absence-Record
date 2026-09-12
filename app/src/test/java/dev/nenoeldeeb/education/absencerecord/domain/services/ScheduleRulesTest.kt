@@ -1,6 +1,8 @@
 package dev.nenoeldeeb.education.absencerecord.domain.services
 
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
+import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 
@@ -145,6 +147,38 @@ class ScheduleRulesTest {
     @Test
     fun `isBusyDurationValid rejects negative starts`() {
         assertFalse(ScheduleRules.isBusyDurationValid(-1, 30))
+    }
+
+    // endregion
+
+    // region parseMaxStudents
+
+    @Test
+    fun `parseMaxStudents accepts ascii digits`() {
+        assertEquals(5, ScheduleRules.parseMaxStudents("5"))
+        assertEquals(12, ScheduleRules.parseMaxStudents("12"))
+    }
+
+    @Test
+    fun `parseMaxStudents accepts arabic-indic digits`() {
+        assertEquals(5, ScheduleRules.parseMaxStudents("٥"))
+        assertEquals(12, ScheduleRules.parseMaxStudents("١٢"))
+    }
+
+    @Test
+    fun `parseMaxStudents accepts eastern arabic-indic digits`() {
+        assertEquals(5, ScheduleRules.parseMaxStudents("۵"))
+        assertEquals(12, ScheduleRules.parseMaxStudents("۱۲"))
+    }
+
+    @Test
+    fun `parseMaxStudents rejects blank mixed and overflowing input`() {
+        assertNull(ScheduleRules.parseMaxStudents(""))
+        assertNull(ScheduleRules.parseMaxStudents("   "))
+        assertNull(ScheduleRules.parseMaxStudents("5a"))
+        assertNull(ScheduleRules.parseMaxStudents("٥a"))
+        assertNull(ScheduleRules.parseMaxStudents("1 2"))
+        assertNull(ScheduleRules.parseMaxStudents("9999999999"))
     }
 
     // endregion
