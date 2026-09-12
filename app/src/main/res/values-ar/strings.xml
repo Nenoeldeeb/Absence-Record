@@ -7,7 +7,10 @@
     <string name="action_close">إغلاق</string>
     <string name="action_cancel">إلغاء</string>
     <string name="action_save">حفظ</string>
+    <string name="action_set">تعيين</string>
     <string name="action_delete">حذف</string>
+    <string name="action_undo">تراجع</string>
+    <string name="action_retry">إعادة المحاولة</string>
     <string name="error_display">خطأ: %1$s</string>
 
     <!-- Students Screen -->
@@ -278,7 +281,7 @@
     <string name="schedule_add_hour_title">أضف ساعة درس</string>
     <string name="schedule_edit_hour_title">تعديل ساعة الدرس</string>
     <string name="schedule_no_hours_for_day">لم يتم تعيين ساعات دراسية لهذا اليوم بعد.</string>
-    <string name="schedule_occupancy">%1$d / %2$d</string>
+    <string name="schedule_occupancy">%1$d/%2$d مقاعد</string>
     <string name="time_range">%1$s – %2$s</string>
     <string name="schedule_hour_full">ممتلئ</string>
     <string name="schedule_start_time">وقت البدء</string>
@@ -287,14 +290,41 @@
     <string name="schedule_max_students">الحد الأقصى للطلاب</string>
     <string name="error_capacity_invalid">يجب أن يكون الحد الأقصى للطلاب 1 على الأقل.</string>
     <string name="error_max_below_assigned">لا يمكن أن يكون الحد الأقصى للطلاب أقل من عدد الطلاب المسجلين.</string>
-    <string name="schedule_delete_hour_title">حذف هذه الساعة؟</string>
-    <string name="schedule_delete_hour_message">سيؤدي هذا إلى إزالة هذه الساعة وجميع الطلاب المسجلين فيها. لا يمكن التراجع عن هذا الإجراء.</string>
-    <string name="schedule_assign_students_description">تسجيل الطلاب في %1$s</string>
+    <string name="schedule_delete_hour_named">حذف ساعة %1$s؟</string>
+    <string name="schedule_delete_hour_message_empty">سيؤدي هذا إلى إزالة هذه الساعة. يمكنك التراجع مباشرة من شريط الإشعار.</string>
+    <plurals name="schedule_delete_hour_message_with_students">
+        <item quantity="zero">سيؤدي هذا إلى إزالة هذه الساعة. يمكنك التراجع مباشرة من شريط الإشعار.</item>
+        <item quantity="one">سيؤدي هذا إلى إزالة هذه الساعة وإلغاء تسجيل طالب واحد (%2$s). يمكنك التراجع مباشرة من شريط الإشعار.</item>
+        <item quantity="two">سيؤدي هذا إلى إزالة هذه الساعة وإلغاء تسجيل طالبين (%2$s). يمكنك التراجع مباشرة من شريط الإشعار.</item>
+        <item quantity="few">سيؤدي هذا إلى إزالة هذه الساعة وإلغاء تسجيل %1$d طلاب (%2$s). يمكنك التراجع مباشرة من شريط الإشعار.</item>
+        <item quantity="many">سيؤدي هذا إلى إزالة هذه الساعة وإلغاء تسجيل %1$d طالبًا (%2$s). يمكنك التراجع مباشرة من شريط الإشعار.</item>
+        <item quantity="other">سيؤدي هذا إلى إزالة هذه الساعة وإلغاء تسجيل %1$d طالب (%2$s). يمكنك التراجع مباشرة من شريط الإشعار.</item>
+    </plurals>
+    <string name="schedule_hour_deleted">تم حذف الساعة الدراسية</string>
     <string name="schedule_edit_hour_description">تعديل ساعة %1$s</string>
     <string name="schedule_delete_hour_description">حذف ساعة %1$s</string>
     <string name="schedule_expand_hour_description">توسيع ساعة %1$s</string>
     <string name="schedule_collapse_hour_description">طي ساعة %1$s</string>
-    <string name="schedule_no_students_assigned">لا يوجد طلاب مسجلون في هذه الساعة.</string>
+    <string name="schedule_expand_action">توسيع</string>
+    <string name="schedule_collapse_action">طي</string>
+    <string name="schedule_open_profile_action">فتح الملف</string>
+    <string name="schedule_change_start_time_action">تغيير وقت البدء</string>
+    <string name="schedule_hour_options_description">خيارات إضافية لساعة %1$s</string>
+    <string name="schedule_open_student_profile_description">فتح ملف الطالب %1$s</string>
+    <string name="schedule_day_counts">%1$s · %2$s</string>
+    <string name="schedule_hours_loading">جارٍ تحميل الساعات</string>
+    <string name="schedule_today">اليوم</string>
+    <string name="schedule_decrease_capacity">إنقاص الحد الأقصى للطلاب</string>
+    <string name="schedule_increase_capacity">زيادة الحد الأقصى للطلاب</string>
+    <plurals name="schedule_day_summary_hours">
+        <item quantity="zero">لا ساعات</item>
+        <item quantity="one">ساعة واحدة</item>
+        <item quantity="two">ساعتان</item>
+        <item quantity="few">%1$d ساعات</item>
+        <item quantity="many">%1$d ساعة</item>
+        <item quantity="other">%1$d ساعة</item>
+    </plurals>
+    <string name="schedule_no_students_assigned">لا يوجد طلاب بعد — سجّل من صفحة الطالب (الدروس → إضافة درس).</string>
     <plurals name="removed_from_hour">
         <item quantity="zero">تمت الإزالة من %1$s: %2$s</item>
         <item quantity="one">تمت الإزالة من %1$s: %2$s</item>
@@ -309,7 +339,7 @@
     <string name="schedule_add_busy_title">أضف موعداً مشغولاً</string>
     <string name="schedule_edit_busy_title">تعديل الموعد المشغول</string>
     <string name="schedule_busy_duration">المدة</string>
-    <string name="schedule_busy_duration_hours">%1$d س</string>
+    <string name="schedule_busy_duration_hours">%1$s س</string>
     <string name="schedule_busy_duration_range">0.5 ساعة – 6 ساعات</string>
     <string name="schedule_busy_ends_at">ينتهي في %1$s</string>
     <string name="schedule_edit_busy_description">تعديل موعد مشغول %1$s</string>

@@ -6,6 +6,7 @@ import androidx.test.platform.app.InstrumentationRegistry
 import dev.nenoeldeeb.education.absencerecord.R
 import dev.nenoeldeeb.education.absencerecord.domain.models.AvailableLessonHour
 import dev.nenoeldeeb.education.absencerecord.domain.models.HourWithOccupancy
+import dev.nenoeldeeb.education.absencerecord.domain.services.ScheduleRules
 import dev.nenoeldeeb.education.absencerecord.presentation.theme.AbsenceRecordTheme
 import dev.nenoeldeeb.education.absencerecord.presentation.utils.TimeFormatter
 import dev.nenoeldeeb.education.absencerecord.presentation.utils.UiText
@@ -25,6 +26,26 @@ internal class ScheduleScreenTestHarness(
         resId: Int,
         vararg formatArgs: Any
     ): String = context.getString(resId, *formatArgs)
+
+    fun hoursCountText(count: Int): String =
+        context.resources.getQuantityString(
+            R.plurals.schedule_day_summary_hours,
+            count,
+            count
+        )
+
+    fun dayHeading(weekdayName: String = "Saturday"): String = weekdayName
+
+    fun dayCounts(
+        hoursCount: Int = 1,
+        assigned: Int = 0,
+        capacity: Int = 5
+    ): String =
+        getString(
+            R.string.schedule_day_counts,
+            hoursCountText(hoursCount),
+            getString(R.string.schedule_occupancy, assigned, capacity)
+        )
 
     fun time(minutes: Int): String = TimeFormatter.format(minutes, context)
 
@@ -93,8 +114,12 @@ internal class ScheduleScreenTestHarness(
                     it.copy(
                         isHourDialogOpen = true,
                         editingHour = event.hour,
-                        hourStartMinutes = event.hour?.startMinutes ?: 0,
-                        hourMaxStudents = event.hour?.maxStudents?.toString() ?: "",
+                        hourStartMinutes =
+                            event.hour?.startMinutes
+                                ?: ScheduleRules.DEFAULT_NEW_HOUR_START_MINUTES,
+                        hourMaxStudents =
+                            event.hour?.maxStudents?.toString()
+                                ?: ScheduleRules.DEFAULT_NEW_HOUR_MAX_STUDENTS.toString(),
                         hourValidationError = null
                     )
                 }
@@ -121,6 +146,15 @@ internal class ScheduleScreenTestHarness(
 
             is ScheduleScreenEvent.DismissDeleteHourDialog ->
                 stateFlow.update { it.copy(hourToDelete = null) }
+
+            is ScheduleScreenEvent.RetryLoadHours ->
+                stateFlow.update {
+                    it.copy(
+                        hoursRetryToken = it.hoursRetryToken + 1,
+                        isHoursLoading = false,
+                        hoursError = null
+                    )
+                }
 
             else -> Unit
         }

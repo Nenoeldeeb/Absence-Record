@@ -32,11 +32,11 @@ class ScheduleScreenHourRowsTest {
     fun weekdayChips_renderSaturdayFirst_withDefaultSelection() {
         harness.setContent(MutableStateFlow(ScheduleScreenState()))
 
-        composeTestRule.onNodeWithText("Saturday").assertIsDisplayed()
-        composeTestRule.onNodeWithText("Saturday").assertIsSelected()
+        composeTestRule.onNodeWithText("Sat").assertIsDisplayed()
+        composeTestRule.onNodeWithText("Sat").assertIsSelected()
 
-        val saturdayX = composeTestRule.onNodeWithText("Saturday").getBoundsInRoot().left
-        val sundayX = composeTestRule.onNodeWithText("Sunday").getBoundsInRoot().left
+        val saturdayX = composeTestRule.onNodeWithText("Sat").getBoundsInRoot().left
+        val sundayX = composeTestRule.onNodeWithText("Sun").getBoundsInRoot().left
         assertTrue("Saturday should be the first weekday chip", saturdayX < sundayX)
     }
 
@@ -45,19 +45,20 @@ class ScheduleScreenHourRowsTest {
         val stateFlow = MutableStateFlow(ScheduleScreenState())
         harness.setContent(stateFlow)
 
-        composeTestRule.onNodeWithText("Sunday").performClick()
+        composeTestRule.onNodeWithText("Sun").performClick()
 
-        composeTestRule.onNodeWithText("Sunday").assertIsSelected()
+        composeTestRule.onNodeWithText("Sun").assertIsSelected()
         assertTrue(harness.containsEvent(ScheduleScreenEvent.SelectWeekday(DayOfWeek.SUNDAY)))
         assertEquals(DayOfWeek.SUNDAY, stateFlow.value.selectedWeekday)
     }
 
     @Test
-    fun hoursList_showsTimeRangeOccupancyAndEditDeleteActions() {
+    fun hoursList_showsTimeRangeOccupancyAndOverflowActions() {
         harness.setContent(
             MutableStateFlow(
                 ScheduleScreenState(
-                    hoursForWeekday = listOf(harness.hourWith(id = 1, start = 540))
+                    hoursForWeekday = listOf(harness.hourWith(id = 1, start = 540)),
+                    isHoursLoading = false
                 )
             )
         )
@@ -74,6 +75,27 @@ class ScheduleScreenHourRowsTest {
             .assertIsDisplayed()
         composeTestRule
             .onNodeWithContentDescription(
+                harness.getString(R.string.schedule_hour_options_description, harness.time(540))
+            )
+            .assertIsDisplayed()
+        composeTestRule
+            .onNodeWithContentDescription(
+                harness.getString(R.string.schedule_edit_hour_description, harness.time(540))
+            )
+            .assertDoesNotExist()
+        composeTestRule
+            .onNodeWithContentDescription(
+                harness.getString(R.string.schedule_delete_hour_description, harness.time(540))
+            )
+            .assertDoesNotExist()
+
+        composeTestRule
+            .onNodeWithContentDescription(
+                harness.getString(R.string.schedule_hour_options_description, harness.time(540))
+            )
+            .performClick()
+        composeTestRule
+            .onNodeWithContentDescription(
                 harness.getString(R.string.schedule_edit_hour_description, harness.time(540))
             )
             .assertIsDisplayed()
@@ -82,11 +104,24 @@ class ScheduleScreenHourRowsTest {
                 harness.getString(R.string.schedule_delete_hour_description, harness.time(540))
             )
             .assertIsDisplayed()
-        composeTestRule
-            .onNodeWithContentDescription(
-                harness.getString(R.string.schedule_assign_students_description, harness.time(540))
+    }
+
+    @Test
+    fun hoursList_showsDaySummaryHeaderAndStickyAdd() {
+        harness.setContent(
+            MutableStateFlow(
+                ScheduleScreenState(
+                    hoursForWeekday = listOf(harness.hourWith(id = 1, start = 540)),
+                    isHoursLoading = false
+                )
             )
-            .assertDoesNotExist()
+        )
+
+        composeTestRule.onNodeWithText(harness.dayHeading()).assertIsDisplayed()
+        composeTestRule.onNodeWithText(harness.dayCounts()).assertIsDisplayed()
+        composeTestRule
+            .onNodeWithText(harness.getString(R.string.schedule_add_hour))
+            .assertIsDisplayed()
     }
 
     @Test
@@ -96,6 +131,7 @@ class ScheduleScreenHourRowsTest {
             MutableStateFlow(
                 ScheduleScreenState(
                     allStudents = students,
+                    isHoursLoading = false,
                     hoursForWeekday =
                         listOf(
                             harness.hourWith(id = 1, start = 540, max = 5, assigned = 2)
@@ -128,7 +164,8 @@ class ScheduleScreenHourRowsTest {
         harness.setContent(
             MutableStateFlow(
                 ScheduleScreenState(
-                    hoursForWeekday = listOf(harness.hourWith(id = 1, start = 540))
+                    hoursForWeekday = listOf(harness.hourWith(id = 1, start = 540)),
+                    isHoursLoading = false
                 )
             )
         )
@@ -151,6 +188,7 @@ class ScheduleScreenHourRowsTest {
             MutableStateFlow(
                 ScheduleScreenState(
                     allStudents = students,
+                    isHoursLoading = false,
                     hoursForWeekday =
                         listOf(
                             harness.hourWith(id = 1, start = 540, max = 5, assigned = 1)
@@ -171,7 +209,7 @@ class ScheduleScreenHourRowsTest {
 
     @Test
     fun hoursList_emptyStateShowsMessageAndAddButton() {
-        harness.setContent(MutableStateFlow(ScheduleScreenState()))
+        harness.setContent(MutableStateFlow(ScheduleScreenState(isHoursLoading = false)))
 
         composeTestRule
             .onNodeWithText(harness.getString(R.string.schedule_no_hours_for_day))
@@ -186,7 +224,8 @@ class ScheduleScreenHourRowsTest {
         harness.setContent(
             MutableStateFlow(
                 ScheduleScreenState(
-                    hoursForWeekday = listOf(harness.hourWith(id = 1, start = 540))
+                    hoursForWeekday = listOf(harness.hourWith(id = 1, start = 540)),
+                    isHoursLoading = false
                 )
             )
         )

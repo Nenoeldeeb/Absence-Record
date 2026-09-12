@@ -12,6 +12,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import dev.nenoeldeeb.education.absencerecord.R
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.schedule.components.WeekdaySelector
@@ -32,7 +34,8 @@ internal fun StudentScheduleSection(
         ) {
             Text(
                 text = stringResource(R.string.student_schedule_title),
-                style = MaterialTheme.typography.titleMedium
+                style = MaterialTheme.typography.titleMedium,
+                modifier = Modifier.semantics { heading() }
             )
             WeekdaySelector(
                 selectedWeekday = uiState.selectedScheduleWeekday,

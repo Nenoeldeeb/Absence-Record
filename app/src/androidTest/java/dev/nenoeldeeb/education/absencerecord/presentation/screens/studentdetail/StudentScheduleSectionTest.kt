@@ -73,7 +73,7 @@ class StudentScheduleSectionTest {
         setSection(aState())
 
         composeTestRule.onNodeWithText(context.getString(R.string.student_schedule_title)).assertIsDisplayed()
-        composeTestRule.onNodeWithText("Saturday").assertIsDisplayed()
+        composeTestRule.onNodeWithText(context.getString(R.string.day_short_saturday)).assertIsDisplayed()
         composeTestRule.onNodeWithText(context.getString(R.string.student_detail_tab_lessons)).assertIsDisplayed()
         composeTestRule.onNodeWithText(context.getString(R.string.student_detail_tab_busy)).assertIsDisplayed()
         composeTestRule.onNodeWithText("${time(540)} – ${time(600)}").assertIsDisplayed()
@@ -84,7 +84,7 @@ class StudentScheduleSectionTest {
         val recorded = mutableListOf<StudentDetailScreenEvent>()
         setSection(aState()) { recorded.add(it) }
 
-        composeTestRule.onNodeWithText("Sunday").performClick()
+        composeTestRule.onNodeWithText(context.getString(R.string.day_short_sunday)).performClick()
         composeTestRule.waitForIdle()
 
         assertEquals(1, recorded.size)

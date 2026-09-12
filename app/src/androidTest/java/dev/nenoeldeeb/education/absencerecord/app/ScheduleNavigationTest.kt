@@ -84,7 +84,9 @@ class ScheduleNavigationTest {
 
     private fun waitForSchedulePage() {
         composeTestRule.waitUntil(timeoutMillis = 5_000) {
-            composeTestRule.onAllNodesWithText("Saturday").fetchSemanticsNodes().isNotEmpty()
+            composeTestRule.onAllNodesWithText(
+                context.getString(R.string.day_short_saturday)
+            ).fetchSemanticsNodes().isNotEmpty()
         }
         composeTestRule.waitForIdle()
     }
@@ -109,6 +111,12 @@ class ScheduleNavigationTest {
             composeTestRule.onNodeWithText(studentName).assertIsDisplayed().performClick()
             composeTestRule.waitForIdle()
 
+            composeTestRule.waitUntil(timeoutMillis = 5_000) {
+                composeTestRule.onAllNodesWithText(studentName).fetchSemanticsNodes().isNotEmpty()
+            }
+            composeTestRule.onRoot().performTouchInput { swipeLeft() }
+            composeTestRule.waitForIdle()
+
             composeTestRule
                 .onNodeWithText(context.getString(R.string.student_detail_tab_lessons))
                 .assertIsDisplayed()
@@ -116,7 +124,7 @@ class ScheduleNavigationTest {
             Espresso.pressBack()
             composeTestRule.waitForIdle()
 
-            composeTestRule.onNodeWithText("Saturday").assertIsDisplayed()
+            composeTestRule.onNodeWithText(context.getString(R.string.day_short_saturday)).assertIsDisplayed()
             composeTestRule.onAllNodesWithText(studentName).onFirst().assertIsDisplayed()
         } finally {
             cleanup(studentId, hourId)
