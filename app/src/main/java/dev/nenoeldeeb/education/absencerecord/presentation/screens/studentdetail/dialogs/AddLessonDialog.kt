@@ -19,6 +19,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.text.style.TextDirection
 import androidx.compose.ui.unit.dp
 import dev.nenoeldeeb.education.absencerecord.R
 import dev.nenoeldeeb.education.absencerecord.domain.models.BusyAppointment
@@ -134,10 +135,19 @@ private fun HourOptionRow(
             enabled = enabled
         )
         Column(modifier = Modifier.weight(1f)) {
-            Text(timeRange, style = MaterialTheme.typography.bodyMedium)
+            Text(
+                timeRange,
+                style =
+                    MaterialTheme.typography.bodyMedium.copy(
+                        textDirection = TextDirection.Ltr
+                    )
+            )
             Text(
                 text = occupancy,
-                style = MaterialTheme.typography.labelMedium,
+                style =
+                    MaterialTheme.typography.labelMedium.copy(
+                        textDirection = TextDirection.Ltr
+                    ),
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }

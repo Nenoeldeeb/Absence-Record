@@ -3,6 +3,7 @@ package dev.nenoeldeeb.education.absencerecord.presentation.screens.schedule.del
 import dev.nenoeldeeb.education.absencerecord.R
 import dev.nenoeldeeb.education.absencerecord.domain.models.AssignmentRemovalReport
 import dev.nenoeldeeb.education.absencerecord.domain.models.AvailableLessonHour
+import dev.nenoeldeeb.education.absencerecord.domain.services.ScheduleRules
 import dev.nenoeldeeb.education.absencerecord.domain.usecases.schedule.ScheduleUseCases
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.schedule.ScheduleScreenState
 import dev.nenoeldeeb.education.absencerecord.presentation.utils.UiText
@@ -20,8 +21,10 @@ class HourManagementDelegate(
             it.copy(
                 isHourDialogOpen = true,
                 editingHour = hour,
-                hourStartMinutes = hour?.startMinutes ?: 0,
-                hourMaxStudents = hour?.maxStudents?.toString() ?: "",
+                hourStartMinutes = hour?.startMinutes ?: ScheduleRules.DEFAULT_NEW_HOUR_START_MINUTES,
+                hourMaxStudents =
+                    hour?.maxStudents?.toString()
+                        ?: ScheduleRules.DEFAULT_NEW_HOUR_MAX_STUDENTS.toString(),
                 hourValidationError = null
             )
         }
@@ -42,7 +45,7 @@ class HourManagementDelegate(
     }
 
     fun saveHour(state: ScheduleScreenState) {
-        val maxStudents = state.hourMaxStudents.toIntOrNull()
+        val maxStudents = ScheduleRules.parseMaxStudents(state.hourMaxStudents)
         if (maxStudents == null || maxStudents < 1) {
             updateState {
                 it.copy(hourValidationError = UiText.StringResource(R.string.error_capacity_invalid))
@@ -60,8 +63,9 @@ class HourManagementDelegate(
                             it.copy(
                                 isHourDialogOpen = false,
                                 editingHour = null,
-                                hourStartMinutes = 0,
-                                hourMaxStudents = "",
+                                hourStartMinutes = ScheduleRules.DEFAULT_NEW_HOUR_START_MINUTES,
+                                hourMaxStudents =
+                                    ScheduleRules.DEFAULT_NEW_HOUR_MAX_STUDENTS.toString(),
                                 hourValidationError = null
                             )
                         }
@@ -105,9 +109,42 @@ class HourManagementDelegate(
             return
         }
         updateState { it.copy(hourToDelete = null) }
+        val assignedIds =
+            state.hoursForWeekday
+                .firstOrNull { it.hour.id == hour.id }
+                ?.assignedStudentIds
+                .orEmpty()
         scope.launch {
             scheduleUseCases.deleteHourUseCase(hour.id)
-                .onSuccess { }
+                .onSuccess {
+                    updateState {
+                        it.copy(deletedHour = hour, deletedHourAssignedIds = assignedIds)
+                    }
+                }
+                .onFailure { e ->
+                    updateState { it.copy(error = e.toUiText()) }
+                }
+        }
+    }
+
+    fun undoDeleteHour(state: ScheduleScreenState) {
+        val hour = state.deletedHour ?: return
+        val assignedIds = state.deletedHourAssignedIds
+        updateState { it.copy(deletedHour = null, deletedHourAssignedIds = emptyList()) }
+        scope.launch {
+            scheduleUseCases.insertHourUseCase(hour.weekday, hour.startMinutes, hour.maxStudents)
+                .onSuccess { newHourId ->
+                    var firstError: UiText? = null
+                    assignedIds.forEach { studentId ->
+                        scheduleUseCases.assignStudentUseCase(newHourId, studentId, hour.weekday)
+                            .onFailure { e ->
+                                if (firstError == null) firstError = e.toUiText()
+                            }
+                    }
+                    firstError?.let { error ->
+                        updateState { it.copy(error = error) }
+                    }
+                }
                 .onFailure { e ->
                     updateState { it.copy(error = e.toUiText()) }
                 }
