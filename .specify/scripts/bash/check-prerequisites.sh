@@ -9,6 +9,7 @@
 #
 # OPTIONS:
 #   --json              Output in JSON format
+#   --require-spec      Require spec.md to exist (for analysis phase)
 #   --require-tasks     Require tasks.md to exist (for implementation phase)
 #   --include-tasks     Include tasks.md in AVAILABLE_DOCS list
 #   --paths-only        Only output path variables (no validation)
@@ -23,6 +24,7 @@ set -e
 
 # Parse command line arguments
 JSON_MODE=false
+REQUIRE_SPEC=false
 REQUIRE_TASKS=false
 INCLUDE_TASKS=false
 PATHS_ONLY=false
@@ -31,6 +33,9 @@ for arg in "$@"; do
     case "$arg" in
         --json)
             JSON_MODE=true
+            ;;
+        --require-spec)
+            REQUIRE_SPEC=true
             ;;
         --require-tasks)
             REQUIRE_TASKS=true
@@ -49,6 +54,7 @@ Consolidated prerequisite checking for Spec-Driven Development workflow.
 
 OPTIONS:
   --json              Output in JSON format
+  --require-spec      Require spec.md to exist (for analysis phase)
   --require-tasks     Require tasks.md to exist (for implementation phase)
   --include-tasks     Include tasks.md in AVAILABLE_DOCS list
   --paths-only        Only output path variables (no prerequisite validation)
@@ -127,6 +133,13 @@ fi
 if [[ ! -f "$IMPL_PLAN" ]]; then
     echo "ERROR: plan.md not found in $FEATURE_DIR" >&2
     echo "Run /speckit.plan first to create the implementation plan." >&2
+    exit 1
+fi
+
+# Check for spec.md if required
+if $REQUIRE_SPEC && [[ ! -f "$FEATURE_SPEC" ]]; then
+    echo "ERROR: spec.md not found in $FEATURE_DIR" >&2
+    echo "Run /speckit.specify first to create the feature specification." >&2
     exit 1
 fi
 
