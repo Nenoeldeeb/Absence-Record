@@ -5,6 +5,7 @@ import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
@@ -139,8 +140,19 @@ class BusyAppointmentDialogTest {
 
         composeTestRule.onNodeWithText(time(540)).performClick()
         composeTestRule.onNodeWithTag(TIME_PICKER_MODE_TOGGLE_TAG).performClick()
-        composeTestRule.onNodeWithText("00").performClick()
-        composeTestRule.onNodeWithText("00").performTextReplacement("07")
+        composeTestRule.waitForIdle()
+        composeTestRule
+            .onNodeWithContentDescription(
+                context.getString(androidx.compose.material3.R.string.m3c_time_picker_hour_text_field)
+            )
+            .performTextReplacement("9")
+        composeTestRule.waitForIdle()
+        composeTestRule
+            .onNodeWithContentDescription(
+                context.getString(androidx.compose.material3.R.string.m3c_time_picker_minute_text_field)
+            )
+            .performTextReplacement("07")
+        composeTestRule.waitForIdle()
         composeTestRule.onNodeWithTag(TIME_PICKER_CONFIRM_TAG).performClick()
         composeTestRule.waitForIdle()
 

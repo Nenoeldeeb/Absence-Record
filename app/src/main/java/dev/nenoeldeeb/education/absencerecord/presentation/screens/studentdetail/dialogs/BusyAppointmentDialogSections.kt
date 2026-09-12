@@ -9,6 +9,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.style.TextDirection
 import androidx.compose.ui.unit.dp
 import dev.nenoeldeeb.education.absencerecord.R
 import dev.nenoeldeeb.education.absencerecord.domain.models.StudentLessonEntry
@@ -29,7 +32,8 @@ internal fun ConflictPreview(
         Text(
             text = stringResource(R.string.student_detail_busy_conflict_title),
             style = MaterialTheme.typography.titleSmall,
-            color = MaterialTheme.colorScheme.error
+            color = MaterialTheme.colorScheme.error,
+            modifier = Modifier.semantics { heading() }
         )
         Text(
             text = stringResource(R.string.student_detail_busy_conflict_message),
@@ -40,7 +44,10 @@ internal fun ConflictPreview(
             Text(
                 text =
                     "${formatTime(lesson.startMinutes)} – ${formatTime(lesson.endMinutes)}",
-                style = MaterialTheme.typography.bodyMedium
+                style =
+                    MaterialTheme.typography.bodyMedium.copy(
+                        textDirection = TextDirection.Ltr
+                    )
             )
         }
     }

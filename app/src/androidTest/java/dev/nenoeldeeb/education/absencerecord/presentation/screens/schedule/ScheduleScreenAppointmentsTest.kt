@@ -6,16 +6,18 @@ import androidx.compose.ui.test.hasSetTextAction
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithContentDescription
-import androidx.compose.ui.test.onAllNodesWithText
-import androidx.compose.ui.test.onLast
 import androidx.compose.ui.test.onNodeWithContentDescription
+import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextClearance
 import androidx.compose.ui.test.performTextInput
 import androidx.compose.ui.test.performTextReplacement
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import androidx.test.platform.app.InstrumentationRegistry
 import dev.nenoeldeeb.education.absencerecord.R
+import dev.nenoeldeeb.education.absencerecord.domain.models.Student
+import dev.nenoeldeeb.education.absencerecord.presentation.screens.schedule.dialogs.HOUR_TIME_PICKER_MODE_TOGGLE_TAG
 import kotlinx.coroutines.flow.MutableStateFlow
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
@@ -32,7 +34,7 @@ class ScheduleScreenAppointmentsTest {
 
     @Test
     fun addHour_viaTimePickerAndMaxField_saves() {
-        val stateFlow = MutableStateFlow(ScheduleScreenState())
+        val stateFlow = MutableStateFlow(ScheduleScreenState(isHoursLoading = false))
         harness.setContent(stateFlow)
 
         composeTestRule
@@ -43,19 +45,17 @@ class ScheduleScreenAppointmentsTest {
             .assertIsDisplayed()
 
         composeTestRule
-            .onNode(hasSetTextAction() and !hasText(harness.time(0)))
+            .onNode(hasSetTextAction() and !hasText(harness.time(480)))
             .performTextClearance()
         composeTestRule
-            .onNode(hasSetTextAction() and !hasText(harness.time(0)))
+            .onNode(hasSetTextAction() and !hasText(harness.time(480)))
             .performTextInput("5")
         composeTestRule.onNodeWithText("5").assertIsDisplayed()
 
-        composeTestRule.onNodeWithText(harness.time(0)).performClick()
+        composeTestRule.onNodeWithText(harness.time(480)).performClick()
         composeTestRule.waitForIdle()
         composeTestRule
-            .onNodeWithContentDescription(
-                harness.getString(androidx.compose.material3.R.string.m3c_time_picker_toggle_keyboard)
-            )
+            .onNodeWithTag(HOUR_TIME_PICKER_MODE_TOGGLE_TAG)
             .performClick()
         composeTestRule.waitForIdle()
         composeTestRule
@@ -82,8 +82,7 @@ class ScheduleScreenAppointmentsTest {
             .performTextReplacement("07")
         composeTestRule.waitForIdle()
         composeTestRule
-            .onAllNodesWithText(harness.getString(R.string.action_save))
-            .onLast()
+            .onNodeWithText(harness.getString(R.string.action_set))
             .performClick()
         composeTestRule.waitForIdle()
 
@@ -115,16 +114,16 @@ class ScheduleScreenAppointmentsTest {
 
     @Test
     fun overlappingSave_showsInlineOverlapError() {
-        harness.setContent(MutableStateFlow(ScheduleScreenState()))
+        harness.setContent(MutableStateFlow(ScheduleScreenState(isHoursLoading = false)))
 
         composeTestRule
             .onNodeWithText(harness.getString(R.string.schedule_add_hour))
             .performClick()
         composeTestRule
-            .onNode(hasSetTextAction() and !hasText(harness.time(0)))
+            .onNode(hasSetTextAction() and !hasText(harness.time(480)))
             .performTextClearance()
         composeTestRule
-            .onNode(hasSetTextAction() and !hasText(harness.time(0)))
+            .onNode(hasSetTextAction() and !hasText(harness.time(480)))
             .performTextInput("5")
         composeTestRule.onNodeWithText(harness.getString(R.string.action_save)).performClick()
 
@@ -138,11 +137,17 @@ class ScheduleScreenAppointmentsTest {
         val stateFlow =
             MutableStateFlow(
                 ScheduleScreenState(
-                    hoursForWeekday = listOf(harness.hourWith(id = 1, start = 540))
+                    hoursForWeekday = listOf(harness.hourWith(id = 1, start = 540)),
+                    isHoursLoading = false
                 )
             )
         harness.setContent(stateFlow)
 
+        composeTestRule
+            .onNodeWithContentDescription(
+                harness.getString(R.string.schedule_hour_options_description, harness.time(540))
+            )
+            .performClick()
         composeTestRule
             .onNodeWithContentDescription(
                 harness.getString(R.string.schedule_delete_hour_description, harness.time(540))
@@ -150,10 +155,10 @@ class ScheduleScreenAppointmentsTest {
             .performClick()
 
         composeTestRule
-            .onNodeWithText(harness.getString(R.string.schedule_delete_hour_title))
+            .onNodeWithText(harness.getString(R.string.schedule_delete_hour_named, harness.time(540)))
             .assertIsDisplayed()
         composeTestRule
-            .onNodeWithText(harness.getString(R.string.schedule_delete_hour_message))
+            .onNodeWithText(harness.getString(R.string.schedule_delete_hour_message_empty))
             .assertIsDisplayed()
 
         val expectedHour = stateFlow.value.hourToDelete
@@ -161,5 +166,40 @@ class ScheduleScreenAppointmentsTest {
         composeTestRule.onNodeWithText(harness.getString(R.string.action_delete)).performClick()
 
         assertTrue(harness.containsEvent(ScheduleScreenEvent.ConfirmDeleteHour(expectedHour!!)))
+    }
+
+    @Test
+    fun deleteHour_withAssignedStudents_enumeratesBlastRadius() {
+        val context = InstrumentationRegistry.getInstrumentation().targetContext
+        val stateFlow =
+            MutableStateFlow(
+                ScheduleScreenState(
+                    allStudents = listOf(Student(1, "Ali"), Student(2, "Sara")),
+                    hoursForWeekday =
+                        listOf(harness.hourWith(id = 1, start = 540, max = 5, assigned = 2)),
+                    isHoursLoading = false
+                )
+            )
+        harness.setContent(stateFlow)
+
+        composeTestRule
+            .onNodeWithContentDescription(
+                harness.getString(R.string.schedule_hour_options_description, harness.time(540))
+            )
+            .performClick()
+        composeTestRule
+            .onNodeWithContentDescription(
+                harness.getString(R.string.schedule_delete_hour_description, harness.time(540))
+            )
+            .performClick()
+
+        val expectedMessage =
+            context.resources.getQuantityString(
+                R.plurals.schedule_delete_hour_message_with_students,
+                2,
+                2,
+                "Ali, Sara"
+            )
+        composeTestRule.onNodeWithText(expectedMessage).assertIsDisplayed()
     }
 }

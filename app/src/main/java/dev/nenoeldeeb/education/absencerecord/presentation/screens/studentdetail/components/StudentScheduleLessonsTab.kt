@@ -15,6 +15,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
+import androidx.compose.ui.text.style.TextDirection
 import androidx.compose.ui.unit.dp
 import dev.nenoeldeeb.education.absencerecord.R
 import dev.nenoeldeeb.education.absencerecord.domain.models.StudentLessonEntry
@@ -72,7 +73,10 @@ private fun LessonRow(
     ) {
         Text(
             text = timeRange,
-            style = MaterialTheme.typography.bodyMedium,
+            style =
+                MaterialTheme.typography.bodyMedium.copy(
+                    textDirection = TextDirection.Ltr
+                ),
             modifier = Modifier.weight(1f)
         )
         IconButton(onClick = onUnassign) {

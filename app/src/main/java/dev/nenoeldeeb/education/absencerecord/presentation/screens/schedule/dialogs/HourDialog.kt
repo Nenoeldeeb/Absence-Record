@@ -3,12 +3,17 @@
 package dev.nenoeldeeb.education.absencerecord.presentation.screens.schedule.dialogs
 
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -24,8 +29,14 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.res.vectorResource
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import dev.nenoeldeeb.education.absencerecord.R
@@ -33,6 +44,11 @@ import dev.nenoeldeeb.education.absencerecord.domain.services.ScheduleRules
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.components.StartTimeField
 import dev.nenoeldeeb.education.absencerecord.presentation.utils.TimeFormatter.formatTime
 import dev.nenoeldeeb.education.absencerecord.presentation.utils.UiText
+
+const val HOUR_CAPACITY_OVERFILL_TAG = "hour_capacity_overfill_warning"
+const val HOUR_TIME_PICKER_MODE_TOGGLE_TAG = "hour_time_picker_mode_toggle"
+const val HOUR_TIME_PICKER_CONFIRM_TAG = "hour_time_picker_confirm"
+const val HOUR_TIME_PICKER_DISMISS_TAG = "hour_time_picker_dismiss"
 
 @Composable
 fun HourDialog(
@@ -44,11 +60,22 @@ fun HourDialog(
     onMaxStudentsChange: (String) -> Unit,
     onSave: () -> Unit,
     onDismiss: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    assignedCount: Int = 0
 ) {
     var isTimePickerOpen by remember { mutableStateOf(false) }
     var displayMode by remember { mutableStateOf(TimePickerDisplayMode.Picker) }
     val isStartValid = ScheduleRules.isHourStartValid(startMinutes)
+    val enteredMax = ScheduleRules.parseMaxStudents(maxStudents)
+    val showsOverfillPreview =
+        isEdit && enteredMax != null && enteredMax < assignedCount && validationError == null
+    // Step from zero when the field holds no parseable number, so the
+    // stepper always lands on a valid capacity instead of preserving garbage.
+    val stepperBase = enteredMax ?: 0
+
+    fun onStepperClick(next: Int) {
+        onMaxStudentsChange(next.toString())
+    }
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -60,11 +87,17 @@ fun HourDialog(
                     } else {
                         R.string.schedule_add_hour_title
                     }
-                )
+                ),
+                modifier = Modifier.semantics { heading() }
             )
         },
         text = {
-            Column(modifier = Modifier.fillMaxWidth()) {
+            Column(
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .verticalScroll(rememberScrollState())
+            ) {
                 StartTimeField(
                     startMinutes = startMinutes,
                     isError = !isStartValid,
@@ -94,27 +127,70 @@ fun HourDialog(
                         },
                     modifier = Modifier.padding(top = 12.dp)
                 )
-                OutlinedTextField(
-                    value = maxStudents,
-                    onValueChange = onMaxStudentsChange,
-                    label = { Text(stringResource(R.string.schedule_max_students)) },
-                    singleLine = true,
-                    isError = validationError != null,
-                    supportingText =
-                        validationError?.let {
-                            {
-                                Text(it.asString())
-                            }
-                        },
-                    keyboardOptions =
-                        KeyboardOptions(
-                            keyboardType = KeyboardType.Number
-                        ),
-                    modifier =
-                        Modifier
-                            .fillMaxWidth()
-                            .padding(top = 12.dp)
-                )
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.padding(top = 12.dp)
+                ) {
+                    IconButton(
+                        onClick = { onStepperClick(stepperBase - 1) },
+                        enabled = stepperBase > 1,
+                        modifier =
+                            Modifier
+                                .defaultMinSize(48.dp, 48.dp)
+                                .testTag("hour_capacity_decrease")
+                    ) {
+                        Icon(
+                            imageVector =
+                                ImageVector.vectorResource(R.drawable.outline_remove_24),
+                            contentDescription =
+                                stringResource(R.string.schedule_decrease_capacity)
+                        )
+                    }
+                    OutlinedTextField(
+                        value = maxStudents,
+                        onValueChange = onMaxStudentsChange,
+                        label = { Text(stringResource(R.string.schedule_max_students)) },
+                        singleLine = true,
+                        isError = validationError != null || showsOverfillPreview,
+                        supportingText =
+                            validationError?.let {
+                                {
+                                    Text(it.asString())
+                                }
+                            },
+                        keyboardOptions =
+                            KeyboardOptions(
+                                keyboardType = KeyboardType.Number
+                            ),
+                        modifier = Modifier.weight(1f)
+                    )
+                    IconButton(
+                        onClick = { onStepperClick(stepperBase + 1) },
+                        enabled = stepperBase < ScheduleRules.MAX_HOUR_CAPACITY,
+                        modifier =
+                            Modifier
+                                .defaultMinSize(48.dp, 48.dp)
+                                .testTag("hour_capacity_increase")
+                    ) {
+                        Icon(
+                            imageVector =
+                                ImageVector.vectorResource(R.drawable.outline_add_24),
+                            contentDescription =
+                                stringResource(R.string.schedule_increase_capacity)
+                        )
+                    }
+                }
+                if (showsOverfillPreview) {
+                    Text(
+                        text = stringResource(R.string.error_max_below_assigned),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.error,
+                        modifier =
+                            Modifier
+                                .padding(top = 8.dp)
+                                .testTag(HOUR_CAPACITY_OVERFILL_TAG)
+                    )
+                }
             }
         },
         confirmButton = {
@@ -156,7 +232,8 @@ fun HourDialog(
                                 TimePickerDisplayMode.Picker
                             }
                     },
-                    displayMode = displayMode
+                    displayMode = displayMode,
+                    modifier = Modifier.testTag(HOUR_TIME_PICKER_MODE_TOGGLE_TAG)
                 )
             },
             confirmButton = {
@@ -165,15 +242,21 @@ fun HourDialog(
                         onStartSelected(timePickerState.hour * 60 + timePickerState.minute)
                         isTimePickerOpen = false
                     },
-                    modifier = Modifier.defaultMinSize(minHeight = 48.dp)
+                    modifier =
+                        Modifier
+                            .testTag(HOUR_TIME_PICKER_CONFIRM_TAG)
+                            .defaultMinSize(minHeight = 48.dp)
                 ) {
-                    Text(stringResource(R.string.action_save))
+                    Text(stringResource(R.string.action_set))
                 }
             },
             dismissButton = {
                 TextButton(
                     onClick = { isTimePickerOpen = false },
-                    modifier = Modifier.defaultMinSize(minHeight = 48.dp)
+                    modifier =
+                        Modifier
+                            .testTag(HOUR_TIME_PICKER_DISMISS_TAG)
+                            .defaultMinSize(minHeight = 48.dp)
                 ) {
                     Text(stringResource(R.string.action_cancel))
                 }

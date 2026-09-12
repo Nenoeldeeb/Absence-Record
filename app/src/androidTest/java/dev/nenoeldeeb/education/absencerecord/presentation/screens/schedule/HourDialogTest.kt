@@ -11,15 +11,15 @@ import androidx.compose.ui.test.hasSetTextAction
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithContentDescription
-import androidx.compose.ui.test.onAllNodesWithText
-import androidx.compose.ui.test.onLast
 import androidx.compose.ui.test.onNodeWithContentDescription
+import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextReplacement
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import dev.nenoeldeeb.education.absencerecord.R
+import dev.nenoeldeeb.education.absencerecord.presentation.screens.schedule.dialogs.HOUR_TIME_PICKER_MODE_TOGGLE_TAG
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.schedule.dialogs.HourDialog
 import dev.nenoeldeeb.education.absencerecord.presentation.theme.AbsenceRecordTheme
 import dev.nenoeldeeb.education.absencerecord.presentation.utils.TimeFormatter
@@ -96,9 +96,7 @@ class HourDialogTest {
         composeTestRule.waitForIdle()
 
         composeTestRule
-            .onNodeWithContentDescription(
-                context.getString(androidx.compose.material3.R.string.m3c_time_picker_toggle_keyboard)
-            )
+            .onNodeWithTag(HOUR_TIME_PICKER_MODE_TOGGLE_TAG)
             .assertIsDisplayed()
     }
 
@@ -114,9 +112,7 @@ class HourDialogTest {
         composeTestRule.onNodeWithText(time(540)).performClick()
         composeTestRule.waitForIdle()
         composeTestRule
-            .onNodeWithContentDescription(
-                context.getString(androidx.compose.material3.R.string.m3c_time_picker_toggle_keyboard)
-            )
+            .onNodeWithTag(HOUR_TIME_PICKER_MODE_TOGGLE_TAG)
             .performClick()
         composeTestRule.waitForIdle()
 
@@ -145,8 +141,7 @@ class HourDialogTest {
         composeTestRule.waitForIdle()
 
         composeTestRule
-            .onAllNodesWithText(context.getString(R.string.action_save))
-            .onLast()
+            .onNodeWithText(context.getString(R.string.action_set))
             .performClick()
         composeTestRule.waitForIdle()
 

@@ -7,8 +7,10 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarResult
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -18,11 +20,13 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import dev.nenoeldeeb.education.absencerecord.R
 import dev.nenoeldeeb.education.absencerecord.app.AppViewModelProvider
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.schedule.components.AppointmentsTab
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.schedule.components.WeekdaySelector
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.schedule.dialogs.HourDialog
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.schedule.dialogs.ScheduleConfirmDialog
+import dev.nenoeldeeb.education.absencerecord.presentation.utils.TimeFormatter.formatTime
 
 @Composable
 fun ScheduleScreen(
@@ -63,6 +67,21 @@ fun ScheduleScreenContent(
         }
     }
 
+    LaunchedEffect(uiState.deletedHour) {
+        uiState.deletedHour?.let {
+            val result =
+                snackbarHostState.showSnackbar(
+                    message = context.getString(R.string.schedule_hour_deleted),
+                    actionLabel = context.getString(R.string.action_undo),
+                    duration = SnackbarDuration.Long
+                )
+            if (result == SnackbarResult.ActionPerformed) {
+                onEvent(ScheduleScreenEvent.UndoDeleteHour)
+            }
+            onEvent(ScheduleScreenEvent.ConsumeDeletedHour)
+        }
+    }
+
     Scaffold(
         modifier = modifier,
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) }
@@ -83,7 +102,10 @@ fun ScheduleScreenContent(
             AppointmentsTab(
                 hours = uiState.hoursForWeekday,
                 students = uiState.allStudents,
+                selectedWeekday = uiState.selectedWeekday,
                 expandedHourIds = uiState.expandedHourIds,
+                isHoursLoading = uiState.isHoursLoading,
+                hoursError = uiState.hoursError,
                 onAddHour = {
                     onEvent(ScheduleScreenEvent.OpenHourDialog(null))
                 },
@@ -101,12 +123,21 @@ fun ScheduleScreenContent(
                         ScheduleScreenEvent.ConfirmDeleteHour(hour.hour)
                     )
                 },
+                onRetry = {
+                    onEvent(ScheduleScreenEvent.RetryLoadHours)
+                },
                 modifier = Modifier.weight(1f)
             )
         }
     }
 
     if (uiState.isHourDialogOpen) {
+        val editingAssignedCount =
+            uiState.editingHour?.let { editing ->
+                uiState.hoursForWeekday
+                    .firstOrNull { it.hour.id == editing.id }
+                    ?.assignedCount ?: 0
+            } ?: 0
         HourDialog(
             startMinutes = uiState.hourStartMinutes,
             maxStudents = uiState.hourMaxStudents,
@@ -121,12 +152,22 @@ fun ScheduleScreenContent(
             onSave = { onEvent(ScheduleScreenEvent.SaveHour) },
             onDismiss = {
                 onEvent(ScheduleScreenEvent.DismissHourDialog)
-            }
+            },
+            assignedCount = editingAssignedCount
         )
     }
 
     uiState.hourToDelete?.let { hour ->
+        val assignedNames =
+            uiState.hoursForWeekday
+                .firstOrNull { it.hour.id == hour.id }
+                ?.assignedStudentIds
+                .orEmpty()
+                .mapNotNull { id -> uiState.allStudents.firstOrNull { it.id == id }?.name }
+                .sorted()
         ScheduleConfirmDialog(
+            hourLabel = formatTime(hour.startMinutes),
+            assignedStudentNames = assignedNames,
             onConfirm = {
                 onEvent(ScheduleScreenEvent.ConfirmDeleteHour(hour))
             },

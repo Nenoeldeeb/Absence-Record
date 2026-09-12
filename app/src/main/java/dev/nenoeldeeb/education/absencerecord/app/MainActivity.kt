@@ -50,11 +50,12 @@ fun MainScreen(
                     onStudentClick = onStudentClick
                 )
             1 -> CalendarScreen(modifier = Modifier.fillMaxSize())
-            2 ->
+            2 -> {
                 ScheduleScreen(
                     modifier = Modifier.fillMaxSize(),
                     onStudentClick = onStudentClick
                 )
+            }
         }
     }
 }

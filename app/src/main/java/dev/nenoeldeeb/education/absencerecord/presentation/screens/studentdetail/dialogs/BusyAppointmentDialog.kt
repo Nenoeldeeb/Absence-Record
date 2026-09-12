@@ -4,10 +4,13 @@ package dev.nenoeldeeb.education.absencerecord.presentation.screens.studentdetai
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
@@ -26,12 +29,13 @@ import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.unit.dp
 import dev.nenoeldeeb.education.absencerecord.R
 import dev.nenoeldeeb.education.absencerecord.domain.models.StudentLessonEntry
@@ -50,6 +54,7 @@ private const val MIN_BUSY_DURATION_MINUTES = 30
 private const val MAX_BUSY_DURATION_MINUTES = 360
 private const val BUSY_DURATION_STEP_MINUTES = 30
 
+@OptIn(ExperimentalLayoutApi::class, ExperimentalMaterial3Api::class)
 @Composable
 internal fun BusyAppointmentDialog(
     startMinutes: Int,
@@ -83,11 +88,17 @@ internal fun BusyAppointmentDialog(
                     } else {
                         R.string.schedule_add_busy_title
                     }
-                )
+                ),
+                modifier = Modifier.semantics { heading() }
             )
         },
         text = {
-            Column(modifier = Modifier.fillMaxWidth()) {
+            Column(
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .verticalScroll(rememberScrollState())
+            ) {
                 StartTimeField(
                     startMinutes = startMinutes,
                     onOpenTimePicker = { showTimePicker = true }
@@ -98,13 +109,29 @@ internal fun BusyAppointmentDialog(
                     modifier = Modifier.padding(top = 12.dp)
                 )
                 val durationDescription = stringResource(R.string.schedule_busy_duration)
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
+                val durationHoursText =
+                    if (effectiveDuration % 60 == 0) {
+                        "${effectiveDuration / 60}"
+                    } else {
+                        "${effectiveDuration / 60}.5"
+                    }
+                val durationValueText =
+                    stringResource(
+                        R.string.schedule_busy_duration_hours,
+                        durationHoursText
+                    )
+                val endsAtText =
+                    stringResource(
+                        R.string.schedule_busy_ends_at,
+                        formatTime(startMinutes + effectiveDuration)
+                    )
+                FlowRow(
                     horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalArrangement = Arrangement.Center,
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Text(
-                        text = stringResource(R.string.schedule_busy_duration_hours, effectiveDuration / 60),
+                        text = durationValueText,
                         style = MaterialTheme.typography.labelMedium
                     )
                     Text(
@@ -132,6 +159,7 @@ internal fun BusyAppointmentDialog(
                             .testTag(BUSY_DURATION_SLIDER_TAG)
                             .semantics {
                                 contentDescription = durationDescription
+                                stateDescription = "$durationValueText, $endsAtText"
                             }
                 )
                 if (errorText != null) {
@@ -211,7 +239,7 @@ internal fun BusyAppointmentDialog(
                             .testTag(TIME_PICKER_CONFIRM_TAG)
                             .defaultMinSize(minHeight = 48.dp)
                 ) {
-                    Text(stringResource(R.string.action_save))
+                    Text(stringResource(R.string.action_set))
                 }
             },
             dismissButton = {

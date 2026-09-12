@@ -33,6 +33,8 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.LayoutDirection
@@ -149,7 +151,8 @@ private fun CalendarHeader(
             Text(
                 text = displayedMonth.toMonthYearUiText(fullName = true).asString(),
                 style = MaterialTheme.typography.titleMedium,
-                color = headerColor
+                color = headerColor,
+                modifier = Modifier.semantics { heading() }
             )
             IconButton(onClick = onNextMonth) {
                 Icon(
