@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DropdownMenu
@@ -14,6 +15,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
@@ -40,7 +42,7 @@ internal fun ClassCheckboxFilter(
     Column(modifier = modifier.fillMaxWidth()) {
         OutlinedButton(
             onClick = { onExpandedChange(!expanded) },
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth().sizeIn(minHeight = 48.dp)
         ) {
             Text(
                 text = label,
@@ -72,7 +74,8 @@ internal fun ClassCheckboxFilter(
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Checkbox(
                                 checked = isChecked,
-                                onCheckedChange = { onClassToggle(cls.id) }
+                                onCheckedChange = null,
+                                modifier = Modifier.clearAndSetSemantics { }
                             )
                             Spacer(modifier = Modifier.width(8.dp))
                             Text(text = cls.name)
@@ -80,7 +83,7 @@ internal fun ClassCheckboxFilter(
                     },
                     onClick = { onClassToggle(cls.id) },
                     modifier =
-                        Modifier.semantics {
+                        Modifier.sizeIn(minHeight = 48.dp).semantics {
                             contentDescription = checkboxContentDescription
                         }
                 )
