@@ -1,5 +1,6 @@
 package dev.nenoeldeeb.education.absencerecord.app.navigation
 
+import android.animation.ValueAnimator
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.fadeIn
@@ -61,10 +62,14 @@ fun AppNavigation(contentPadding: PaddingValues) {
         backStack = backStack.dropLast(1)
     }
 
+    val animationsEnabled = ValueAnimator.areAnimatorsEnabled()
+
     AnimatedContent(
         targetState = backStack.last(),
         transitionSpec = {
-            if (targetState is AppDestination.StudentDetail) {
+            if (!animationsEnabled) {
+                fadeIn() togetherWith fadeOut()
+            } else if (targetState is AppDestination.StudentDetail) {
                 (slideInHorizontally { it } + fadeIn()) togetherWith
                     (slideOutHorizontally { -it / 3 } + fadeOut())
             } else {
