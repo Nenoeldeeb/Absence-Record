@@ -1,6 +1,7 @@
 package dev.nenoeldeeb.education.absencerecord.presentation.screens.calendar
 
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.hasContentDescription
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.createComposeRule
@@ -95,8 +96,10 @@ class AttendanceDialogDisplayTest {
         }
 
         composeTestRule
-            .onNodeWithText(getString(R.string.attendance_count, 3, 1))
+            .onNode(hasContentDescription(getString(R.string.attendance_count, 3, 1)))
             .assertIsDisplayed()
+        composeTestRule.onNodeWithText("1").assertIsDisplayed()
+        composeTestRule.onNodeWithText("3").assertIsDisplayed()
     }
 
     @Test
@@ -246,6 +249,41 @@ class AttendanceDialogDisplayTest {
                 )
             )
             .assertIsDisplayed()
+    }
+
+    @Test
+    fun attendanceDialog_disabledRowsAreNotEnabled() {
+        val selectedDate = LocalDate(2026, 1, 15)
+
+        composeTestRule.setContent {
+            AbsenceRecordTheme {
+                AttendanceDialog(
+                    allStudents = listOf(Student(id = 1, name = "Future Student")),
+                    studentsForSelectedDate = emptyList(),
+                    selectedDate = selectedDate,
+                    availableClasses = emptyList(),
+                    selectedClassIds = emptySet(),
+                    filterDropdownExpanded = false,
+                    onDismiss = {},
+                    onToggleAttendance = { _, _, _ -> },
+                    onToggleClassSelection = { },
+                    onToggleFilterDropdown = { },
+                    toggleEnabled = false
+                )
+            }
+        }
+
+        composeTestRule
+            .onNode(
+                hasContentDescription(
+                    getString(
+                        R.string.student_attendance_status,
+                        "Future Student",
+                        getString(R.string.content_description_absent)
+                    )
+                )
+            )
+            .assertIsNotEnabled()
     }
 
     // endregion
