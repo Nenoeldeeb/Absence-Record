@@ -284,10 +284,12 @@ class CalendarScreenTest {
             }
         }
 
-        // Verify attendance count "4 | 2"
+        // Verify attendance meter "2 | bar | 4"
         composeTestRule
-            .onNodeWithText(getString(R.string.attendance_count, 4, 2))
+            .onNode(hasContentDescription(getString(R.string.attendance_count, 4, 2)))
             .assertIsDisplayed()
+        composeTestRule.onNodeWithText("2").assertIsDisplayed()
+        composeTestRule.onNodeWithText("4").assertIsDisplayed()
     }
 
     // endregion
