@@ -5,6 +5,7 @@ import dev.nenoeldeeb.education.absencerecord.domain.usecases.attendance.DeleteS
 import dev.nenoeldeeb.education.absencerecord.domain.usecases.attendance.GetAttendanceForDateUseCase
 import dev.nenoeldeeb.education.absencerecord.domain.usecases.attendance.GetAttendanceHistoryForDateRangeUseCase
 import dev.nenoeldeeb.education.absencerecord.domain.usecases.attendance.GetAvailableMonthsUseCase
+import dev.nenoeldeeb.education.absencerecord.domain.usecases.attendance.GetMarkedDatesUseCase
 import dev.nenoeldeeb.education.absencerecord.domain.usecases.attendance.GetStudentAttendanceDatesUseCase
 import dev.nenoeldeeb.education.absencerecord.domain.usecases.attendance.RecordStudentAttendanceUseCase
 
@@ -17,4 +18,5 @@ data class AttendanceUseCases(private val attendanceRepository: AttendanceReposi
     val getAttendanceHistoryForDateRangeUseCase: GetAttendanceHistoryForDateRangeUseCase =
         GetAttendanceHistoryForDateRangeUseCase(attendanceRepository)
     val getAvailableMonthsUseCase: GetAvailableMonthsUseCase = GetAvailableMonthsUseCase(attendanceRepository)
+    val getMarkedDatesUseCase: GetMarkedDatesUseCase = GetMarkedDatesUseCase(attendanceRepository)
 }
