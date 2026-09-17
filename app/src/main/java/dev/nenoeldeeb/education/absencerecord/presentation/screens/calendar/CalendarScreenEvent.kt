@@ -15,4 +15,10 @@ sealed interface CalendarScreenEvent {
     data object ToggleFilterDropdown : CalendarScreenEvent
 
     data object ConsumeError : CalendarScreenEvent
+
+    data object ConsumeAttendanceMessage : CalendarScreenEvent
+
+    data object ConsumeSound : CalendarScreenEvent
+
+    data object UndoLastAttendanceChange : CalendarScreenEvent
 }

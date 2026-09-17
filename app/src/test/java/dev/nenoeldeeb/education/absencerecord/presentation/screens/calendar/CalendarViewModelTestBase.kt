@@ -9,10 +9,12 @@ import dev.nenoeldeeb.education.absencerecord.domain.usecases.StudentManagementU
 import dev.nenoeldeeb.education.absencerecord.domain.usecases.attendance.DeleteStudentAttendanceUseCase
 import dev.nenoeldeeb.education.absencerecord.domain.usecases.attendance.GetAttendanceForDateUseCase
 import dev.nenoeldeeb.education.absencerecord.domain.usecases.attendance.GetAvailableMonthsUseCase
+import dev.nenoeldeeb.education.absencerecord.domain.usecases.attendance.GetMarkedDatesUseCase
 import dev.nenoeldeeb.education.absencerecord.domain.usecases.attendance.RecordStudentAttendanceUseCase
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.flowOf
 import org.junit.jupiter.api.extension.RegisterExtension
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -24,6 +26,7 @@ open class CalendarViewModelTestBase {
     }
 
     protected lateinit var getAvailableMonthsUseCase: GetAvailableMonthsUseCase
+    protected lateinit var getMarkedDatesUseCase: GetMarkedDatesUseCase
     protected lateinit var getAttendanceForDateUseCase: GetAttendanceForDateUseCase
     protected lateinit var recordStudentAttendanceUseCase: RecordStudentAttendanceUseCase
     protected lateinit var deleteStudentAttendanceUseCase: DeleteStudentAttendanceUseCase
@@ -33,6 +36,7 @@ open class CalendarViewModelTestBase {
 
     fun commonSetUp() {
         getAvailableMonthsUseCase = mockk(relaxed = true)
+        getMarkedDatesUseCase = mockk(relaxed = true)
         getAttendanceForDateUseCase = mockk(relaxed = true)
         recordStudentAttendanceUseCase = mockk(relaxed = true)
         deleteStudentAttendanceUseCase = mockk(relaxed = true)
@@ -42,6 +46,8 @@ open class CalendarViewModelTestBase {
         every { attendanceUseCases.deleteStudentAttendanceUseCase } returns deleteStudentAttendanceUseCase
         every { attendanceUseCases.getAttendanceForDateUseCase } returns getAttendanceForDateUseCase
         every { attendanceUseCases.getAvailableMonthsUseCase } returns getAvailableMonthsUseCase
+        every { attendanceUseCases.getMarkedDatesUseCase } returns getMarkedDatesUseCase
+        every { getMarkedDatesUseCase() } returns flowOf(Result.success(emptyList()))
 
         studentManagementUseCases = mockk(relaxed = true)
     }
