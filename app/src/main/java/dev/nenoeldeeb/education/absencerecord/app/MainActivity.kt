@@ -3,14 +3,16 @@ package dev.nenoeldeeb.education.absencerecord.app
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.PagerState
-import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import dev.nenoeldeeb.education.absencerecord.app.navigation.AppNavigation
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.calendar.CalendarScreen
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.schedule.ScheduleScreen
@@ -19,12 +21,13 @@ import dev.nenoeldeeb.education.absencerecord.presentation.theme.AbsenceRecordTh
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
+        enableEdgeToEdge()
         super.onCreate(savedInstanceState)
         setContent {
             AbsenceRecordTheme {
-                Scaffold { padding ->
-                    AppNavigation(contentPadding = padding)
-                }
+                // Single inset owner: each screen's Scaffold consumes system bars.
+                // No outer Scaffold here so insets are not double-applied.
+                AppNavigation(contentPadding = PaddingValues(0.dp))
             }
         }
     }
@@ -38,9 +41,12 @@ fun MainScreen(
     onStudentClick: (Int) -> Unit
 ) {
     // 0: Students, 1: Calendar, 2: Schedule
+    // NOTE: swipe pager is the committed navigation metaphor (DESIGN.md bans bottom bar),
+    // so no TabRow/indicator is added here. Each page fills the viewport; inner Scaffolds
+    // own system-bar insets.
     HorizontalPager(
         state = pagerState,
-        contentPadding = contentPadding
+        modifier = Modifier.fillMaxSize().padding(contentPadding)
     ) { page ->
         when (page) {
             0 ->
