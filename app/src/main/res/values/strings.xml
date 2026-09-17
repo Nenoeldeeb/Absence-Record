@@ -56,11 +56,24 @@
 
     <!-- Calendar Screen -->
     <string name="mark_attendance_title">Mark Attendance for %1$s</string>
-    <string name="attendance_count">%1$d | %2$d</string>
+    <string name="calendar_dialog_date">%1$s, %2$s %3$d, %4$d</string>
+    <!-- calendar_dialog_date args: 1=dayName(String) 2=month(String) 3=day(int) 4=year(int) -->
+    <string name="attendance_count">%2$d of %1$d present</string>
+    <string name="attendance_day_complete">Day complete — all present</string>
+    <string name="calendar_future_date_warning">Future date — marking is disabled.</string>
+    <string name="error_future_date_not_allowed">Cannot mark attendance for a future date.</string>
+    <string name="calendar_legend_marked">Marked</string>
+    <string name="calendar_legend_today">Today</string>
+    <string name="calendar_legend_marked_today">Marked today</string>
+    <string name="calendar_filter_scope">Also filters Students</string>
+    <string name="calendar_filter_empty_hint">Empty shows unassigned only</string>
+    <string name="calendar_attendance_marked">%1$s marked present.</string>
+    <string name="calendar_attendance_removed">%1$s marked absent.</string>
     <string name="no_students_for_attendance">No students available to mark attendance.</string>
     <string name="content_description_present">Present</string>
     <string name="content_description_absent">Absent</string>
     <string name="student_attendance_status">%1$s, %2$s</string>
+    <string name="student_attendance_status_disabled">%1$s, %2$s, %3$s</string>
     <string name="previous_month">Previous month</string>
     <string name="next_month">Next month</string>
 
