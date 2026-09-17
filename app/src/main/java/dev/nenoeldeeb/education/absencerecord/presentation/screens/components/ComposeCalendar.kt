@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -37,6 +38,7 @@ import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import dev.nenoeldeeb.education.absencerecord.R
@@ -61,11 +63,10 @@ fun ComposeCalendar(
     interactive: Boolean = true,
     showHeader: Boolean = true
 ) {
-    val today =
-        rememberSaveable {
-            val curr = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault())
-            LocalDate(curr.year, curr.month, curr.day)
-        }
+    // Recomputed every composition so an overnight session never shows a stale "today".
+    // A midnight ticker would need a coroutine scope here; the next recomposition (resume,
+    // month nav, dialog open) corrects the date without freezing it in saved state.
+    val today = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date
     var displayedMonth by rememberSaveable {
         mutableStateOf(
             initialMonth ?: today
@@ -84,19 +85,27 @@ fun ComposeCalendar(
             val isLandscape = maxWidth > maxHeight
             val optimalWidth =
                 if (isLandscape) {
-                    // In landscape, use a size that's proportional to the height
+                    // In landscape, cap width by height so cells stay circular
+                    // without forcing excessive vertical scroll.
                     minOf(maxWidth, maxHeight * 2f)
                 } else {
                     // In portrait, use full width but ensure cells aren't too big
                     minOf(maxWidth, 400.dp)
                 }
+            // Compact chrome in landscape to hand height back to the grid.
+            val outerPadding = if (isLandscape) 4.dp else 8.dp
+            val headerVerticalPadding = if (isLandscape) 2.dp else 8.dp
+            val gridGap = if (isLandscape) 4.dp else 8.dp
 
             Column(
                 modifier =
                     Modifier
                         .width(optimalWidth)
-                        .padding(8.dp)
-                        .align(Alignment.Center)
+                        .fillMaxSize()
+                        .padding(outerPadding)
+                        .align(Alignment.Center),
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 if (showHeader) {
                     CalendarHeader(
@@ -108,18 +117,27 @@ fun ComposeCalendar(
                         modifier =
                             Modifier
                                 .fillMaxWidth()
-                                .padding(vertical = 8.dp)
+                                .padding(vertical = headerVerticalPadding)
                     )
                 }
                 DaysOfWeekHeader(modifier = Modifier.fillMaxWidth())
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(gridGap))
                 CalendarGrid(
                     days = daysInMonth,
                     today = today,
                     markedDates = markedDates,
                     onDateSelected = onDateSelected,
                     interactive = interactive,
-                    modifier = Modifier.fillMaxWidth()
+                    // Bounded height + scroll: grid scrolls inside the viewport
+                    // instead of overflowing/clipping in short landscape.
+                    // Portrait uses fill=false so short months center
+                    // vertically instead of sticking to the top.
+                    modifier =
+                        if (isLandscape) {
+                            Modifier.fillMaxWidth().weight(1f)
+                        } else {
+                            Modifier.fillMaxWidth().weight(1f, fill = false)
+                        }
                 )
             }
         }
@@ -188,6 +206,8 @@ private fun DaysOfWeekHeader(modifier: Modifier = Modifier) {
                     text = day.toUiText(fullName = false).asString(),
                     modifier = Modifier.weight(1f),
                     softWrap = false,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
                     textAlign = TextAlign.Center,
                     style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
                     color = MaterialTheme.colorScheme.onSurface
@@ -218,15 +238,17 @@ private fun CalendarGrid(
                 key = { index -> days[index]?.toString() ?: "empty-$index" }
             ) { index ->
                 val day = days[index]
+                val isToday = day == today
+                val isMarked = day != null && markedDates.contains(day)
                 val contentDescription =
                     if (day != null) {
                         val dayLabel = day.day.toString()
                         when {
-                            markedDates.contains(day) && day == today ->
+                            isMarked && isToday ->
                                 stringResource(R.string.calendar_date_present_today, dayLabel)
-                            markedDates.contains(day) ->
+                            isMarked ->
                                 stringResource(R.string.calendar_date_present, dayLabel)
-                            day == today ->
+                            isToday ->
                                 stringResource(R.string.calendar_date_today, dayLabel)
                             else -> stringResource(R.string.calendar_date, dayLabel)
                         }
@@ -235,8 +257,8 @@ private fun CalendarGrid(
                     }
                 DayCell(
                     day = day,
-                    isCurrentDay = day == today,
-                    isMarked = markedDates.contains(day),
+                    isCurrentDay = isToday,
+                    isMarked = isMarked,
                     onDateSelected = onDateSelected,
                     description = contentDescription,
                     interactive = interactive,
