@@ -15,5 +15,16 @@ data class CalendarScreenState(
     val selectedClassIds: Set<Int> = emptySet(),
     val filterDropdownExpanded: Boolean = false,
     val selectedDateForDialog: LocalDate? = null,
+    val markedDates: Set<LocalDate> = emptySet(),
+    val attendanceMessage: UiText? = null,
+    val lastAttendanceChange: LastAttendanceChange? = null,
+    val pendingSoundIsAdd: Boolean? = null,
     val error: UiText? = null
+)
+
+@Stable
+data class LastAttendanceChange(
+    val studentId: Int,
+    val date: LocalDate,
+    val markedPresent: Boolean
 )
