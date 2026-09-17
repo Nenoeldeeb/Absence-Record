@@ -57,11 +57,24 @@
 
     <!-- Calendar Screen -->
     <string name="mark_attendance_title">تسجيل الحضور ليوم %1$s</string>
-    <string name="attendance_count">%1$d | %2$d</string>
+    <!-- 1=dayName 2=month 3=day 4=year: Arabic order is dayName day month year -->
+    <string name="calendar_dialog_date">%1$s %3$d %2$s %4$d</string>
+    <string name="attendance_count">%2$d من %1$d حاضر</string>
+    <string name="attendance_day_complete">اكتمل اليوم — الكل حاضر</string>
+    <string name="calendar_future_date_warning">تاريخ مستقبلي — التسجيل معطّل.</string>
+    <string name="error_future_date_not_allowed">لا يمكن تسجيل الحضور لتاريخ مستقبلي.</string>
+    <string name="calendar_legend_marked">تم التسجيل</string>
+    <string name="calendar_legend_today">اليوم</string>
+    <string name="calendar_legend_marked_today">اليوم وتم التسجيل</string>
+    <string name="calendar_filter_scope">تُصفّي الطلاب أيضاً</string>
+    <string name="calendar_filter_empty_hint">الفارغ يعرض غير المسجلين فقط</string>
+    <string name="calendar_attendance_marked">تم تسجيل %1$s حاضراً.</string>
+    <string name="calendar_attendance_removed">تم تسجيل %1$s غائباً.</string>
     <string name="no_students_for_attendance">لا يوجد طلاب لتسجيل الحضور.</string>
     <string name="content_description_present">حاضر</string>
     <string name="content_description_absent">غائب</string>
     <string name="student_attendance_status">%1$s، %2$s</string>
+    <string name="student_attendance_status_disabled">%1$s، %2$s، %3$s</string>
     <string name="previous_month">الشهر السابق</string>
     <string name="next_month">الشهر التالي</string>
 
