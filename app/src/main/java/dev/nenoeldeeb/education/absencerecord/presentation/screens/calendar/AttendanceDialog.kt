@@ -64,6 +64,7 @@ internal fun AttendanceDialog(
     onToggleClassSelection: (Int) -> Unit,
     onToggleFilterDropdown: () -> Unit,
     modifier: Modifier = Modifier,
+    onClearClassFilter: (() -> Unit)? = null,
     isFutureDate: Boolean = false,
     toggleEnabled: Boolean = true
 ) {
@@ -94,10 +95,13 @@ internal fun AttendanceDialog(
                         expanded = filterDropdownExpanded,
                         onExpandedChange = { onToggleFilterDropdown() },
                         onClassToggle = onToggleClassSelection,
-                        modifier = Modifier.padding(bottom = 4.dp)
+                        modifier = Modifier.padding(bottom = 4.dp),
+                        onClearFilters = onClearClassFilter
                     )
                     DialogStatusSlot(
-                        showEmptyHint = selectedClassIds.isEmpty(),
+                        showEmptyHint =
+                            selectedClassIds.isEmpty() &&
+                                availableClasses.isNotEmpty(),
                         isFutureDate = isFutureDate
                     )
                     DialogContent(

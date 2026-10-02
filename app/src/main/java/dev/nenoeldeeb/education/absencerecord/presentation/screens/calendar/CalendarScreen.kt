@@ -51,6 +51,10 @@ fun CalendarScreen(
         remember(viewModel) {
             { viewModel.onEvent(CalendarScreenEvent.ToggleFilterDropdown) }
         }
+    val onClearClassFilter: () -> Unit =
+        remember(viewModel) {
+            { viewModel.onEvent(CalendarScreenEvent.ClearClassFilter) }
+        }
     val onDismissDialog: () -> Unit =
         remember(viewModel) {
             { viewModel.onEvent(CalendarScreenEvent.SelectDateForDialog(null)) }
@@ -114,7 +118,8 @@ fun CalendarScreen(
                         verticalArrangement = Arrangement.Center
                     ) {
                         CalendarFilterStatus(
-                            selectedClassIds = uiState.selectedClassIds
+                            selectedClassIds = uiState.selectedClassIds,
+                            availableClasses = uiState.availableClasses
                         )
                         CalendarLegend()
                     }
@@ -127,7 +132,8 @@ fun CalendarScreen(
             } else {
                 Column(modifier = Modifier.fillMaxSize()) {
                     CalendarFilterStatus(
-                        selectedClassIds = uiState.selectedClassIds
+                        selectedClassIds = uiState.selectedClassIds,
+                        availableClasses = uiState.availableClasses
                     )
                     ComposeCalendar(
                         modifier = Modifier.weight(1f),
@@ -169,7 +175,8 @@ fun CalendarScreen(
             onDismiss = onDismissDialog,
             onToggleAttendance = onToggleAttendance,
             onToggleClassSelection = onToggleClassSelection,
-            onToggleFilterDropdown = onToggleFilterDropdown
+            onToggleFilterDropdown = onToggleFilterDropdown,
+            onClearClassFilter = onClearClassFilter
         )
     }
 }
