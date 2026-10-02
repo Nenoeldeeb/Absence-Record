@@ -5,42 +5,24 @@ package dev.nenoeldeeb.education.absencerecord.presentation.screens.students
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarResult
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.res.vectorResource
-import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import dev.nenoeldeeb.education.absencerecord.R
 import dev.nenoeldeeb.education.absencerecord.app.AppViewModelProvider
 import dev.nenoeldeeb.education.absencerecord.domain.models.SortType
-import dev.nenoeldeeb.education.absencerecord.presentation.screens.components.ClassCheckboxFilter
-import dev.nenoeldeeb.education.absencerecord.presentation.screens.components.EmptyStateMessage
-import dev.nenoeldeeb.education.absencerecord.presentation.screens.components.StudentList
-import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.components.MultiSelectionHeader
-import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.components.SortPanel
-import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.components.StudentsTopBar
+import dev.nenoeldeeb.education.absencerecord.domain.models.Student
+import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.components.defaultExportFileName
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.components.handleStudentClickBehavior
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.components.handleStudentLongPressBehavior
 
@@ -62,8 +44,22 @@ fun StudentsScreen(
         }
     }
     LaunchedEffect(uiState.toastMessage) {
-        uiState.toastMessage?.let {
-            snackbarHostState.showSnackbar(it.asString(context))
+        uiState.toastMessage?.let { toast ->
+            if (uiState.lastDeletedBackup.isNotEmpty()) {
+                val result =
+                    snackbarHostState.showSnackbar(
+                        message = toast.asString(context),
+                        actionLabel = context.getString(R.string.action_undo),
+                        duration = SnackbarDuration.Long
+                    )
+                if (result == SnackbarResult.ActionPerformed) {
+                    viewModel.onEvent(StudentsScreenEvent.UndoDeleteStudents)
+                } else {
+                    viewModel.onEvent(StudentsScreenEvent.ConsumeUndoBackup)
+                }
+            } else {
+                snackbarHostState.showSnackbar(toast.asString(context))
+            }
             viewModel.onEvent(StudentsScreenEvent.ConsumeToastMessage)
         }
     }
@@ -101,163 +97,144 @@ fun StudentsScreen(
             }
         )
 
-    Scaffold(
-        modifier = modifier,
-        snackbarHost = { SnackbarHost(hostState = snackbarHostState) }
-    ) { paddingValues ->
-        Column(modifier = Modifier.padding(paddingValues)) {
-            if (uiState.isMultiSelectionMode) {
-                MultiSelectionHeader(
-                    modifier =
-                        Modifier
-                            .fillMaxWidth()
-                            .padding(bottom = 16.dp),
-                    selectedStudentIds = uiState.selectedStudentIds,
-                    onCloseSelectionMode = {
-                        viewModel.onEvent(StudentsScreenEvent.ToggleSelectionMode)
-                    },
-                    onToggleSelection = {
-                        viewModel.onEvent(StudentsScreenEvent.ToggleStudentsSelection)
-                    },
-                    onExport = { fileName -> exportLauncher.launch(fileName) },
-                    onExportAndDelete = { fileName ->
-                        exportAndDeleteLauncher.launch(fileName)
-                    },
-                    onShowDeleteDialog = {
-                        viewModel.onEvent(StudentsScreenEvent.ShowBulkDeleteDialog)
-                    }
-                )
-            }
-
-            if (!uiState.isMultiSelectionMode) {
-                StudentsTopBar(
-                    title = stringResource(R.string.students_title, uiState.allStudents.size),
-                    onAddStudent = {
+    // Stable callbacks keep lists skippable on unrelated state changes.
+    val isMultiSelectionMode = uiState.isMultiSelectionMode
+    val isSortPanelVisible = uiState.isSortPanelVisible
+    val sortType = uiState.sortType
+    val onEventStable: (StudentsScreenEvent) -> Unit =
+        remember(viewModel) { { event -> viewModel.onEvent(event) } }
+    val onListStudentClick =
+        remember(isMultiSelectionMode, onStudentClick) {
+            { student: Student ->
+                handleStudentClickBehavior(
+                    isMultiSelectionMode = isMultiSelectionMode,
+                    student = student,
+                    onNavigateToDetail = onStudentClick,
+                    onToggleStudentSelection = { studentId ->
                         viewModel.onEvent(
-                            StudentsScreenEvent.ShowStudentDialog(true)
-                        )
-                    },
-                    onToggleClassFilter = {
-                        viewModel.onEvent(
-                            StudentsScreenEvent.ToggleClassFilterVisibility
-                        )
-                    },
-                    onToggleSortPanel = {
-                        viewModel.onEvent(
-                            StudentsScreenEvent.ToggleSortPanelVisible(
-                                !uiState.isSortPanelVisible
-                            )
-                        )
-                    }
-                )
-
-                AnimatedVisibility(uiState.isSortPanelVisible) {
-                    SortPanel(
-                        sortType = uiState.sortType,
-                        selectedMonth = uiState.selectedMonth,
-                        availableMonths = uiState.availableMonths,
-                        monthDropdownExpanded = uiState.isMonthDropdownExpanded,
-                        onMonthDropdownExpandedChange = {
-                            viewModel.onEvent(
-                                StudentsScreenEvent.ToggleMonthDropdown(it)
-                            )
-                        },
-                        onMonthSelected = { month ->
-                            viewModel.onEvent(
-                                StudentsScreenEvent.UpdateSelectedMonth(month)
-                            )
-                        },
-                        onToggleSortType = {
-                            viewModel.onEvent(
-                                StudentsScreenEvent.UpdateSortType(
-                                    if (uiState.sortType == SortType.ByName) {
-                                        SortType.ByAttendance
-                                    } else {
-                                        SortType.ByName
-                                    }
-                                )
-                            )
-                        },
-                        modifier =
-                            Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = 16.dp, vertical = 8.dp)
-                    )
-                }
-
-                AnimatedVisibility(uiState.isClassFilterVisible) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        ClassCheckboxFilter(
-                            availableClasses = uiState.availableClasses,
-                            selectedClassIds = uiState.selectedClassIds,
-                            expanded = uiState.classDropdownExpanded,
-                            onExpandedChange = {
-                                viewModel.onEvent(StudentsScreenEvent.ToggleClassDropdown(it))
-                            },
-                            onClassToggle = { classId -> viewModel.onEvent(StudentsScreenEvent.ToggleClassFilter(classId)) },
-                            modifier = Modifier.weight(1f)
-                        )
-                        IconButton(
-                            onClick = { viewModel.onEvent(StudentsScreenEvent.ShowManageClassesDialog(true)) }
-                        ) {
-                            Icon(
-                                imageVector = ImageVector.vectorResource(R.drawable.outline_edit_24),
-                                contentDescription = stringResource(R.string.manage_classes_title),
-                                modifier = Modifier.size(24.dp)
-                            )
-                        }
-                    }
-                }
-            }
-
-            if (uiState.allStudents.isEmpty()) {
-                EmptyStateMessage(
-                    message = R.string.no_students_message,
-                    modifier = Modifier.fillMaxSize()
-                )
-            } else {
-                StudentList(
-                    allStudents = uiState.allStudents,
-                    state = listState,
-                    selectedStudentIds = uiState.selectedStudentIds,
-                    isMultiSelectionMode = uiState.isMultiSelectionMode,
-                    onStudentClick = { student ->
-                        handleStudentClickBehavior(
-                            isMultiSelectionMode = uiState.isMultiSelectionMode,
-                            student = student,
-                            onNavigateToDetail = onStudentClick,
-                            onToggleStudentSelection = { studentId ->
-                                viewModel.onEvent(
-                                    StudentsScreenEvent.ToggleStudentSelection(studentId)
-                                )
-                            }
-                        )
-                    },
-                    onStudentLongClick = { studentId ->
-                        handleStudentLongPressBehavior(
-                            isMultiSelectionMode = uiState.isMultiSelectionMode,
-                            studentId = studentId,
-                            onEnterSelectionMode = {
-                                viewModel.onEvent(StudentsScreenEvent.ToggleSelectionMode)
-                            },
-                            onSelectStudent = { id ->
-                                viewModel.onEvent(
-                                    StudentsScreenEvent.ToggleStudentSelection(id)
-                                )
-                            }
+                            StudentsScreenEvent.ToggleStudentSelection(studentId)
                         )
                     }
                 )
             }
         }
-    }
+    val onListStudentLongClick =
+        remember(isMultiSelectionMode) {
+            { studentId: Int ->
+                handleStudentLongPressBehavior(
+                    isMultiSelectionMode = isMultiSelectionMode,
+                    studentId = studentId,
+                    onEnterSelectionMode = {
+                        viewModel.onEvent(StudentsScreenEvent.ToggleSelectionMode)
+                    },
+                    onSelectStudent = { id ->
+                        viewModel.onEvent(
+                            StudentsScreenEvent.ToggleStudentSelection(id)
+                        )
+                    }
+                )
+            }
+        }
+    val onAddStudent = remember(viewModel) { { viewModel.onEvent(StudentsScreenEvent.ShowStudentDialog(true)) } }
+    val onToggleClassFilter =
+        remember(viewModel) { { viewModel.onEvent(StudentsScreenEvent.ToggleClassFilterVisibility) } }
+    val onToggleSortPanel =
+        remember(viewModel, isSortPanelVisible) {
+            {
+                viewModel.onEvent(
+                    StudentsScreenEvent.ToggleSortPanelVisible(!isSortPanelVisible)
+                )
+            }
+        }
+    val onToggleSortType =
+        remember(viewModel, sortType) {
+            {
+                viewModel.onEvent(
+                    StudentsScreenEvent.UpdateSortType(
+                        if (sortType == SortType.ByName) {
+                            SortType.ByAttendance
+                        } else {
+                            SortType.ByName
+                        }
+                    )
+                )
+            }
+        }
+    val onExportFile = remember(exportLauncher) { { fileName: String -> exportLauncher.launch(fileName) } }
+    val onImportFile =
+        remember(importLauncher) { { importLauncher.launch(arrayOf("application/json", "*/*")) } }
+    val onCloseSelectionMode =
+        remember(viewModel) { { viewModel.onEvent(StudentsScreenEvent.ToggleSelectionMode) } }
+    val onToggleStudentsSelection =
+        remember(viewModel) { { viewModel.onEvent(StudentsScreenEvent.ToggleStudentsSelection) } }
+    val onShowExportDeleteDialog =
+        remember(viewModel) { { viewModel.onEvent(StudentsScreenEvent.ShowExportDeleteDialog) } }
+    val onShowBulkDeleteDialog =
+        remember(viewModel) { { viewModel.onEvent(StudentsScreenEvent.ShowBulkDeleteDialog) } }
+    val onMonthDropdownChange =
+        remember(viewModel) { { expanded: Boolean -> viewModel.onEvent(StudentsScreenEvent.ToggleMonthDropdown(expanded)) } }
+    val onMonthSelected =
+        remember(viewModel) {
+            { month: kotlinx.datetime.LocalDate? ->
+                viewModel.onEvent(StudentsScreenEvent.UpdateSelectedMonth(month))
+            }
+        }
+    val onClassDropdownChange =
+        remember(viewModel) { { expanded: Boolean -> viewModel.onEvent(StudentsScreenEvent.ToggleClassDropdown(expanded)) } }
+    val onClassToggle =
+        remember(viewModel) { { classId: Int -> viewModel.onEvent(StudentsScreenEvent.ToggleClassFilter(classId)) } }
+    val onClearClassFilter =
+        remember(viewModel) { { viewModel.onEvent(StudentsScreenEvent.ClearClassFilter) } }
+    val onManageClasses =
+        remember(viewModel) { { viewModel.onEvent(StudentsScreenEvent.ShowManageClassesDialog(true)) } }
+    val onSearchQueryChange =
+        remember(viewModel) { { query: String -> viewModel.onEvent(StudentsScreenEvent.UpdateSearchQuery(query)) } }
+    val onToggleSearch =
+        remember(viewModel) { { active: Boolean -> viewModel.onEvent(StudentsScreenEvent.ToggleSearch(active)) } }
+    val onClearSearch =
+        remember(viewModel) { { viewModel.onEvent(StudentsScreenEvent.UpdateSearchQuery("")) } }
+    val onConfirmExportDelete =
+        remember(exportAndDeleteLauncher, context.resources) {
+            {
+                exportAndDeleteLauncher.launch(defaultExportFileName(context.resources))
+            }
+        }
+
+    StudentsScreenContent(
+        uiState = uiState,
+        listState = listState,
+        isMultiSelectionMode = isMultiSelectionMode,
+        isSortPanelVisible = isSortPanelVisible,
+        sortType = sortType,
+        snackbarHostState = snackbarHostState,
+        onListStudentClick = onListStudentClick,
+        onListStudentLongClick = onListStudentLongClick,
+        onAddStudent = onAddStudent,
+        onToggleClassFilter = onToggleClassFilter,
+        onToggleSortPanel = onToggleSortPanel,
+        onToggleSortType = onToggleSortType,
+        onExportFile = onExportFile,
+        onImportFile = onImportFile,
+        onCloseSelectionMode = onCloseSelectionMode,
+        onToggleStudentsSelection = onToggleStudentsSelection,
+        onShowExportDeleteDialog = onShowExportDeleteDialog,
+        onShowBulkDeleteDialog = onShowBulkDeleteDialog,
+        onMonthDropdownChange = onMonthDropdownChange,
+        onMonthSelected = onMonthSelected,
+        onClassDropdownChange = onClassDropdownChange,
+        onClassToggle = onClassToggle,
+        onManageClasses = onManageClasses,
+        onClearClassFilter = onClearClassFilter,
+        onSearchQueryChange = onSearchQueryChange,
+        onToggleSearch = onToggleSearch,
+        onClearSearch = onClearSearch,
+        modifier = modifier
+    )
 
     StudentsDialogs(
         uiState = uiState,
-        onEvent = viewModel::onEvent,
-        onImportClick = { importLauncher.launch(arrayOf("application/json", "*/*")) }
+        onEvent = onEventStable,
+        onImportClick = onImportFile,
+        onConfirmExportDelete = onConfirmExportDelete
     )
 }

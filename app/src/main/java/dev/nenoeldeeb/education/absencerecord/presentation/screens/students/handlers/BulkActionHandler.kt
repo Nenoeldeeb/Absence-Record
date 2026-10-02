@@ -13,17 +13,22 @@ class BulkActionHandler(
 ) {
     fun handleDeleteSelectedStudents(
         _uiState: MutableStateFlow<StudentsScreenState>,
-        viewModelScope: CoroutineScope
+        viewModelScope: CoroutineScope,
+        undoDeleteHandler: UndoDeleteHandler? = null
     ) {
         viewModelScope.launch {
-            studentActionDelegate.deleteSelectedStudents(_uiState.value.selectedStudentIds, _uiState.value.allStudents)
+            val snapshot = _uiState.value
+            val toDelete = snapshot.allStudents.filter { it.id in snapshot.selectedStudentIds }
+            val backup = undoDeleteHandler?.buildBackup(toDelete).orEmpty()
+            studentActionDelegate.deleteSelectedStudents(snapshot.selectedStudentIds, snapshot.allStudents)
                 .onSuccess { toast ->
                     _uiState.update { state ->
                         state.copy(
                             toastMessage = toast,
                             showBulkDeleteDialog = false,
                             isMultiSelectionMode = false,
-                            selectedStudentIds = emptySet()
+                            selectedStudentIds = emptySet(),
+                            lastDeletedBackup = backup
                         )
                     }
                 }
@@ -51,18 +56,23 @@ class BulkActionHandler(
     fun handleExportAndDeleteSelectedStudents(
         uriString: String,
         _uiState: MutableStateFlow<StudentsScreenState>,
-        viewModelScope: CoroutineScope
+        viewModelScope: CoroutineScope,
+        undoDeleteHandler: UndoDeleteHandler? = null
     ) {
         viewModelScope.launch {
             val state = _uiState.value
+            val toDelete = state.allStudents.filter { it.id in state.selectedStudentIds }
+            val backup = undoDeleteHandler?.buildBackup(toDelete).orEmpty()
             studentActionDelegate.exportAndDeleteSelectedStudents(uriString, state.selectedStudentIds, state.allStudents)
                 .onSuccess { toast ->
                     _uiState.update { updateState ->
                         updateState.copy(
                             toastMessage = toast,
                             showBulkDeleteDialog = false,
+                            showExportDeleteDialog = false,
                             isMultiSelectionMode = false,
-                            selectedStudentIds = emptySet()
+                            selectedStudentIds = emptySet(),
+                            lastDeletedBackup = backup
                         )
                     }
                 }
