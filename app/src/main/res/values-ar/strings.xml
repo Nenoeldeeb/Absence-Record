@@ -20,10 +20,15 @@
     <string name="new_student_label">أدخل اسم الطالب الجديد</string>
     <string name="no_students_message">لم يتم إضافة طلاب بعد.</string>
     <string name="students_title">الطلاب: %d</string>
+    <string name="students_title_filtered">الطلاب: %1$d / %2$d</string>
+    <string name="selection_count_selected">%1$d محدد</string>
+    <string name="selection_count_selected_with_total">%1$d محدد / %2$d</string>
+    <string name="selection_scope_all_classes_with_unassigned">تم اختيار كل الصفوف — يشمل غير المسجلين</string>
     <string name="edit_student">تعديل الطالب</string>
     <string name="student_name_label">اسم الطالب</string>
     <string name="student_selected">%1$s، محدد</string>
     <string name="student_not_selected">%1$s، غير محدد</string>
+    <string name="student_enter_selection_mode">الدخول إلى وضع التحديد</string>
     <string name="action_select_all">تحديد الكل</string>
     <string name="action_deselect_all">إلغاء تحديد الكل</string>
     <string name="class_unassigned_label">غير مسجل</string>
@@ -43,10 +48,21 @@
         <item quantity="many">هل أنت متأكد من أنك تود حذف %1$d طالب لا يمكن التراجع عن هذه الخطوة</item>
     </plurals>
     <string name="action_export_delete">تصدير ثم حذف</string>
+    <string name="export_delete_confirmation_title">تصدير وحذف الطلاب المحددين؟</string>
+    <plurals name="export_delete_confirmation_message">
+        <item quantity="one">سيتم تصدير طالب واحد ثم حذفه. سيتم حذف سجلات الحضور نهائياً. يمكنك الاستعادة من ملف النسخة الاحتياطية أو التراجع مباشرة.</item>
+        <item quantity="two">سيتم تصدير طالبين ثم حذفهما. سيتم حذف سجلات الحضور نهائياً. يمكنك الاستعادة من ملف النسخة الاحتياطية أو التراجع مباشرة.</item>
+        <item quantity="few">سيتم تصدير %1$d طلاب ثم حذفهم. سيتم حذف سجلات الحضور نهائياً. يمكنك الاستعادة من ملف النسخة الاحتياطية أو التراجع مباشرة.</item>
+        <item quantity="many">سيتم تصدير %1$d طالباً ثم حذفهم. سيتم حذف سجلات الحضور نهائياً. يمكنك الاستعادة من ملف النسخة الاحتياطية أو التراجع مباشرة.</item>
+        <item quantity="other">سيتم تصدير %1$d طالب ثم حذفهم. سيتم حذف سجلات الحضور نهائياً. يمكنك الاستعادة من ملف النسخة الاحتياطية أو التراجع مباشرة.</item>
+    </plurals>
+    <string name="add_first_student">أضف أول طالب</string>
+    <string name="empty_state_class_hint">تلميح: أنشئ صفوفاً لتنظيم قائمة الطلاب.</string>
     <string name="action_edit">تعديل</string>
     <string name="action_export">تصدير</string>
     <string name="action_export_delete_disabled">تصدير ثم حذف (لم يتم تحديد أي طالب)</string>
     <string name="action_delete_disabled">حذف (لم يتم تحديد أي طالب)</string>
+    <string name="more_options_description">المزيد من الخيارات</string>
     <plurals name="import_preview_message">
         <item quantity="zero">لا يوجد طلاب في الملف.</item>
         <item quantity="one">تم العثور على طالب واحد. سيتم دمج التواريخ للطلاب الموجودين بنفس الاسم</item>
@@ -67,7 +83,7 @@
     <string name="calendar_legend_today">اليوم</string>
     <string name="calendar_legend_marked_today">اليوم وتم التسجيل</string>
     <string name="calendar_filter_scope">تُصفّي الطلاب أيضاً</string>
-    <string name="calendar_filter_empty_hint">الفارغ يعرض غير المسجلين فقط</string>
+    <string name="calendar_filter_empty_hint">يتم عرض الطلاب غير المسجلين — حدد صفاً لعرض طلابه.</string>
     <string name="calendar_attendance_marked">تم تسجيل %1$s حاضراً.</string>
     <string name="calendar_attendance_removed">تم تسجيل %1$s غائباً.</string>
     <string name="no_students_for_attendance">لا يوجد طلاب لتسجيل الحضور.</string>
@@ -210,9 +226,11 @@
     </plurals>
 
     <!-- Class Filter -->
-    <string name="class_filter_none">لا يوجد تصفية</string>
+    <string name="class_filter_none">غير المسجلين فقط</string>
+    <string name="class_filter_no_classes">لا توجد صفوف بعد</string>
     <string name="class_filter_one">تم اختيار صف واحد</string>
-    <string name="class_filter_n">تم اختيار %d صفوف</string>
+    <string name="class_filter_n">تم اختيار %1$d صفوف</string>
+    <string name="clear_class_filter">عرض غير المسجلين فقط</string>
     <string name="class_filter_checkbox_content_description">مربع اختيار %1$s، %2$s</string>
     <string name="class_filter_checkbox_checked">محدد</string>
     <string name="class_filter_checkbox_unchecked">غير محدد</string>
@@ -283,6 +301,12 @@
     <string name="error_deleting_class">خطأ أثناء حذف الصف: \"%1$s\".</string>
     <string name="error_class_name_already_exists">يوجد بالفعل صف بنفس الاسم</string>
     <string name="delete_class_title">أحذف الصف</string>
+    <string name="search_description">بحث</string>
+    <string name="search_students_hint">ابحث عن الطلاب</string>
+    <string name="search_close_description">إغلاق البحث</string>
+    <string name="search_clear_description">مسح البحث</string>
+    <string name="search_no_results">لا يوجد طلاب يطابقون “%1$s”.</string>
+    <string name="clear_search">مسح البحث</string>
     <string name="filter_description">تصفية</string>
 
     <!-- Schedule (Lesson Scheduling) -->

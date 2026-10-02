@@ -2,6 +2,7 @@ package dev.nenoeldeeb.education.absencerecord.presentation.screens.students
 
 import androidx.compose.runtime.Composable
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.dialogs.BulkDeleteConfirmationDialog
+import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.dialogs.ExportDeleteConfirmationDialog
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.dialogs.ImportSelectionDialog
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.dialogs.ManageClassesDialog
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.dialogs.StudentDialog
@@ -10,7 +11,8 @@ import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.dial
 fun StudentsDialogs(
     uiState: StudentsScreenState,
     onEvent: (StudentsScreenEvent) -> Unit,
-    onImportClick: () -> Unit
+    onImportClick: () -> Unit,
+    onConfirmExportDelete: () -> Unit
 ) {
     if (uiState.showAddStudentDialog) {
         StudentDialog(
@@ -57,6 +59,17 @@ fun StudentsDialogs(
             selectedStudentIds = uiState.selectedStudentIds,
             onConfirmDelete = { onEvent(StudentsScreenEvent.DeleteSelectedStudents) },
             onDismiss = { onEvent(StudentsScreenEvent.DismissBulkDeleteDialog) }
+        )
+    }
+
+    if (uiState.showExportDeleteDialog) {
+        ExportDeleteConfirmationDialog(
+            selectedCount = uiState.selectedStudentIds.size,
+            onConfirm = {
+                onEvent(StudentsScreenEvent.DismissExportDeleteDialog)
+                onConfirmExportDelete()
+            },
+            onDismiss = { onEvent(StudentsScreenEvent.DismissExportDeleteDialog) }
         )
     }
 

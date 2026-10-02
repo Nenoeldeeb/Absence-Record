@@ -1,6 +1,7 @@
 package dev.nenoeldeeb.education.absencerecord.presentation.screens.students
 
 import androidx.compose.runtime.Stable
+import dev.nenoeldeeb.education.absencerecord.domain.models.DeletedStudentBackup
 import dev.nenoeldeeb.education.absencerecord.domain.models.ParsedImportData
 import dev.nenoeldeeb.education.absencerecord.domain.models.SortType
 import dev.nenoeldeeb.education.absencerecord.domain.models.Student
@@ -12,6 +13,7 @@ import kotlinx.datetime.LocalDate
 data class StudentsScreenState(
     // Core data
     val allStudents: List<Student> = emptyList(),
+    val totalStudentsCount: Int = 0,
     val availableClasses: List<StudentClass> = emptyList(),
     val newStudentName: String = "",
     // Class filter
@@ -19,6 +21,9 @@ data class StudentsScreenState(
     val classDropdownExpanded: Boolean = false,
     val isClassFilterVisible: Boolean = false,
     val showManageClassesDialog: Boolean = false,
+    // Search (in-place TopAppBar filter, session only)
+    val searchQuery: String = "",
+    val isSearchActive: Boolean = false,
     // Sort
     val sortType: SortType = SortType.ByName,
     val isSortPanelVisible: Boolean = false,
@@ -31,7 +36,10 @@ data class StudentsScreenState(
     // UI state - Dialogs
     val showImportSelectionDialog: Boolean = false,
     val showBulkDeleteDialog: Boolean = false,
+    val showExportDeleteDialog: Boolean = false,
     val showAddStudentDialog: Boolean = false,
+    // Undo backup for destructive deletes (students + attendance dates)
+    val lastDeletedBackup: List<DeletedStudentBackup> = emptyList(),
     // Import/Export data
     val parsedImportData: ParsedImportData? = null,
     val importSelectionMap: Map<Int, Boolean> = emptyMap(),

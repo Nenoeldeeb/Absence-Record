@@ -1,13 +1,19 @@
 package dev.nenoeldeeb.education.absencerecord.presentation.screens.students.components
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -17,14 +23,17 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import dev.nenoeldeeb.education.absencerecord.R
 import dev.nenoeldeeb.education.absencerecord.domain.models.SortType
 import dev.nenoeldeeb.education.absencerecord.presentation.utils.DateFormatter.toMonthYearUiText
 import kotlinx.datetime.LocalDate
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 internal fun SortPanel(
     sortType: SortType,
@@ -36,52 +45,76 @@ internal fun SortPanel(
     onToggleSortType: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    Row(
+    FlowRow(
         modifier = modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalArrangement = Arrangement.Center,
+        maxItemsInEachRow = 2
     ) {
-        Box {
-            val label =
-                selectedMonth?.let { it.toMonthYearUiText(fullName = true).asString() }
-                    ?: stringResource(R.string.all_months)
-            val selectMonthHint = stringResource(R.string.sort_select_month)
-            OutlinedButton(
-                onClick = { onMonthDropdownExpandedChange(!monthDropdownExpanded) },
-                modifier =
-                    Modifier.semantics {
-                        contentDescription = "$selectMonthHint: $label"
-                    }
-            ) {
-                Text(text = label)
-            }
-            DropdownMenu(
-                expanded = monthDropdownExpanded,
-                onDismissRequest = { onMonthDropdownExpandedChange(false) }
-            ) {
-                DropdownMenuItem(
-                    text = { Text(stringResource(R.string.all_months)) },
-                    onClick = { onMonthSelected(null) },
-                    leadingIcon =
-                        if (selectedMonth == null) {
-                            {
-                                Icon(
-                                    imageVector =
-                                        ImageVector.vectorResource(R.drawable.outline_check_24),
-                                    contentDescription = null
-                                )
-                            }
-                        } else {
-                            null
+        Row(
+            modifier = Modifier.weight(1f, fill = true),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Box(modifier = Modifier.weight(1f, fill = true)) {
+                val label =
+                    selectedMonth?.let { it.toMonthYearUiText(fullName = true).asString() }
+                        ?: stringResource(R.string.all_months)
+                val selectMonthHint = stringResource(R.string.sort_select_month)
+                val monthButtonModifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .sizeIn(minHeight = 48.dp)
+                        .semantics(mergeDescendants = true) {
+                            contentDescription = "$selectMonthHint: $label"
+                            selected = selectedMonth != null
                         }
-                )
-                availableMonths.forEach { month ->
+                // Same active grammar as the top bar: tonal fill means
+                // "a narrowing choice is on". All-months stays outlined.
+                if (selectedMonth != null) {
+                    FilledTonalButton(
+                        onClick = { onMonthDropdownExpandedChange(!monthDropdownExpanded) },
+                        modifier = monthButtonModifier
+                    ) {
+                        Text(
+                            text = label,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                            modifier = Modifier.weight(1f, fill = false)
+                        )
+                        Icon(
+                            imageVector =
+                                ImageVector.vectorResource(R.drawable.outline_expand_more_24),
+                            contentDescription = null
+                        )
+                    }
+                } else {
+                    OutlinedButton(
+                        onClick = { onMonthDropdownExpandedChange(!monthDropdownExpanded) },
+                        modifier = monthButtonModifier
+                    ) {
+                        Text(
+                            text = label,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                            modifier = Modifier.weight(1f, fill = false)
+                        )
+                        Icon(
+                            imageVector =
+                                ImageVector.vectorResource(R.drawable.outline_expand_more_24),
+                            contentDescription = null
+                        )
+                    }
+                }
+                DropdownMenu(
+                    expanded = monthDropdownExpanded,
+                    onDismissRequest = { onMonthDropdownExpandedChange(false) }
+                ) {
                     DropdownMenuItem(
-                        text = {
-                            Text(text = month.toMonthYearUiText(fullName = true).asString())
-                        },
-                        onClick = { onMonthSelected(month) },
+                        text = { Text(stringResource(R.string.all_months)) },
+                        onClick = { onMonthSelected(null) },
+                        modifier = Modifier.semantics { selected = selectedMonth == null },
                         leadingIcon =
-                            if (month == selectedMonth) {
+                            if (selectedMonth == null) {
                                 {
                                     Icon(
                                         imageVector =
@@ -93,10 +126,42 @@ internal fun SortPanel(
                                 null
                             }
                     )
+                    availableMonths.forEach { month ->
+                        DropdownMenuItem(
+                            text = {
+                                Text(text = month.toMonthYearUiText(fullName = true).asString())
+                            },
+                            onClick = { onMonthSelected(month) },
+                            modifier = Modifier.semantics { selected = month == selectedMonth },
+                            leadingIcon =
+                                if (month == selectedMonth) {
+                                    {
+                                        Icon(
+                                            imageVector =
+                                                ImageVector.vectorResource(R.drawable.outline_check_24),
+                                            contentDescription = null
+                                        )
+                                    }
+                                } else {
+                                    null
+                                }
+                        )
+                    }
+                }
+            }
+            if (selectedMonth != null) {
+                IconButton(
+                    onClick = { onMonthSelected(null) },
+                    modifier = Modifier.sizeIn(minWidth = 48.dp, minHeight = 48.dp)
+                ) {
+                    Icon(
+                        imageVector =
+                            ImageVector.vectorResource(R.drawable.outline_close_24),
+                        contentDescription = stringResource(R.string.clear_month_filter)
+                    )
                 }
             }
         }
-        Spacer(modifier = Modifier.width(8.dp))
         val sortLabel =
             stringResource(
                 if (sortType == SortType.ByName) {
@@ -110,11 +175,24 @@ internal fun SortPanel(
         OutlinedButton(
             onClick = onToggleSortType,
             modifier =
-                Modifier.semantics {
-                    contentDescription = sortDescription
-                }
+                Modifier
+                    .weight(1f, fill = true)
+                    .sizeIn(minHeight = 48.dp)
+                    .semantics(mergeDescendants = true) {
+                        contentDescription = sortDescription
+                    }
         ) {
-            Text(text = sortLabel, textAlign = TextAlign.Center)
+            Icon(
+                imageVector = ImageVector.vectorResource(R.drawable.outline_sort_24),
+                contentDescription = null
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+            Text(
+                text = sortLabel,
+                textAlign = TextAlign.Center,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
         }
     }
 }

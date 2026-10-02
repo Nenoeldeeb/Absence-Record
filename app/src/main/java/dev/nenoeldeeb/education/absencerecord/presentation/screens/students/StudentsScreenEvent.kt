@@ -11,6 +11,11 @@ sealed interface StudentsScreenEvent {
 
     data class AddStudent(val name: String, val classId: Int?) : StudentsScreenEvent
 
+    // Search
+    data class UpdateSearchQuery(val query: String) : StudentsScreenEvent
+
+    data class ToggleSearch(val active: Boolean) : StudentsScreenEvent
+
     // Sort
     data class UpdateSortType(val sortType: SortType) : StudentsScreenEvent
 
@@ -51,11 +56,21 @@ sealed interface StudentsScreenEvent {
 
     data object DismissBulkDeleteDialog : StudentsScreenEvent
 
+    data object ShowExportDeleteDialog : StudentsScreenEvent
+
+    data object DismissExportDeleteDialog : StudentsScreenEvent
+
+    data object UndoDeleteStudents : StudentsScreenEvent
+
+    data object ConsumeUndoBackup : StudentsScreenEvent
+
     data class ShowStudentDialog(val show: Boolean = false) :
         StudentsScreenEvent
 
     // Class management
     data class ToggleClassFilter(val classId: Int) : StudentsScreenEvent
+
+    data object ClearClassFilter : StudentsScreenEvent
 
     data object ToggleClassFilterVisibility : StudentsScreenEvent
 

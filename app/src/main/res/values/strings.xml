@@ -14,17 +14,28 @@
     <string name="error_display">Error: %1$s</string>
     <string name="filter_description">Filter</string>
     <string name="sort_description">Sort</string>
+    <string name="search_description">Search</string>
+    <string name="search_students_hint">Search students</string>
+    <string name="search_close_description">Close search</string>
+    <string name="search_clear_description">Clear search</string>
+    <string name="search_no_results">No students match “%1$s”.</string>
+    <string name="clear_search">Clear search</string>
     <string name="sort_select_month">Select month</string>
     <string name="sort_toggle_description">Sort mode: %1$s, tap to switch</string>
 
     <!-- Students Screen -->
     <string name="new_student_label">Enter new student name</string>
     <string name="students_title">Students: %d</string>
+    <string name="students_title_filtered">Students: %1$d / %2$d</string>
+    <string name="selection_count_selected">%1$d selected</string>
+    <string name="selection_count_selected_with_total">%1$d selected / %2$d</string>
+    <string name="selection_scope_all_classes_with_unassigned">All classes selected — unassigned students included</string>
     <string name="no_students_message">No students added yet.</string>
     <string name="edit_student">Edit Student</string>
     <string name="student_name_label">Student name</string>
     <string name="student_selected">%1$s, selected</string>
     <string name="student_not_selected">%1$s, not selected</string>
+    <string name="student_enter_selection_mode">Enter selection mode</string>
     <string name="action_select_all">Select all</string>
     <string name="action_deselect_all">Deselect all</string>
     <string name="class_filter_label">Class Filter</string>
@@ -44,10 +55,18 @@
         <item quantity="other">Are you sure you want to delete %1$d students? This action cannot be undone.</item>
     </plurals>
     <string name="action_export_delete">Export &amp; Delete</string>
+    <string name="export_delete_confirmation_title">Export and delete selected students?</string>
+    <plurals name="export_delete_confirmation_message">
+        <item quantity="one">This will export %1$d student, then delete it. Attendance records are permanently deleted. You can restore from the backup file or Undo right after.</item>
+        <item quantity="other">This will export %1$d students, then delete them. Attendance records are permanently deleted. You can restore from the backup file or Undo right after.</item>
+    </plurals>
+    <string name="add_first_student">Add first student</string>
+    <string name="empty_state_class_hint">Tip: create classes to organize your roster.</string>
     <string name="action_edit">Edit</string>
     <string name="action_export">Export</string>
     <string name="action_export_delete_disabled">Export and Delete (no students selected)</string>
     <string name="action_delete_disabled">Delete (no students selected)</string>
+    <string name="more_options_description">More options</string>
     <plurals name="import_preview_message">
         <item quantity="zero">No students found in file.</item>
         <item quantity="one">Found %1$d student. Existing students with the same name will have dates merged:</item>
@@ -66,7 +85,7 @@
     <string name="calendar_legend_today">Today</string>
     <string name="calendar_legend_marked_today">Marked today</string>
     <string name="calendar_filter_scope">Also filters Students</string>
-    <string name="calendar_filter_empty_hint">Empty shows unassigned only</string>
+    <string name="calendar_filter_empty_hint">Showing unassigned students — select a class to see its students.</string>
     <string name="calendar_attendance_marked">%1$s marked present.</string>
     <string name="calendar_attendance_removed">%1$s marked absent.</string>
     <string name="no_students_for_attendance">No students available to mark attendance.</string>
@@ -197,9 +216,11 @@
     </plurals>
 
     <!-- Class Filter -->
-    <string name="class_filter_none">No filter</string>
+    <string name="class_filter_none">Unassigned only</string>
+    <string name="class_filter_no_classes">No classes yet</string>
     <string name="class_filter_one">1 class selected</string>
-    <string name="class_filter_n">%d classes selected</string>
+    <string name="class_filter_n">%1$d classes selected</string>
+    <string name="clear_class_filter">Show unassigned only</string>
     <string name="class_filter_checkbox_content_description">%1$s checkbox, %2$s</string>
     <string name="class_filter_checkbox_checked">checked</string>
     <string name="class_filter_checkbox_unchecked">unchecked</string>
