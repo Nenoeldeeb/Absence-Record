@@ -12,6 +12,8 @@ sealed interface CalendarScreenEvent {
 
     data class ToggleClassSelection(val classId: Int) : CalendarScreenEvent
 
+    data object ClearClassFilter : CalendarScreenEvent
+
     data object ToggleFilterDropdown : CalendarScreenEvent
 
     data object ConsumeError : CalendarScreenEvent
