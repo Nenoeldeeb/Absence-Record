@@ -277,9 +277,10 @@ class AttendanceDialogDisplayTest {
             .onNode(
                 hasContentDescription(
                     getString(
-                        R.string.student_attendance_status,
+                        R.string.student_attendance_status_disabled,
                         "Future Student",
-                        getString(R.string.content_description_absent)
+                        getString(R.string.content_description_absent),
+                        getString(R.string.calendar_future_date_warning)
                     )
                 )
             )
