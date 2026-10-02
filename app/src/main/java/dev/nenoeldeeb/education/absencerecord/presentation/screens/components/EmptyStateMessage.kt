@@ -13,14 +13,15 @@ import androidx.compose.ui.text.style.TextAlign
 @Composable
 fun EmptyStateMessage(
     @StringRes message: Int,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    vararg formatArgs: Any
 ) {
     Box(
         modifier = modifier,
         contentAlignment = Alignment.Center
     ) {
         Text(
-            stringResource(message),
+            stringResource(message, *formatArgs),
             style = MaterialTheme.typography.bodyMedium,
             textAlign = TextAlign.Center,
             color = MaterialTheme.colorScheme.onSurfaceVariant

@@ -6,8 +6,11 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -25,7 +28,6 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -37,6 +39,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.style.TextDirection
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import dev.nenoeldeeb.education.absencerecord.R
 import dev.nenoeldeeb.education.absencerecord.domain.models.StudentClass
@@ -52,13 +55,14 @@ internal fun ManageClassesDialog(
     var newClassName by rememberSaveable { mutableStateOf("") }
     var renamingClassId by rememberSaveable { mutableStateOf<Int?>(null) }
     var renameText by rememberSaveable { mutableStateOf("") }
-    var classToDelete by remember { mutableStateOf<StudentClass?>(null) }
+    var classToDeleteId by rememberSaveable { mutableStateOf<Int?>(null) }
+    val classToDelete = classes.firstOrNull { it.id == classToDeleteId }
 
     if (classToDelete != null) {
         AlertDialog(
-            onDismissRequest = { classToDelete = null },
+            onDismissRequest = { classToDeleteId = null },
             title = { Text(stringResource(R.string.delete_class_title)) },
-            text = { Text(stringResource(R.string.delete_class_message, classToDelete!!.name)) },
+            text = { Text(stringResource(R.string.delete_class_message, classToDelete.name)) },
             icon = {
                 Icon(
                     imageVector = ImageVector.vectorResource(R.drawable.outline_delete_24),
@@ -69,8 +73,8 @@ internal fun ManageClassesDialog(
             confirmButton = {
                 Button(
                     onClick = {
-                        onDeleteClass(classToDelete!!)
-                        classToDelete = null
+                        onDeleteClass(classToDelete)
+                        classToDeleteId = null
                     },
                     colors =
                         ButtonDefaults.buttonColors(
@@ -90,7 +94,7 @@ internal fun ManageClassesDialog(
                 }
             },
             dismissButton = {
-                TextButton(onClick = { classToDelete = null }) {
+                TextButton(onClick = { classToDeleteId = null }) {
                     Text(stringResource(R.string.action_cancel))
                 }
             }
@@ -98,7 +102,7 @@ internal fun ManageClassesDialog(
     }
 
     AlertDialog(onDismissRequest = onDismiss, title = { Text(stringResource(R.string.manage_classes_title)) }, text = {
-        Column {
+        Column(modifier = Modifier.imePadding()) {
             // ── Add new class ────────────────────────────────────────
             Row(
                 verticalAlignment = Alignment.CenterVertically,
@@ -125,7 +129,8 @@ internal fun ManageClassesDialog(
                             newClassName = ""
                         }
                     },
-                    enabled = newClassName.isNotBlank()
+                    enabled = newClassName.isNotBlank(),
+                    modifier = Modifier.sizeIn(minWidth = 48.dp, minHeight = 48.dp)
                 ) {
                     Icon(
                         imageVector = ImageVector.vectorResource(R.drawable.outline_add_24),
@@ -139,7 +144,7 @@ internal fun ManageClassesDialog(
                 HorizontalDivider()
                 Spacer(Modifier.height(4.dp))
 
-                LazyColumn(modifier = Modifier.fillMaxWidth()) {
+                LazyColumn(modifier = Modifier.fillMaxWidth().heightIn(max = 300.dp)) {
                     items(classes, key = { it.id }) { cls ->
                         val isRenaming = renamingClassId == cls.id
 
@@ -172,7 +177,8 @@ internal fun ManageClassesDialog(
                                         }
                                         renamingClassId = null
                                     },
-                                    enabled = renameText.isNotBlank()
+                                    enabled = renameText.isNotBlank(),
+                                    modifier = Modifier.sizeIn(minWidth = 48.dp, minHeight = 48.dp)
                                 ) {
                                     Icon(
                                         imageVector =
@@ -190,7 +196,10 @@ internal fun ManageClassesDialog(
                                     )
                                 }
                                 // Cancel rename
-                                IconButton(onClick = { renamingClassId = null }) {
+                                IconButton(
+                                    onClick = { renamingClassId = null },
+                                    modifier = Modifier.sizeIn(minWidth = 48.dp, minHeight = 48.dp)
+                                ) {
                                     Icon(
                                         imageVector =
                                             ImageVector.vectorResource(
@@ -212,6 +221,8 @@ internal fun ManageClassesDialog(
                                 Text(
                                     text = cls.name,
                                     style = MaterialTheme.typography.bodyMedium.copy(textDirection = TextDirection.Content),
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis,
                                     modifier = Modifier.weight(1f)
                                 )
                                 // Edit button
@@ -219,7 +230,8 @@ internal fun ManageClassesDialog(
                                     onClick = {
                                         renamingClassId = cls.id
                                         renameText = cls.name
-                                    }
+                                    },
+                                    modifier = Modifier.sizeIn(minWidth = 48.dp, minHeight = 48.dp)
                                 ) {
                                     Icon(
                                         imageVector =
@@ -231,7 +243,10 @@ internal fun ManageClassesDialog(
                                     )
                                 }
                                 // Delete button
-                                IconButton(onClick = { classToDelete = cls }) {
+                                IconButton(
+                                    onClick = { classToDeleteId = cls.id },
+                                    modifier = Modifier.sizeIn(minWidth = 48.dp, minHeight = 48.dp)
+                                ) {
                                     Icon(
                                         imageVector =
                                             ImageVector.vectorResource(

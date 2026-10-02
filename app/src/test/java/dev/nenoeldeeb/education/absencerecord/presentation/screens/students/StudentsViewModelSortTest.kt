@@ -126,6 +126,50 @@ class StudentsViewModelSortTest : StudentsViewModelTestBase() {
         }
 
     @Test
+    fun `opening sort panel closes class filter for single-panel layout`() =
+        runTest {
+            // given
+            every { getAllStudentsUseCase(any(), any()) } returns
+                flowOf(Result.success(emptyList()))
+            createViewModel()
+            advanceUntilIdle()
+            viewModel.onEvent(StudentsScreenEvent.ToggleClassFilterVisibility)
+            advanceUntilIdle()
+            assertTrue(viewModel.uiState.value.isClassFilterVisible)
+
+            // when
+            viewModel.onEvent(StudentsScreenEvent.ToggleSortPanelVisible(true))
+            advanceUntilIdle()
+
+            // then
+            assertTrue(viewModel.uiState.value.isSortPanelVisible)
+            assertFalse(viewModel.uiState.value.isClassFilterVisible)
+            assertFalse(viewModel.uiState.value.classDropdownExpanded)
+        }
+
+    @Test
+    fun `opening class filter closes sort panel for single-panel layout`() =
+        runTest {
+            // given
+            every { getAllStudentsUseCase(any(), any()) } returns
+                flowOf(Result.success(emptyList()))
+            createViewModel()
+            advanceUntilIdle()
+            viewModel.onEvent(StudentsScreenEvent.ToggleSortPanelVisible(true))
+            advanceUntilIdle()
+            assertTrue(viewModel.uiState.value.isSortPanelVisible)
+
+            // when
+            viewModel.onEvent(StudentsScreenEvent.ToggleClassFilterVisibility)
+            advanceUntilIdle()
+
+            // then
+            assertTrue(viewModel.uiState.value.isClassFilterVisible)
+            assertFalse(viewModel.uiState.value.isSortPanelVisible)
+            assertFalse(viewModel.uiState.value.isMonthDropdownExpanded)
+        }
+
+    @Test
     fun `available months are loaded into state`() =
         runTest {
             // given

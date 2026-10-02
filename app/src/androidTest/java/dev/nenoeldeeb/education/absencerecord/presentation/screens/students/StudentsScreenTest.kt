@@ -107,6 +107,7 @@ class StudentsScreenTest {
             AbsenceRecordTheme {
                 MultiSelectionHeader(
                     selectedStudentIds = uiState.selectedStudentIds,
+                    totalCount = 5,
                     onCloseSelectionMode = {},
                     onToggleSelection = {},
                     onExport = {},
@@ -116,7 +117,35 @@ class StudentsScreenTest {
             }
         }
 
-        composeTestRule.onNodeWithText("3").assertIsDisplayed()
+        composeTestRule
+            .onNodeWithText(getString(R.string.selection_count_selected_with_total, 3, 5))
+            .assertIsDisplayed()
+    }
+
+    @Test
+    fun multiSelectionHeader_displaysSelectedCountWithoutTotal() {
+        val uiState =
+            StudentsScreenState(
+                isMultiSelectionMode = true,
+                selectedStudentIds = setOf(1, 2, 3)
+            )
+
+        composeTestRule.setContent {
+            AbsenceRecordTheme {
+                MultiSelectionHeader(
+                    selectedStudentIds = uiState.selectedStudentIds,
+                    onCloseSelectionMode = {},
+                    onToggleSelection = {},
+                    onExport = {},
+                    onExportAndDelete = {},
+                    onShowDeleteDialog = {}
+                )
+            }
+        }
+
+        composeTestRule
+            .onNodeWithText(getString(R.string.selection_count_selected, 3))
+            .assertIsDisplayed()
     }
 
     @Test
@@ -140,6 +169,29 @@ class StudentsScreenTest {
         composeTestRule.onNodeWithContentDescription(getString(R.string.action_close)).performClick()
 
         assert(closeClicked)
+    }
+
+    @Test
+    fun multiSelectionHeader_showsOverflowMenuWithSelection() {
+        val uiState = StudentsScreenState(isMultiSelectionMode = true, selectedStudentIds = setOf(1))
+
+        composeTestRule.setContent {
+            AbsenceRecordTheme {
+                MultiSelectionHeader(
+                    selectedStudentIds = uiState.selectedStudentIds,
+                    totalCount = 5,
+                    onCloseSelectionMode = {},
+                    onToggleSelection = {},
+                    onExport = {},
+                    onExportAndDelete = {},
+                    onShowDeleteDialog = {}
+                )
+            }
+        }
+
+        composeTestRule
+            .onNodeWithContentDescription(getString(R.string.more_options_description))
+            .assertIsDisplayed()
     }
 
     // endregion
