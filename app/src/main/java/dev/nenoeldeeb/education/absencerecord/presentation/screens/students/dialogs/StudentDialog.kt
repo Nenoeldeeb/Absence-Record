@@ -2,6 +2,7 @@ package dev.nenoeldeeb.education.absencerecord.presentation.screens.students.dia
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentWidth
@@ -21,17 +22,19 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
+import androidx.compose.ui.semantics.selected
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.style.TextDirection
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import dev.nenoeldeeb.education.absencerecord.R
 import dev.nenoeldeeb.education.absencerecord.domain.models.StudentClass
@@ -47,8 +50,9 @@ internal fun StudentDialog(
     onImportClick: () -> Unit,
     onDismiss: () -> Unit
 ) {
-    var selectedClass by remember { mutableStateOf<StudentClass?>(null) }
+    var selectedClassId by rememberSaveable { mutableStateOf<Int?>(null) }
     var classDropdownExpanded by rememberSaveable { mutableStateOf(false) }
+    val selectedClass = availableClasses.firstOrNull { it.id == selectedClassId }
 
     val classLabel = selectedClass?.name ?: stringResource(R.string.class_unassigned_label)
 
@@ -56,7 +60,7 @@ internal fun StudentDialog(
         onDismissRequest = onDismiss,
         title = { Text(stringResource(R.string.new_student_label)) },
         text = {
-            Column {
+            Column(modifier = Modifier.imePadding()) {
                 OutlinedTextField(
                     value = newStudentName,
                     onValueChange = onStudentNameChange,
@@ -106,11 +110,12 @@ internal fun StudentDialog(
                                     Text(stringResource(R.string.class_unassigned_label))
                                 },
                                 onClick = {
-                                    selectedClass = null
+                                    selectedClassId = null
                                     classDropdownExpanded = false
                                 },
+                                modifier = Modifier.semantics { selected = selectedClassId == null },
                                 leadingIcon =
-                                    if (selectedClass == null) {
+                                    if (selectedClassId == null) {
                                         {
                                             Icon(
                                                 imageVector =
@@ -128,13 +133,14 @@ internal fun StudentDialog(
                             )
                             availableClasses.forEach { cls ->
                                 DropdownMenuItem(
-                                    text = { Text(cls.name) },
+                                    text = { Text(cls.name, maxLines = 1, overflow = TextOverflow.Ellipsis) },
                                     onClick = {
-                                        selectedClass = cls
+                                        selectedClassId = cls.id
                                         classDropdownExpanded = false
                                     },
+                                    modifier = Modifier.semantics { selected = selectedClassId == cls.id },
                                     leadingIcon =
-                                        if (selectedClass?.id == cls.id) {
+                                        if (selectedClassId == cls.id) {
                                             {
                                                 Icon(
                                                     imageVector =
@@ -155,7 +161,10 @@ internal fun StudentDialog(
                     }
                 }
 
-                Button(
+                // Secondary path: import lives here so a non-empty roster can
+                // still take a backup file. TextButton keeps Add as the single
+                // primary action in this dialog.
+                TextButton(
                     onClick = onImportClick,
                     modifier =
                         Modifier
