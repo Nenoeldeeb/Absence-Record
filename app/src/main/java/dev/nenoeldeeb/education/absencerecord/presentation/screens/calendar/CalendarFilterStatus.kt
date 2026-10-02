@@ -12,17 +12,23 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import dev.nenoeldeeb.education.absencerecord.R
+import dev.nenoeldeeb.education.absencerecord.domain.models.StudentClass
 
 @Composable
 internal fun CalendarFilterStatus(
     selectedClassIds: Set<Int>,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    availableClasses: List<StudentClass> = emptyList()
 ) {
     val filterLabel =
-        when (selectedClassIds.size) {
-            0 -> stringResource(R.string.class_filter_none)
-            1 -> stringResource(R.string.class_filter_one)
-            else -> stringResource(R.string.class_filter_n, selectedClassIds.size)
+        if (availableClasses.isEmpty()) {
+            stringResource(R.string.class_filter_no_classes)
+        } else {
+            when (selectedClassIds.size) {
+                0 -> stringResource(R.string.class_filter_none)
+                1 -> stringResource(R.string.class_filter_one)
+                else -> stringResource(R.string.class_filter_n, selectedClassIds.size)
+            }
         }
     Column(
         modifier = modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 2.dp),
@@ -34,11 +40,13 @@ internal fun CalendarFilterStatus(
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center
         )
-        Text(
-            text = stringResource(R.string.calendar_filter_scope),
-            style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            textAlign = TextAlign.Center
-        )
+        if (availableClasses.isNotEmpty()) {
+            Text(
+                text = stringResource(R.string.calendar_filter_scope),
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = TextAlign.Center
+            )
+        }
     }
 }

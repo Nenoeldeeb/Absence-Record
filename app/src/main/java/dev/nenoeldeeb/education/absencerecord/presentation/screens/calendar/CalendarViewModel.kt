@@ -113,6 +113,9 @@ class CalendarViewModel(
             is CalendarScreenEvent.ToggleClassSelection ->
                 toggleClassSelection(event.classId)
 
+            is CalendarScreenEvent.ClearClassFilter ->
+                clearClassFilter()
+
             is CalendarScreenEvent.ToggleFilterDropdown ->
                 _uiState.update { it.copy(filterDropdownExpanded = !it.filterDropdownExpanded) }
 
@@ -161,6 +164,10 @@ class CalendarViewModel(
 
     private fun toggleClassSelection(classId: Int) {
         classFilterRepository.toggleClass(classId)
+    }
+
+    private fun clearClassFilter() {
+        classFilterRepository.clearFilter()
     }
 
     private fun observeClassFilter() {
