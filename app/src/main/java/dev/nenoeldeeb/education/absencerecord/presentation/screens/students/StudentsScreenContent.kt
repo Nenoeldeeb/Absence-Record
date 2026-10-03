@@ -108,8 +108,9 @@ fun StudentsScreenContent(
     val isRosterEmpty =
         uiState.totalStudentsCount == 0 && uiState.allStudents.isEmpty()
     // Hide the FAB while the roster scrolls away under the thumb (standard
-    // M3 scroll behavior); it returns as soon as the teacher scrolls back
-    // up or reaches the top, so Add is never more than a flick away.
+    // M3 scroll behavior). Sticky once hidden: it comes back ONLY on an
+    // upward scroll (or when the list returns to the very top), never
+    // just because a scroll frame wasn't downward.
     var fabHiddenForScroll by remember { mutableStateOf(false) }
     var lastFirstVisibleIndex by remember { mutableIntStateOf(listState.firstVisibleItemIndex) }
     var lastFirstVisibleOffset by remember { mutableIntStateOf(listState.firstVisibleItemScrollOffset) }
@@ -119,8 +120,14 @@ fun StudentsScreenContent(
         val scrolledDown =
             index > lastFirstVisibleIndex ||
                 (index == lastFirstVisibleIndex && offset - lastFirstVisibleOffset >= 2)
-        val awayFromTop = index > 0 || offset > 56
-        fabHiddenForScroll = scrolledDown && awayFromTop
+        val scrollingUp =
+            index < lastFirstVisibleIndex ||
+                (index == lastFirstVisibleIndex && lastFirstVisibleOffset - offset >= 2)
+        val atTop = index == 0 && offset <= 56
+        when {
+            scrolledDown && !atTop -> fabHiddenForScroll = true
+            scrollingUp || atTop -> fabHiddenForScroll = false
+        }
         lastFirstVisibleIndex = index
         lastFirstVisibleOffset = offset
     }
