@@ -103,10 +103,32 @@ class StudentScheduleTabsDelegate(
                 ?.hour?.id ?: return
         scope.launch {
             scheduleUseCases.unassignStudentUseCase(hourId, studentId)
+                .onSuccess {
+                    updateState {
+                        it.copy(deletedLesson = lesson, deletedLessonHourId = hourId)
+                    }
+                }
                 .onFailure { e ->
                     updateState { it.copy(error = e.toUiText(), toastMessage = null) }
                 }
         }
+    }
+
+    fun undoUnassignLesson(state: StudentDetailScreenState) {
+        val lesson = state.deletedLesson ?: return
+        val hourId = state.deletedLessonHourId ?: return
+        val studentId = state.student?.id ?: return
+        updateState { it.copy(deletedLesson = null, deletedLessonHourId = null) }
+        scope.launch {
+            scheduleUseCases.assignStudentUseCase(hourId, studentId, lesson.weekday)
+                .onFailure { e ->
+                    updateState { it.copy(error = e.toUiText()) }
+                }
+        }
+    }
+
+    fun consumeDeletedLesson() {
+        updateState { it.copy(deletedLesson = null, deletedLessonHourId = null) }
     }
 
     private fun hasLessonOnSelectedWeekday(state: StudentDetailScreenState): Boolean =
