@@ -43,7 +43,11 @@ internal fun ConflictPreview(
         lessons.sortedBy { it.startMinutes }.forEach { lesson ->
             Text(
                 text =
-                    "${formatTime(lesson.startMinutes)} – ${formatTime(lesson.endMinutes)}",
+                    stringResource(
+                        R.string.time_range,
+                        formatTime(lesson.startMinutes),
+                        formatTime(lesson.endMinutes)
+                    ),
                 style =
                     MaterialTheme.typography.bodyMedium.copy(
                         textDirection = TextDirection.Ltr

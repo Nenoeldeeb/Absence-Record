@@ -143,7 +143,7 @@ fun WeekdaySelector(
                     ),
                 modifier =
                     Modifier
-                        .defaultMinSize(minHeight = 48.dp)
+                        .defaultMinSize(minWidth = 48.dp, minHeight = 48.dp)
                         .semantics {
                             if (isToday) stateDescription = todayLabel
                         }

@@ -1,24 +1,26 @@
 package dev.nenoeldeeb.education.absencerecord.presentation.screens.studentdetail.components
 
-import androidx.compose.foundation.layout.Box
+import android.animation.ValueAnimator
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import dev.nenoeldeeb.education.absencerecord.R
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.components.EmptyStateMessage
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.studentdetail.StudentDetailScreenEvent
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.studentdetail.StudentDetailScreenState
+import kotlinx.coroutines.launch
 
 @Composable
 internal fun StudentDetailBody(
@@ -27,10 +29,33 @@ internal fun StudentDetailBody(
     modifier: Modifier = Modifier,
     pagerState: PagerState = rememberPagerState(initialPage = 0, pageCount = { 2 })
 ) {
-    Box(modifier = modifier.fillMaxSize()) {
+    BoxWithConstraints(modifier = modifier.fillMaxSize()) {
+        val isLandscape = maxWidth > maxHeight
+        val scope = rememberCoroutineScope()
+        // Stable tab-click handler: keeps CoroutineScope out of DetailContent params
+        // (CoroutineScope is unstable and would recompose the whole body on every pass).
+        val onTabSelected: (Int) -> Unit =
+            remember(scope, pagerState) {
+                { page: Int ->
+                    scope.launch {
+                        if (ValueAnimator.areAnimatorsEnabled()) {
+                            pagerState.animateScrollToPage(page)
+                        } else {
+                            pagerState.scrollToPage(page)
+                        }
+                    }
+                    Unit
+                }
+            }
         when {
             uiState.isLoading -> {
-                CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+                val loadingDescription = stringResource(R.string.loading)
+                CircularProgressIndicator(
+                    modifier =
+                        Modifier
+                            .align(Alignment.Center)
+                            .semantics { contentDescription = loadingDescription }
+                )
             }
             uiState.student == null -> {
                 EmptyStateMessage(
@@ -39,61 +64,48 @@ internal fun StudentDetailBody(
                 )
             }
             else -> {
-                val student = uiState.student
-                Column(
-                    modifier = Modifier.fillMaxSize(),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Column(
-                        modifier = Modifier.padding(16.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        Text(
-                            student.name,
-                            style = MaterialTheme.typography.headlineMedium
-                        )
-                        uiState.assignedClassName?.let { className ->
-                            Text(
-                                className,
-                                style = MaterialTheme.typography.bodyLarge
-                            )
-                        }
-                    }
-                    StudentDetailPageDots(
-                        currentPage = pagerState.currentPage,
-                        modifier = Modifier.padding(bottom = 12.dp)
-                    )
-                    HorizontalPager(
-                        state = pagerState,
-                        modifier = Modifier.fillMaxWidth().weight(1f)
-                    ) { page ->
-                        when (page) {
-                            0 ->
-                                AttendanceReportSection(
-                                    attendanceDates = uiState.allAttendanceDates,
-                                    selectedMonth = uiState.selectedMonth,
-                                    onMonthSelected = { month ->
-                                        onEvent(StudentDetailScreenEvent.SelectMonth(month))
-                                    },
-                                    onShare = {
-                                        onEvent(StudentDetailScreenEvent.ShareAttendanceReport)
-                                    },
-                                    modifier = Modifier.fillMaxSize()
-                                )
-
-                            else ->
-                                StudentScheduleSection(
-                                    uiState = uiState,
-                                    onEvent = onEvent,
-                                    modifier =
-                                        Modifier
-                                            .fillMaxSize()
-                                            .padding(horizontal = 16.dp)
-                                )
-                        }
-                    }
-                }
+                DetailContent(
+                    uiState = uiState,
+                    onEvent = onEvent,
+                    pagerState = pagerState,
+                    onTabSelected = onTabSelected,
+                    isLandscape = isLandscape
+                )
             }
         }
+    }
+}
+
+@Composable
+private fun DetailContent(
+    uiState: StudentDetailScreenState,
+    onEvent: (StudentDetailScreenEvent) -> Unit,
+    pagerState: PagerState,
+    onTabSelected: (Int) -> Unit,
+    isLandscape: Boolean,
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier = modifier.fillMaxSize(),
+        horizontalAlignment = Alignment.Start
+    ) {
+        StudentHeader(
+            studentName = uiState.student?.name.orEmpty(),
+            assignedClassName = uiState.assignedClassName,
+            presentCount = uiState.allAttendanceDates.size,
+            compact = isLandscape
+        )
+        DetailTabRow(
+            pagerState = pagerState,
+            onTabSelected = onTabSelected,
+            compact = isLandscape
+        )
+        DetailPager(
+            uiState = uiState,
+            onEvent = onEvent,
+            pagerState = pagerState,
+            landscape = isLandscape,
+            modifier = Modifier.fillMaxWidth().weight(1f)
+        )
     }
 }

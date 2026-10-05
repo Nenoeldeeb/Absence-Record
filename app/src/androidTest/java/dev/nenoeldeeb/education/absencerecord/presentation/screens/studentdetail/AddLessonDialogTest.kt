@@ -5,6 +5,7 @@ import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -102,7 +103,7 @@ class AddLessonDialogTest {
         )
 
         composeTestRule
-            .onNodeWithText(context.getString(R.string.assign_reason_hour_full))
+            .onNodeWithContentDescription(context.getString(R.string.assign_reason_hour_full))
             .assertIsDisplayed()
         composeTestRule.onNodeWithText("${time(540)} – ${time(600)}").performClick()
         composeTestRule.waitForIdle()
@@ -128,7 +129,7 @@ class AddLessonDialogTest {
         )
 
         composeTestRule
-            .onNodeWithText(context.getString(R.string.assign_reason_busy_conflict))
+            .onNodeWithContentDescription(context.getString(R.string.assign_reason_busy_conflict))
             .assertIsDisplayed()
         composeTestRule.onNodeWithText("${time(540)} – ${time(600)}").performClick()
         composeTestRule.waitForIdle()

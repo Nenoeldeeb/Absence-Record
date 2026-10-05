@@ -10,6 +10,8 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.key
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -32,8 +34,13 @@ internal fun StudentScheduleBusyTab(
     onAddBusy: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    // Filter+sort once per schedule/weekday change instead of on every recomposition.
     val busyAppointments =
-        schedule?.busy.orEmpty().filter { it.weekday == selectedWeekday }
+        remember(schedule, selectedWeekday) {
+            schedule?.busy.orEmpty()
+                .filter { it.weekday == selectedWeekday }
+                .sortedBy { it.startMinutes }
+        }
     Column(
         modifier = modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(8.dp)
@@ -45,12 +52,14 @@ internal fun StudentScheduleBusyTab(
                 color = MaterialTheme.colorScheme.outline
             )
         } else {
-            busyAppointments.sortedBy { it.startMinutes }.forEach { appointment ->
-                BusyRow(
-                    appointment = appointment,
-                    onEdit = { onEdit(appointment) },
-                    onDelete = { onDelete(appointment) }
-                )
+            busyAppointments.forEach { appointment ->
+                key(appointment.id) {
+                    BusyRow(
+                        appointment = appointment,
+                        onEdit = { onEdit(appointment) },
+                        onDelete = { onDelete(appointment) }
+                    )
+                }
             }
         }
         Button(onClick = onAddBusy) {
@@ -68,7 +77,11 @@ private fun BusyRow(
 ) {
     val endMinutes = appointment.startMinutes + appointment.durationMinutes
     val timeRange =
-        "${formatTime(appointment.startMinutes)} – ${formatTime(endMinutes)}"
+        stringResource(
+            R.string.time_range,
+            formatTime(appointment.startMinutes),
+            formatTime(endMinutes)
+        )
     Row(
         modifier = modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,

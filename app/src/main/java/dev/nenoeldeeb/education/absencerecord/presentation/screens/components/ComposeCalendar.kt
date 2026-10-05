@@ -21,7 +21,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -72,10 +72,15 @@ fun ComposeCalendar(
             initialMonth ?: today
         )
     }
-
-    val daysInMonth by remember(displayedMonth) {
-        derivedStateOf { calculateDaysInMonth(displayedMonth) }
+    LaunchedEffect(initialMonth) {
+        if (initialMonth != null &&
+            (initialMonth.year != displayedMonth.year || initialMonth.month != displayedMonth.month)
+        ) {
+            displayedMonth = initialMonth
+        }
     }
+
+    val daysInMonth = remember(displayedMonth) { calculateDaysInMonth(displayedMonth) }
 
     // Force LTR layout for calendar
     CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
@@ -151,68 +156,64 @@ private fun CalendarHeader(
     onNextMonth: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    // Force LTR layout for header
-    CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
-        val headerColor = MaterialTheme.colorScheme.onSurface
-        Row(
-            modifier = modifier,
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            IconButton(onClick = onPreviousMonth) {
-                Icon(
-                    ImageVector.vectorResource(id = R.drawable.outline_chevron_left_24),
-                    stringResource(R.string.previous_month),
-                    tint = headerColor
-                )
-            }
-            Text(
-                text = displayedMonth.toMonthYearUiText(fullName = true).asString(),
-                style = MaterialTheme.typography.titleMedium,
-                color = headerColor,
-                modifier = Modifier.semantics { heading() }
+    val headerColor = MaterialTheme.colorScheme.onSurface
+    Row(
+        modifier = modifier,
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        IconButton(onClick = onPreviousMonth) {
+            Icon(
+                ImageVector.vectorResource(id = R.drawable.outline_chevron_left_24),
+                stringResource(R.string.previous_month),
+                tint = headerColor
             )
-            IconButton(onClick = onNextMonth) {
-                Icon(
-                    ImageVector.vectorResource(id = R.drawable.outline_chevron_right_24),
-                    stringResource(R.string.next_month),
-                    tint = headerColor
-                )
-            }
+        }
+        Text(
+            text = displayedMonth.toMonthYearUiText(fullName = true).asString(),
+            style = MaterialTheme.typography.titleMedium,
+            color = headerColor,
+            modifier = Modifier.semantics { heading() }
+        )
+        IconButton(onClick = onNextMonth) {
+            Icon(
+                ImageVector.vectorResource(id = R.drawable.outline_chevron_right_24),
+                stringResource(R.string.next_month),
+                tint = headerColor
+            )
         }
     }
 }
 
 @Composable
 private fun DaysOfWeekHeader(modifier: Modifier = Modifier) {
-    // Force LTR layout for days header
-    CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
-        Row(
-            modifier = modifier,
-            horizontalArrangement = Arrangement.SpaceAround
-        ) {
-            // Use device locale for day names, starting from Saturday as per original logic
-            // If strict Sat-Fri order is needed regardless of locale, hardcode or adjust DayOfWeek.values()
-            val daysOfWeek =
-                rememberSaveable {
-                    // DayOfWeek enum starts with MONDAY. Adjust to start with Saturday for this calendar.
-                    val weekDays = DayOfWeek.entries.toTypedArray() // MONDAY to SUNDAY
-                    // Rotate to SATURDAY, SUNDAY, MONDAY ... FRIDAY
-                    weekDays.drop(DayOfWeek.SATURDAY.isoDayNumber - 1) + weekDays.take(DayOfWeek.SATURDAY.isoDayNumber - 1)
-                }
-
-            daysOfWeek.forEach { day ->
-                Text(
-                    text = day.toUiText(fullName = false).asString(),
-                    modifier = Modifier.weight(1f),
-                    softWrap = false,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                    textAlign = TextAlign.Center,
-                    style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
-                    color = MaterialTheme.colorScheme.onSurface
-                )
+    Row(
+        modifier = modifier,
+        horizontalArrangement = Arrangement.SpaceAround
+    ) {
+        // Use device locale for day names, starting from Saturday as per original logic
+        // If strict Sat-Fri order is needed regardless of locale, hardcode or adjust DayOfWeek.values()
+        // Static rotation: plain remember (no saver needed for DayOfWeek arrays).
+        val daysOfWeek =
+            remember {
+                // DayOfWeek enum starts with MONDAY. Adjust to start with Saturday for this calendar.
+                val weekDays = DayOfWeek.entries.toTypedArray() // MONDAY to SUNDAY
+                // Rotate to SATURDAY, SUNDAY, MONDAY ... FRIDAY
+                weekDays.drop(DayOfWeek.SATURDAY.isoDayNumber - 1) +
+                    weekDays.take(DayOfWeek.SATURDAY.isoDayNumber - 1)
             }
+
+        daysOfWeek.forEach { day ->
+            Text(
+                text = day.toUiText(fullName = false).asString(),
+                modifier = Modifier.weight(1f),
+                softWrap = false,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                textAlign = TextAlign.Center,
+                style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
+                color = MaterialTheme.colorScheme.onSurface
+            )
         }
     }
 }
@@ -226,50 +227,51 @@ private fun CalendarGrid(
     interactive: Boolean = true,
     modifier: Modifier = Modifier
 ) {
-    // Force LTR layout for calendar grid
-    CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
-        LazyVerticalGrid(
-            columns = GridCells.Fixed(7),
-            // Removed horizontalArrangement and verticalArrangement, defaults are fine
-            modifier = modifier
-        ) {
-            items(
-                days.size,
-                key = { index -> days[index]?.toString() ?: "empty-$index" }
-            ) { index ->
+    LazyVerticalGrid(
+        columns = GridCells.Fixed(7),
+        // Removed horizontalArrangement and verticalArrangement, defaults are fine
+        modifier = modifier
+    ) {
+        items(
+            days.size,
+            // Int key avoids per-item String allocation on every recomposition.
+            key = { index ->
                 val day = days[index]
-                val isToday = day == today
-                val isMarked = day != null && markedDates.contains(day)
-                val contentDescription =
-                    if (day != null) {
-                        val dayLabel = day.day.toString()
-                        when {
-                            isMarked && isToday ->
-                                stringResource(R.string.calendar_date_present_today, dayLabel)
-                            isMarked ->
-                                stringResource(R.string.calendar_date_present, dayLabel)
-                            isToday ->
-                                stringResource(R.string.calendar_date_today, dayLabel)
-                            else -> stringResource(R.string.calendar_date, dayLabel)
-                        }
-                    } else {
-                        ""
-                    }
-                DayCell(
-                    day = day,
-                    isCurrentDay = isToday,
-                    isMarked = isMarked,
-                    onDateSelected = onDateSelected,
-                    description = contentDescription,
-                    interactive = interactive,
-                    modifier =
-                        Modifier
-                            .aspectRatio(1f)
-                            .padding(2.dp)
-                            .sizeIn(minWidth = 48.dp, minHeight = 48.dp)
-                            .clip(CircleShape)
-                )
+                day?.toEpochDays() ?: (Int.MIN_VALUE + index)
             }
+        ) { index ->
+            val day = days[index]
+            val isToday = day == today
+            val isMarked = day != null && markedDates.contains(day)
+            val contentDescription =
+                if (day != null) {
+                    val dayLabel = day.day.toString()
+                    when {
+                        isMarked && isToday ->
+                            stringResource(R.string.calendar_date_present_today, dayLabel)
+                        isMarked ->
+                            stringResource(R.string.calendar_date_present, dayLabel)
+                        isToday ->
+                            stringResource(R.string.calendar_date_today, dayLabel)
+                        else -> stringResource(R.string.calendar_date, dayLabel)
+                    }
+                } else {
+                    ""
+                }
+            DayCell(
+                day = day,
+                isCurrentDay = isToday,
+                isMarked = isMarked,
+                onDateSelected = onDateSelected,
+                description = contentDescription,
+                interactive = interactive,
+                modifier =
+                    Modifier
+                        .aspectRatio(1f)
+                        .padding(2.dp)
+                        .sizeIn(minWidth = 48.dp, minHeight = 48.dp)
+                        .clip(CircleShape)
+            )
         }
     }
 }
