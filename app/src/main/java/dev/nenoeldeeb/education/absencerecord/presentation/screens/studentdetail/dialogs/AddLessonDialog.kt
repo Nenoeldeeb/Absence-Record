@@ -52,6 +52,12 @@ internal fun AddLessonDialog(
         remember(hours, busyAppointments) {
             hours.associate { hour -> hour.hour.id to hour.isEligible(busyAppointments) }
         }
+    // Busy overlap is tracked separately so conflict styling takes priority
+    // over full styling when both apply.
+    val busyOverlap =
+        remember(hours, busyAppointments) {
+            hours.associate { hour -> hour.hour.id to hour.hasBusyOverlap(busyAppointments) }
+        }
     // Eligibility check is O(1) lookup; recompute only when its inputs change.
     val selectedIsEligible =
         remember(eligibility, selectedHourId) {
@@ -77,16 +83,18 @@ internal fun AddLessonDialog(
                     )
                     sortedHours.forEach { hour ->
                         val eligible = eligibility[hour.hour.id] == true
+                        val hasOverlap = busyOverlap[hour.hour.id] == true
                         val statusDescriptionResId =
                             when {
+                                hasOverlap -> R.string.assign_reason_busy_conflict
                                 hour.remainingSlots <= 0 -> R.string.assign_reason_hour_full
-                                !eligible -> R.string.assign_reason_busy_conflict
                                 else -> null
                             }
                         HourOptionRow(
                             hour = hour,
                             selected = selectedHourId == hour.hour.id,
                             enabled = eligible,
+                            hasBusyOverlap = hasOverlap,
                             statusDescriptionResId = statusDescriptionResId,
                             onClick = { onHourSelected(hour.hour.id) }
                         )
@@ -116,44 +124,47 @@ internal fun AddLessonDialog(
 }
 
 private fun HourWithOccupancy.isEligible(busyAppointments: List<BusyAppointment>): Boolean =
-    remainingSlots > 0 &&
-        busyAppointments.none { busy ->
-            ScheduleRules.overlaps(
-                hour.startMinutes,
-                endMinutes,
-                busy.startMinutes,
-                busy.startMinutes + busy.durationMinutes
-            )
-        }
+    remainingSlots > 0 && !hasBusyOverlap(busyAppointments)
+
+private fun HourWithOccupancy.hasBusyOverlap(busyAppointments: List<BusyAppointment>): Boolean =
+    busyAppointments.any { busy ->
+        ScheduleRules.overlaps(
+            hour.startMinutes,
+            endMinutes,
+            busy.startMinutes,
+            busy.startMinutes + busy.durationMinutes
+        )
+    }
 
 @Composable
 private fun HourOptionRow(
     hour: HourWithOccupancy,
     selected: Boolean,
     enabled: Boolean,
+    hasBusyOverlap: Boolean,
     @StringRes statusDescriptionResId: Int?,
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val isConflict = hasBusyOverlap
     val isFull = hour.remainingSlots <= 0
-    val isConflict = !enabled && !isFull
     val colorScheme = MaterialTheme.colorScheme
     val titleColor =
         when {
-            isFull -> colorScheme.error
             isConflict -> colorScheme.outline
+            isFull -> colorScheme.error
             else -> colorScheme.onTertiaryContainer
         }
     val secondaryColor =
         when {
-            isFull -> colorScheme.error
             isConflict -> colorScheme.outline
+            isFull -> colorScheme.error
             else -> colorScheme.onTertiaryContainer
         }
     val iconTint =
         when {
-            isFull -> colorScheme.error
             isConflict -> colorScheme.outline
+            isFull -> colorScheme.error
             else -> colorScheme.onTertiaryContainer
         }
     val timeRange =
@@ -222,16 +233,16 @@ private fun HourOptionRow(
             }
         }
         when {
-            isFull -> {
+            isConflict -> {
                 Icon(
-                    imageVector = ImageVector.vectorResource(R.drawable.outline_close_24),
+                    imageVector = ImageVector.vectorResource(R.drawable.outline_schedule_24),
                     contentDescription = statusDescription,
                     tint = iconTint
                 )
             }
-            isConflict -> {
+            isFull -> {
                 Icon(
-                    imageVector = ImageVector.vectorResource(R.drawable.outline_schedule_24),
+                    imageVector = ImageVector.vectorResource(R.drawable.outline_close_24),
                     contentDescription = statusDescription,
                     tint = iconTint
                 )
