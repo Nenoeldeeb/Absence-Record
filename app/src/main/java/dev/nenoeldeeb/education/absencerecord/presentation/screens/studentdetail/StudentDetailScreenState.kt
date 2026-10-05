@@ -3,6 +3,7 @@ package dev.nenoeldeeb.education.absencerecord.presentation.screens.studentdetai
 import android.net.Uri
 import androidx.compose.runtime.Stable
 import dev.nenoeldeeb.education.absencerecord.domain.models.BusyAppointment
+import dev.nenoeldeeb.education.absencerecord.domain.models.DeletedStudentBackup
 import dev.nenoeldeeb.education.absencerecord.domain.models.HourWithOccupancy
 import dev.nenoeldeeb.education.absencerecord.domain.models.Student
 import dev.nenoeldeeb.education.absencerecord.domain.models.StudentClass
@@ -34,6 +35,12 @@ data class StudentDetailScreenState(
     val isEditNameDialogOpen: Boolean = false,
     val isChangeClassDialogOpen: Boolean = false,
     val isDeleteConfirmationDialogOpen: Boolean = false,
+    val deletedStudentBackup: DeletedStudentBackup? = null,
+    val deletedStudentLessons: List<StudentLessonEntry> = emptyList(),
+    val deletedStudentBusy: List<BusyAppointment> = emptyList(),
+    val deletedLesson: StudentLessonEntry? = null,
+    val deletedLessonHourId: Int? = null,
+    val deletedBusy: BusyAppointment? = null,
     val isLoading: Boolean = true,
     val error: UiText? = null,
     val toastMessage: UiText? = null,

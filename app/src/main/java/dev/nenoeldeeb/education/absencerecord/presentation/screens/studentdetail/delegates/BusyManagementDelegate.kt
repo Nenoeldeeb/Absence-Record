@@ -78,13 +78,44 @@ class BusyManagementDelegate(
         performBusySave(state)
     }
 
-    fun deleteBusyAppointment(id: Int) {
+    fun deleteBusyAppointment(
+        state: StudentDetailScreenState,
+        id: Int
+    ) {
+        val appointment =
+            state.studentSchedule?.busy?.firstOrNull { it.id == id }
         scope.launch {
             scheduleUseCases.deleteBusyAppointmentUseCase(id)
+                .onSuccess {
+                    if (appointment != null) {
+                        updateState { it.copy(deletedBusy = appointment) }
+                    }
+                }
                 .onFailure { e ->
                     updateState { it.copy(error = e.toUiText(), toastMessage = null) }
                 }
         }
+    }
+
+    fun undoDeleteBusy(state: StudentDetailScreenState) {
+        val appointment = state.deletedBusy ?: return
+        val studentId = state.student?.id ?: appointment.studentId
+        updateState { it.copy(deletedBusy = null) }
+        scope.launch {
+            scheduleUseCases.insertBusyAppointmentUseCase(
+                studentId,
+                appointment.weekday,
+                appointment.startMinutes,
+                appointment.durationMinutes
+            )
+                .onFailure { e ->
+                    updateState { it.copy(error = e.toUiText()) }
+                }
+        }
+    }
+
+    fun consumeDeletedBusy() {
+        updateState { it.copy(deletedBusy = null) }
     }
 
     private fun performBusySave(state: StudentDetailScreenState) {
