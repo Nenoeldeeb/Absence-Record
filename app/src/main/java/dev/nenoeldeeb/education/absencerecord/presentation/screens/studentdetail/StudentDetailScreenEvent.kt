@@ -54,6 +54,18 @@ sealed interface StudentDetailScreenEvent {
 
     data class DeleteBusyAppointment(val id: Int) : StudentDetailScreenEvent
 
+    data object UndoUnassignLesson : StudentDetailScreenEvent
+
+    data object ConsumeDeletedLesson : StudentDetailScreenEvent
+
+    data object UndoDeleteBusy : StudentDetailScreenEvent
+
+    data object ConsumeDeletedBusy : StudentDetailScreenEvent
+
+    data object UndoDeleteStudent : StudentDetailScreenEvent
+
+    data object DismissDeletedStudent : StudentDetailScreenEvent
+
     data object ConsumeError : StudentDetailScreenEvent
 
     data object ConsumeToastMessage : StudentDetailScreenEvent

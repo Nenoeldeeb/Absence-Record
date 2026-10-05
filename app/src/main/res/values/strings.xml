@@ -355,5 +355,8 @@
     <string name="student_detail_busy_conflict_title">Overlapping lessons</string>
     <string name="student_detail_busy_conflict_message">This busy appointment overlaps these lessons, which will be removed:</string>
     <string name="student_detail_busy_conflict_confirm">Remove lessons and save</string>
+    <string name="student_detail_lesson_unassigned">Lesson unassigned</string>
+    <string name="student_detail_busy_deleted">Busy appointment deleted</string>
+    <string name="student_detail_student_deleted">Student deleted</string>
     <string name="student_detail_tab_count_format">(%1$d)</string>
 </resources>
