@@ -3,12 +3,12 @@
 package dev.nenoeldeeb.education.absencerecord.presentation.screens.studentdetail
 
 import android.content.Intent
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -23,7 +23,8 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
-import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.text.style.TextDirection
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import dev.nenoeldeeb.education.absencerecord.R
@@ -77,7 +78,7 @@ fun StudentDetailScreen(
                         )
                     )
                 }
-            viewModel.onEvent(
+            onEvent(
                 StudentDetailScreenEvent.ShareFileResult(
                     uri = uri,
                     error =
@@ -100,42 +101,41 @@ fun StudentDetailScreen(
         }
     }
 
+    val onEditName = remember(onEvent) { { onEvent(StudentDetailScreenEvent.ToggleEditNameDialog) } }
+    val onChangeClass =
+        remember(onEvent) { { onEvent(StudentDetailScreenEvent.ToggleChangeClassDialog) } }
+    val onDeleteStudent =
+        remember(onEvent) { { onEvent(StudentDetailScreenEvent.ToggleDeleteConfirmationDialog) } }
     Scaffold(
         modifier = modifier,
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         topBar = {
             StudentDetailTopBar(
-                title = uiState.student?.name ?: stringResource(R.string.student_detail_title_placeholder),
+                studentFirstName = studentFirstName,
                 hasStudent = uiState.student != null,
                 onBack = onNavigateBack,
-                onEditName = {
-                    viewModel.onEvent(StudentDetailScreenEvent.ToggleEditNameDialog)
-                },
-                onChangeClass = {
-                    viewModel.onEvent(StudentDetailScreenEvent.ToggleChangeClassDialog)
-                },
-                onDelete = {
-                    viewModel.onEvent(StudentDetailScreenEvent.ToggleDeleteConfirmationDialog)
-                }
+                onEditName = onEditName,
+                onChangeClass = onChangeClass,
+                onDelete = onDeleteStudent
             )
         }
     ) { paddingValues ->
         StudentDetailBody(
             uiState = uiState,
-            onEvent = viewModel::onEvent,
+            onEvent = onEvent,
             modifier = Modifier.fillMaxSize().padding(paddingValues)
         )
     }
 
     StudentDetailDialogs(
         uiState = uiState,
-        onEvent = viewModel::onEvent
+        onEvent = onEvent
     )
 }
 
 @Composable
-private fun StudentDetailTopBar(
-    title: String,
+internal fun StudentDetailTopBar(
+    studentFirstName: String?,
     hasStudent: Boolean,
     onBack: () -> Unit,
     onEditName: () -> Unit,
@@ -144,19 +144,14 @@ private fun StudentDetailTopBar(
 ) {
     TopAppBar(
         title = {
-            val editNameActionLabel = stringResource(R.string.student_detail_edit_name_title)
             Text(
-                text = title,
-                modifier =
-                    if (hasStudent) {
-                        Modifier.clickable(
-                            role = Role.Button,
-                            onClickLabel = editNameActionLabel,
-                            onClick = onEditName
-                        )
-                    } else {
-                        Modifier
-                    }
+                text = studentFirstName ?: stringResource(R.string.student_detail_title_placeholder),
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                style =
+                    MaterialTheme.typography.titleLarge.copy(
+                        textDirection = TextDirection.Content
+                    )
             )
         },
         navigationIcon = {
@@ -184,11 +179,9 @@ private fun StudentDetailTopBar(
                 IconButton(onClick = onChangeClass) {
                     Icon(
                         imageVector =
-                            ImageVector.vectorResource(R.drawable.outline_filter_24),
+                            ImageVector.vectorResource(R.drawable.outline_swap_horiz_24),
                         contentDescription =
-                            stringResource(
-                                R.string.student_detail_change_class_icon_description
-                            )
+                            stringResource(R.string.student_detail_change_class_icon_description)
                     )
                 }
                 IconButton(onClick = onDelete) {
@@ -196,9 +189,8 @@ private fun StudentDetailTopBar(
                         imageVector =
                             ImageVector.vectorResource(R.drawable.outline_delete_24),
                         contentDescription =
-                            stringResource(
-                                R.string.student_detail_delete_icon_description
-                            )
+                            stringResource(R.string.student_detail_delete_icon_description),
+                        tint = MaterialTheme.colorScheme.error
                     )
                 }
             }

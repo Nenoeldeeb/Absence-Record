@@ -4,22 +4,29 @@ import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextDirection
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import dev.nenoeldeeb.education.absencerecord.R
 import dev.nenoeldeeb.education.absencerecord.domain.models.BusyAppointment
@@ -37,6 +44,19 @@ internal fun AddLessonDialog(
     onDismiss: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    // Sort once per hours change; the dialog recomposes on every radio selection.
+    val sortedHours = remember(hours) { hours.sortedBy { it.hour.startMinutes } }
+    // Eligibility is O(hours x busy): memoize per inputs so each radio tap is an
+    // O(1) lookup instead of re-scanning every row.
+    val eligibility =
+        remember(hours, busyAppointments) {
+            hours.associate { hour -> hour.hour.id to hour.isEligible(busyAppointments) }
+        }
+    // Eligibility check is O(1) lookup; recompute only when its inputs change.
+    val selectedIsEligible =
+        remember(eligibility, selectedHourId) {
+            eligibility[selectedHourId] == true
+        }
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text(stringResource(R.string.student_detail_add_lesson_title)) },
@@ -49,15 +69,15 @@ internal fun AddLessonDialog(
                         Modifier
                             .fillMaxWidth()
                             .verticalScroll(rememberScrollState()),
-                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     Text(
                         text = stringResource(R.string.student_detail_select_hour),
                         style = MaterialTheme.typography.labelLarge
                     )
-                    hours.sortedBy { it.hour.startMinutes }.forEach { hour ->
-                        val eligible = hour.isEligible(busyAppointments)
-                        val reasonResId =
+                    sortedHours.forEach { hour ->
+                        val eligible = eligibility[hour.hour.id] == true
+                        val statusDescriptionResId =
                             when {
                                 hour.remainingSlots <= 0 -> R.string.assign_reason_hour_full
                                 !eligible -> R.string.assign_reason_busy_conflict
@@ -67,7 +87,7 @@ internal fun AddLessonDialog(
                             hour = hour,
                             selected = selectedHourId == hour.hour.id,
                             enabled = eligible,
-                            reasonResId = reasonResId,
+                            statusDescriptionResId = statusDescriptionResId,
                             onClick = { onHourSelected(hour.hour.id) }
                         )
                     }
@@ -75,14 +95,19 @@ internal fun AddLessonDialog(
             }
         },
         confirmButton = {
-            val selectedIsEligible =
-                hours.any { it.hour.id == selectedHourId && it.isEligible(busyAppointments) }
-            TextButton(onClick = onConfirm, enabled = selectedIsEligible) {
+            TextButton(
+                onClick = onConfirm,
+                enabled = selectedIsEligible,
+                modifier = Modifier.defaultMinSize(minHeight = 48.dp)
+            ) {
                 Text(stringResource(R.string.action_save))
             }
         },
         dismissButton = {
-            TextButton(onClick = onDismiss) {
+            TextButton(
+                onClick = onDismiss,
+                modifier = Modifier.defaultMinSize(minHeight = 48.dp)
+            ) {
                 Text(stringResource(R.string.action_cancel))
             }
         },
@@ -90,7 +115,6 @@ internal fun AddLessonDialog(
     )
 }
 
-@Composable
 private fun HourWithOccupancy.isEligible(busyAppointments: List<BusyAppointment>): Boolean =
     remainingSlots > 0 &&
         busyAppointments.none { busy ->
@@ -107,18 +131,41 @@ private fun HourOptionRow(
     hour: HourWithOccupancy,
     selected: Boolean,
     enabled: Boolean,
-    @StringRes reasonResId: Int?,
+    @StringRes statusDescriptionResId: Int?,
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val isFull = hour.remainingSlots <= 0
+    val isConflict = !enabled && !isFull
+    val colorScheme = MaterialTheme.colorScheme
+    val titleColor =
+        when {
+            isFull -> colorScheme.error
+            isConflict -> colorScheme.outline
+            else -> colorScheme.onTertiaryContainer
+        }
+    val secondaryColor =
+        when {
+            isFull -> colorScheme.error
+            isConflict -> colorScheme.outline
+            else -> colorScheme.onTertiaryContainer
+        }
+    val iconTint =
+        when {
+            isFull -> colorScheme.error
+            isConflict -> colorScheme.outline
+            else -> colorScheme.onTertiaryContainer
+        }
     val timeRange =
         stringResource(R.string.time_range, formatTime(hour.hour.startMinutes), formatTime(hour.endMinutes))
     val occupancy =
         stringResource(R.string.schedule_occupancy, hour.assignedCount, hour.maxStudents)
+    val statusDescription = statusDescriptionResId?.let { stringResource(it) }
     Row(
         modifier =
             modifier
                 .fillMaxWidth()
+                .defaultMinSize(minHeight = 48.dp)
                 .selectable(
                     selected = selected,
                     onClick = onClick,
@@ -127,36 +174,75 @@ private fun HourOptionRow(
                 )
                 .padding(vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(12.dp)
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         RadioButton(
             selected = selected,
             onClick = null,
             enabled = enabled
         )
-        Column(modifier = Modifier.weight(1f)) {
+        Column(
+            modifier = Modifier.weight(1f),
+            verticalArrangement = Arrangement.spacedBy(4.dp)
+        ) {
             Text(
-                timeRange,
+                text = timeRange,
+                maxLines = 1,
+                softWrap = false,
+                overflow = TextOverflow.Ellipsis,
                 style =
-                    MaterialTheme.typography.bodyMedium.copy(
-                        textDirection = TextDirection.Ltr
-                    )
-            )
-            Text(
-                text = occupancy,
-                style =
-                    MaterialTheme.typography.labelMedium.copy(
+                    MaterialTheme.typography.titleMedium.copy(
                         textDirection = TextDirection.Ltr
                     ),
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = titleColor
             )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(4.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(
+                    imageVector = ImageVector.vectorResource(R.drawable.outline_person_24),
+                    contentDescription = null,
+                    tint = secondaryColor,
+                    modifier = Modifier.size(16.dp)
+                )
+                Text(
+                    text = occupancy,
+                    maxLines = 1,
+                    softWrap = false,
+                    overflow = TextOverflow.Ellipsis,
+                    style =
+                        MaterialTheme.typography.bodyMedium.copy(
+                            textDirection = TextDirection.Ltr
+                        ),
+                    color = secondaryColor,
+                    modifier = Modifier.weight(1f, fill = false)
+                )
+            }
         }
-        reasonResId?.let { resId ->
-            Text(
-                text = stringResource(resId),
-                style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.outline
-            )
+        when {
+            isFull -> {
+                Icon(
+                    imageVector = ImageVector.vectorResource(R.drawable.outline_close_24),
+                    contentDescription = statusDescription,
+                    tint = iconTint
+                )
+            }
+            isConflict -> {
+                Icon(
+                    imageVector = ImageVector.vectorResource(R.drawable.outline_schedule_24),
+                    contentDescription = statusDescription,
+                    tint = iconTint
+                )
+            }
+            else -> {
+                Icon(
+                    imageVector = ImageVector.vectorResource(R.drawable.outline_check_24),
+                    contentDescription = null,
+                    tint = iconTint
+                )
+            }
         }
     }
 }

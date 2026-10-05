@@ -1,10 +1,16 @@
 package dev.nenoeldeeb.education.absencerecord.presentation.screens.studentdetail
 
+import androidx.compose.ui.test.assertHasNoClickAction
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertIsEnabled
+import androidx.compose.ui.test.assertIsNotDisplayed
+import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollTo
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import dev.nenoeldeeb.education.absencerecord.R
@@ -50,7 +56,7 @@ class AttendanceReportSectionTest {
     }
 
     @Test
-    fun calendarIsShownEvenWhenNoMarkedDates() {
+    fun emptyState_hidesCalendar_disablesShare() {
         composeTestRule.setContent {
             AbsenceRecordTheme {
                 AttendanceReportSection(
@@ -62,8 +68,11 @@ class AttendanceReportSectionTest {
             }
         }
 
-        composeTestRule.onNodeWithText(getString(R.string.day_short_saturday)).assertIsDisplayed()
         composeTestRule.onNodeWithText(getString(R.string.no_attendance_records)).assertIsDisplayed()
+        composeTestRule.onNodeWithText(getString(R.string.day_short_saturday)).assertIsNotDisplayed()
+        composeTestRule
+            .onNodeWithContentDescription(getString(R.string.student_detail_share))
+            .assertIsNotEnabled()
     }
 
     @Test
@@ -77,7 +86,7 @@ class AttendanceReportSectionTest {
                             LocalDate(2023, 1, 20),
                             LocalDate(2023, 2, 3)
                         ),
-                    selectedMonth = null,
+                    selectedMonth = LocalDate(2023, 2, 1),
                     onMonthSelected = {},
                     onShare = {}
                 )
@@ -86,14 +95,75 @@ class AttendanceReportSectionTest {
 
         openMonthSelector()
 
+        composeTestRule.onNodeWithText(monthYear(2023, R.string.month_february)).performScrollTo()
         composeTestRule.onNodeWithText(monthYear(2023, R.string.month_february)).assertIsDisplayed()
+        composeTestRule.onNodeWithText(monthYear(2023, R.string.month_january)).performScrollTo()
         composeTestRule.onNodeWithText(monthYear(2023, R.string.month_january)).assertIsDisplayed()
         composeTestRule
             .onNodeWithText(getQuantityString(R.plurals.present_days_count, 1, 1))
             .assertIsDisplayed()
+    }
+
+    @Test
+    fun monthDropdown_hidesZeroCountMonthsInRange() {
+        composeTestRule.setContent {
+            AbsenceRecordTheme {
+                AttendanceReportSection(
+                    attendanceDates = listOf(LocalDate(2023, 1, 15)),
+                    selectedMonth = LocalDate(2023, 1, 1),
+                    onMonthSelected = {},
+                    onShare = {}
+                )
+            }
+        }
+
+        openMonthSelector()
+
+        composeTestRule.onNodeWithText(monthYear(2023, R.string.month_january)).performScrollTo()
+        composeTestRule.onNodeWithText(monthYear(2023, R.string.month_january)).assertIsDisplayed()
+        assertTrue(
+            "Expected no zero-count month in the dropdown",
+            composeTestRule
+                .onAllNodesWithText(getQuantityString(R.plurals.present_days_count, 0, 0))
+                .fetchSemanticsNodes()
+                .isEmpty()
+        )
+    }
+
+    @Test
+    fun share_disabledWhenDisplayMonthHasNoRecords() {
+        composeTestRule.setContent {
+            AbsenceRecordTheme {
+                AttendanceReportSection(
+                    attendanceDates = listOf(LocalDate(2023, 1, 15)),
+                    selectedMonth = LocalDate(2023, 2, 1),
+                    onMonthSelected = {},
+                    onShare = {}
+                )
+            }
+        }
+
         composeTestRule
-            .onNodeWithText(getQuantityString(R.plurals.present_days_count, 2, 2))
-            .assertIsDisplayed()
+            .onNodeWithContentDescription(getString(R.string.student_detail_share))
+            .assertIsNotEnabled()
+    }
+
+    @Test
+    fun share_enabledWhenDisplayMonthHasRecords() {
+        composeTestRule.setContent {
+            AbsenceRecordTheme {
+                AttendanceReportSection(
+                    attendanceDates = listOf(LocalDate(2023, 1, 15)),
+                    selectedMonth = LocalDate(2023, 1, 1),
+                    onMonthSelected = {},
+                    onShare = {}
+                )
+            }
+        }
+
+        composeTestRule
+            .onNodeWithContentDescription(getString(R.string.student_detail_share))
+            .assertIsEnabled()
     }
 
     @Test
@@ -109,7 +179,7 @@ class AttendanceReportSectionTest {
                             LocalDate(2023, 1, 20),
                             LocalDate(2023, 2, 3)
                         ),
-                    selectedMonth = null,
+                    selectedMonth = LocalDate(2023, 2, 1),
                     onMonthSelected = { month -> selectedMonth = month },
                     onShare = {}
                 )
@@ -120,6 +190,9 @@ class AttendanceReportSectionTest {
 
         val januaryLabel = monthYear(2023, R.string.month_january)
         val twoDaysLabel = getQuantityString(R.plurals.present_days_count, 2, 2)
+        composeTestRule
+            .onNodeWithContentDescription("$januaryLabel, $twoDaysLabel")
+            .performScrollTo()
         composeTestRule
             .onNodeWithContentDescription("$januaryLabel, $twoDaysLabel")
             .performClick()
@@ -138,8 +211,8 @@ class AttendanceReportSectionTest {
         composeTestRule.setContent {
             AbsenceRecordTheme {
                 AttendanceReportSection(
-                    attendanceDates = emptyList(),
-                    selectedMonth = null,
+                    attendanceDates = listOf(LocalDate(2023, 1, 15)),
+                    selectedMonth = LocalDate(2023, 1, 1),
                     onMonthSelected = {},
                     onShare = { shared = true }
                 )
@@ -151,5 +224,27 @@ class AttendanceReportSectionTest {
             .performClick()
 
         assertTrue("Expected onShare to be invoked", shared)
+    }
+
+    @Test
+    fun deadCalendar_daysAreNotClickable() {
+        composeTestRule.setContent {
+            AbsenceRecordTheme {
+                AttendanceReportSection(
+                    attendanceDates = listOf(LocalDate(2023, 1, 15)),
+                    selectedMonth = LocalDate(2023, 1, 1),
+                    onMonthSelected = {},
+                    onShare = {}
+                )
+            }
+        }
+
+        composeTestRule
+            .onNodeWithContentDescription(
+                getString(R.string.calendar_date_present, "15"),
+                substring = false
+            )
+            .assertIsDisplayed()
+            .assertHasNoClickAction()
     }
 }

@@ -1,6 +1,7 @@
 package dev.nenoeldeeb.education.absencerecord.presentation.screens.studentdetail.components
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.studentdetail.StudentDetailScreenEvent
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.studentdetail.StudentDetailScreenState
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.studentdetail.dialogs.AddLessonDialog
@@ -52,9 +53,13 @@ internal fun StudentDetailDialogs(
     }
 
     if (uiState.isAddLessonDialogOpen) {
+        // Filter once per schedule/weekday change; the dialog recomposes on every
+        // hour selection while open.
         val weekdayBusy =
-            uiState.studentSchedule?.busy.orEmpty()
-                .filter { it.weekday == uiState.selectedScheduleWeekday }
+            remember(uiState.studentSchedule, uiState.selectedScheduleWeekday) {
+                uiState.studentSchedule?.busy.orEmpty()
+                    .filter { it.weekday == uiState.selectedScheduleWeekday }
+            }
         AddLessonDialog(
             hours = uiState.hoursForWeekday,
             busyAppointments = weekdayBusy,
