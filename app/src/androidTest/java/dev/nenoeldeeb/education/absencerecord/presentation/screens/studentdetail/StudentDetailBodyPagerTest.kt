@@ -6,11 +6,14 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertIsNotSelected
+import androidx.compose.ui.test.assertIsSelected
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.onRoot
+import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTouchInput
 import androidx.compose.ui.test.swipeLeft
 import androidx.compose.ui.test.swipeRight
@@ -33,13 +36,14 @@ class StudentDetailBodyPagerTest {
 
     private val context = InstrumentationRegistry.getInstrumentation().targetContext
     private val studentName = "Pager Test Student"
+    private val className = "Grade 1"
 
     private fun getString(resId: Int): String = context.getString(resId)
 
     private fun aState(): StudentDetailScreenState =
         StudentDetailScreenState().copy(
             student = Student(id = 1, name = studentName, classId = null),
-            assignedClassName = "Grade 1",
+            assignedClassName = className,
             selectedScheduleWeekday = DayOfWeek.SATURDAY,
             selectedScheduleTab = StudentScheduleTab.Lessons,
             isLoading = false
@@ -66,40 +70,80 @@ class StudentDetailBodyPagerTest {
     }
 
     @Test
-    fun pager_startsOnAttendance_swipesBetweenPages_headerPinned_dotsReflectPage() {
+    fun pager_startsOnAttendance_swipesBetweenPages_headerPinned_tabsReflectPage() {
         lateinit var pagerState: PagerState
         setBody { pagerState = it }
         composeTestRule.waitForIdle()
 
         assertEquals(0, pagerState.currentPage)
-        composeTestRule.onNodeWithText(studentName).assertIsDisplayed()
+        composeTestRule.onNodeWithText(className).assertIsDisplayed()
         composeTestRule
             .onNodeWithContentDescription(getString(R.string.student_detail_share))
             .assertIsDisplayed()
-        composeTestRule.onNodeWithTag("detail_page_dot_0").assertIsDisplayed()
-        composeTestRule.onNodeWithTag("detail_page_dot_1").assertIsDisplayed()
+        composeTestRule
+            .onNodeWithText(getString(R.string.student_detail_tab_attendance))
+            .assertIsDisplayed()
+            .assertIsSelected()
+        composeTestRule
+            .onNodeWithText(getString(R.string.student_detail_tab_schedule))
+            .assertIsDisplayed()
+            .assertIsNotSelected()
 
         swipeToSchedule(pagerState)
 
         assertEquals(1, pagerState.currentPage)
-        composeTestRule.onNodeWithText(studentName).assertIsDisplayed()
+        composeTestRule.onNodeWithText(className).assertIsDisplayed()
         composeTestRule
             .onNodeWithText(getString(R.string.student_schedule_title))
             .assertIsDisplayed()
-        composeTestRule.onNodeWithTag("detail_page_dot_1").assertIsDisplayed()
-        composeTestRule.onNodeWithTag("detail_page_dot_0").assertIsDisplayed()
+        composeTestRule
+            .onNodeWithText(getString(R.string.student_detail_tab_schedule))
+            .assertIsSelected()
+        composeTestRule
+            .onNodeWithText(getString(R.string.student_detail_tab_attendance))
+            .assertIsNotSelected()
 
         composeTestRule.onRoot().performTouchInput { swipeRight() }
         composeTestRule.waitUntil(timeoutMillis = 5_000) { pagerState.currentPage == 0 }
         composeTestRule.waitForIdle()
 
         assertEquals(0, pagerState.currentPage)
-        composeTestRule.onNodeWithText(studentName).assertIsDisplayed()
+        composeTestRule.onNodeWithText(className).assertIsDisplayed()
         composeTestRule
             .onNodeWithContentDescription(getString(R.string.student_detail_share))
             .assertIsDisplayed()
-        composeTestRule.onNodeWithTag("detail_page_dot_0").assertIsDisplayed()
-        composeTestRule.onNodeWithTag("detail_page_dot_1").assertIsDisplayed()
+        composeTestRule
+            .onNodeWithText(getString(R.string.student_detail_tab_attendance))
+            .assertIsSelected()
+    }
+
+    @Test
+    fun pager_tabsClick_navigatesBetweenPages() {
+        lateinit var pagerState: PagerState
+        setBody { pagerState = it }
+        composeTestRule.waitForIdle()
+
+        composeTestRule
+            .onNodeWithText(getString(R.string.student_detail_tab_schedule))
+            .performClick()
+        composeTestRule.waitUntil(timeoutMillis = 5_000) { pagerState.currentPage == 1 }
+        composeTestRule.waitForIdle()
+
+        assertEquals(1, pagerState.currentPage)
+        composeTestRule
+            .onNodeWithText(getString(R.string.student_schedule_title))
+            .assertIsDisplayed()
+
+        composeTestRule
+            .onNodeWithText(getString(R.string.student_detail_tab_attendance))
+            .performClick()
+        composeTestRule.waitUntil(timeoutMillis = 5_000) { pagerState.currentPage == 0 }
+        composeTestRule.waitForIdle()
+
+        assertEquals(0, pagerState.currentPage)
+        composeTestRule
+            .onNodeWithContentDescription(getString(R.string.student_detail_share))
+            .assertIsDisplayed()
     }
 
     @Test
@@ -134,8 +178,29 @@ class StudentDetailBodyPagerTest {
         composeTestRule
             .onNodeWithContentDescription(getString(R.string.student_detail_share))
             .assertIsDisplayed()
-        composeTestRule.onNodeWithTag("detail_page_dot_0").assertIsDisplayed()
-        composeTestRule.onNodeWithTag("detail_page_dot_1").assertIsDisplayed()
+        composeTestRule
+            .onNodeWithText(getString(R.string.student_detail_tab_attendance))
+            .assertIsDisplayed()
+        composeTestRule
+            .onNodeWithText(getString(R.string.student_detail_tab_schedule))
+            .assertIsDisplayed()
+    }
+
+    @Test
+    fun body_showsClassLabel_whenAssigned_andUnassignedLabelOtherwise() {
+        composeTestRule.setContent {
+            AbsenceRecordTheme {
+                StudentDetailBody(
+                    uiState = aState().copy(assignedClassName = null),
+                    onEvent = {}
+                )
+            }
+        }
+        composeTestRule.waitForIdle()
+
+        composeTestRule
+            .onNodeWithText(getString(R.string.class_unassigned_label))
+            .assertIsDisplayed()
     }
 
     @Test

@@ -1,5 +1,6 @@
 package dev.nenoeldeeb.education.absencerecord.presentation.screens.studentdetail.dialogs
 
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -12,6 +13,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
+import androidx.compose.ui.unit.dp
 import dev.nenoeldeeb.education.absencerecord.R
 
 @Composable
@@ -36,7 +38,8 @@ internal fun DeleteConfirmationDialog(
                 colors =
                     ButtonDefaults.buttonColors(
                         containerColor = MaterialTheme.colorScheme.error
-                    )
+                    ),
+                modifier = Modifier.defaultMinSize(minHeight = 48.dp)
             ) {
                 Text(
                     stringResource(R.string.action_delete),
@@ -45,7 +48,10 @@ internal fun DeleteConfirmationDialog(
             }
         },
         dismissButton = {
-            TextButton(onClick = onDismiss) {
+            TextButton(
+                onClick = onDismiss,
+                modifier = Modifier.defaultMinSize(minHeight = 48.dp)
+            ) {
                 Text(stringResource(R.string.action_cancel))
             }
         },

@@ -3,220 +3,145 @@ package dev.nenoeldeeb.education.absencerecord.presentation.screens.studentdetai
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExposedDropdownMenuAnchorType
-import androidx.compose.material3.ExposedDropdownMenuBox
-import androidx.compose.material3.ExposedDropdownMenuDefaults
-import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.key
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.res.pluralStringResource
-import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.res.vectorResource
-import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import dev.nenoeldeeb.education.absencerecord.R
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.components.ComposeCalendar
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.components.EmptyStateMessage
-import dev.nenoeldeeb.education.absencerecord.presentation.utils.DateFormatter.toMonthYearUiText
 import kotlinx.datetime.LocalDate
-import kotlinx.datetime.TimeZone
-import kotlinx.datetime.toLocalDateTime
-import kotlin.time.Clock
 
-@OptIn(ExperimentalMaterial3Api::class)
+private val noopOnDateSelected: (LocalDate) -> Unit = {}
+
+private fun monthKey(date: LocalDate): LocalDate = LocalDate(date.year, date.month, 1)
+
+private fun groupAttendanceByMonth(
+    attendanceDates: List<LocalDate>
+): Pair<List<MonthPresentSummary>, Map<LocalDate, Set<LocalDate>>> {
+    if (attendanceDates.isEmpty()) return emptyList<MonthPresentSummary>() to emptyMap()
+    val grouped = LinkedHashMap<LocalDate, MutableSet<LocalDate>>()
+    for (date in attendanceDates) {
+        grouped.getOrPut(monthKey(date)) { LinkedHashSet() }.add(date)
+    }
+    val summaries =
+        grouped.map { (month, dates) ->
+            MonthPresentSummary(month = month, presentDays = dates.size)
+        }.sortedByDescending { it.month }
+    return summaries to grouped
+}
+
 @Composable
 internal fun AttendanceReportSection(
     attendanceDates: List<LocalDate>,
     selectedMonth: LocalDate?,
     onMonthSelected: (LocalDate) -> Unit,
     onShare: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    // Hoisted from StudentDetailBody: this section previously ran its own
+    // BoxWithConstraints, nesting three measure passes deep (Body > section >
+    // ComposeCalendar). Reusing the parent's orientation removes one pass.
+    landscape: Boolean = false
 ) {
     val currentMonth = remember { todayMonth() }
-    val displayMonth = selectedMonth ?: currentMonth
-    val monthSummaries =
+    // Single pass builds both the dropdown summaries and the per-month lookup,
+    // so switching months is an O(1) map get instead of an O(N) filter.
+    val (monthSummaries, datesByMonth) =
         remember(attendanceDates) {
-            attendanceDates
-                .groupingBy { LocalDate(it.year, it.month, 1) }
-                .eachCount()
-                .map { (month, count) -> MonthPresentSummary(month = month, presentDays = count) }
-                .sortedByDescending { it.month }
+            groupAttendanceByMonth(attendanceDates)
         }
+    val displayMonth = selectedMonth ?: monthSummaries.firstOrNull()?.month ?: currentMonth
     val markedDates =
-        remember(attendanceDates, displayMonth) {
-            attendanceDates
-                .filter { it.year == displayMonth.year && it.month == displayMonth.month }
-                .toSet()
+        remember(datesByMonth, displayMonth) {
+            datesByMonth[monthKey(displayMonth)] ?: emptySet()
         }
     val displaySummary = monthSummaries.firstOrNull { it.month == displayMonth }
-    var dropdownExpanded by remember { mutableStateOf(false) }
 
-    Column(modifier = modifier.fillMaxSize()) {
-        Row(
-            modifier =
-                Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            ExposedDropdownMenuBox(
-                expanded = dropdownExpanded,
-                onExpandedChange = { dropdownExpanded = it },
-                modifier = Modifier.weight(1f)
+    if (landscape) {
+        Row(modifier = modifier.fillMaxSize()) {
+            Column(
+                modifier =
+                    Modifier
+                        .weight(0.42f)
+                        .fillMaxHeight()
+                        .padding(start = 16.dp, top = 4.dp, bottom = 4.dp)
             ) {
-                val fieldLabel = summaryLabel(displaySummary, displayMonth)
-                val selectMonthHint = stringResource(R.string.student_detail_select_month)
-                OutlinedTextField(
-                    value = fieldLabel,
-                    onValueChange = {},
-                    readOnly = true,
-                    enabled = monthSummaries.isNotEmpty(),
-                    singleLine = true,
-                    trailingIcon = {
-                        ExposedDropdownMenuDefaults.TrailingIcon(expanded = dropdownExpanded)
-                    },
-                    modifier =
-                        Modifier
-                            .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable)
-                            .fillMaxWidth()
-                            .semantics {
-                                contentDescription = "$selectMonthHint: $fieldLabel"
-                            }
+                MonthControlsRow(
+                    displaySummary = displaySummary,
+                    displayMonth = displayMonth,
+                    monthSummaries = monthSummaries,
+                    onMonthSelected = onMonthSelected,
+                    shareEnabled = markedDates.isNotEmpty(),
+                    onShare = onShare,
+                    modifier = Modifier.fillMaxWidth()
                 )
-                ExposedDropdownMenu(
-                    expanded = dropdownExpanded,
-                    onDismissRequest = { dropdownExpanded = false }
-                ) {
-                    monthSummaries.forEach { summary ->
-                        MonthDropdownItem(
-                            summary = summary,
-                            isSelected = summary.month == displayMonth,
-                            onClick = {
-                                dropdownExpanded = false
-                                onMonthSelected(summary.month)
-                            }
-                        )
-                    }
+                if (monthSummaries.isEmpty()) {
+                    EmptyStateMessage(
+                        message = R.string.no_attendance_records,
+                        modifier =
+                            Modifier
+                                .fillMaxWidth()
+                                .padding(top = 16.dp)
+                    )
                 }
             }
-            IconButton(onClick = onShare) {
-                Icon(
-                    imageVector = ImageVector.vectorResource(R.drawable.outline_share_24),
-                    contentDescription = stringResource(R.string.student_detail_share)
-                )
+            if (monthSummaries.isNotEmpty()) {
+                Box(
+                    modifier =
+                        Modifier
+                            .weight(0.58f)
+                            .fillMaxHeight()
+                ) {
+                    ComposeCalendar(
+                        initialMonth = displayMonth,
+                        markedDates = markedDates,
+                        interactive = false,
+                        showHeader = false,
+                        onDateSelected = noopOnDateSelected,
+                        modifier = Modifier.fillMaxSize()
+                    )
+                }
             }
         }
-
-        if (monthSummaries.isEmpty()) {
-            EmptyStateMessage(
-                message = R.string.no_attendance_records,
+    } else {
+        Column(modifier = modifier.fillMaxSize()) {
+            MonthControlsRow(
+                displaySummary = displaySummary,
+                displayMonth = displayMonth,
+                monthSummaries = monthSummaries,
+                onMonthSelected = onMonthSelected,
+                shareEnabled = markedDates.isNotEmpty(),
+                onShare = onShare,
                 modifier =
                     Modifier
                         .fillMaxWidth()
-                        .padding(16.dp)
+                        .padding(horizontal = 16.dp)
             )
-        }
 
-        HorizontalDivider()
-
-        Box(modifier = Modifier.weight(1f).fillMaxWidth()) {
-            key(displayMonth) {
-                ComposeCalendar(
-                    initialMonth = displayMonth,
-                    markedDates = markedDates,
-                    interactive = false,
-                    showHeader = false,
-                    onDateSelected = {},
-                    modifier = Modifier.fillMaxSize()
+            if (monthSummaries.isEmpty()) {
+                EmptyStateMessage(
+                    message = R.string.no_attendance_records,
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp)
                 )
+            } else {
+                Box(modifier = Modifier.weight(1f).fillMaxWidth()) {
+                    ComposeCalendar(
+                        initialMonth = displayMonth,
+                        markedDates = markedDates,
+                        interactive = false,
+                        showHeader = false,
+                        onDateSelected = noopOnDateSelected,
+                        modifier = Modifier.fillMaxSize()
+                    )
+                }
             }
         }
     }
-}
-
-@Composable
-private fun MonthDropdownItem(
-    summary: MonthPresentSummary,
-    isSelected: Boolean,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    val summaryDescription = summaryLabel(summary)
-    DropdownMenuItem(
-        text = { Text(text = monthLabel(summary.month)) },
-        onClick = onClick,
-        modifier =
-            modifier.semantics {
-                contentDescription = summaryDescription
-            },
-        leadingIcon =
-            if (isSelected) {
-                {
-                    Icon(
-                        imageVector = ImageVector.vectorResource(R.drawable.outline_check_24),
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary
-                    )
-                }
-            } else {
-                null
-            },
-        trailingIcon = {
-            Text(text = presentDaysLabel(summary.presentDays))
-        }
-    )
-}
-
-@Composable
-private fun summaryLabel(
-    summary: MonthPresentSummary?,
-    date: LocalDate
-): String =
-    if (summary != null) {
-        summaryLabel(summary)
-    } else {
-        monthLabel(date)
-    }
-
-@Composable
-private fun summaryLabel(summary: MonthPresentSummary): String =
-    "${monthLabel(summary.month)}, ${presentDaysLabel(summary.presentDays)}"
-
-@Composable
-private fun monthLabel(date: LocalDate): String = date.toMonthYearUiText(fullName = true).asString()
-
-@Composable
-private fun presentDaysLabel(count: Int): String =
-    pluralStringResource(
-        R.plurals.present_days_count,
-        count,
-        count
-    )
-
-private data class MonthPresentSummary(
-    val month: LocalDate,
-    val presentDays: Int
-)
-
-private fun todayMonth(): LocalDate {
-    val now = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault())
-    return LocalDate(now.year, now.month, 1)
 }
