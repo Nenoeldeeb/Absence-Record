@@ -217,6 +217,8 @@
     <string name="student_detail_select_month">اختر شهر الحضور</string>
     <string name="student_detail_change_class_icon_description">تغيير فصل الطالب</string>
     <string name="student_detail_delete_icon_description">حذف الطالب</string>
+    <string name="student_detail_tab_attendance">الحضور</string>
+    <string name="student_detail_tab_schedule">الجدول</string>
     <plurals name="present_days_count">
         <item quantity="zero">لا يوجد أيام حضور</item>
         <item quantity="one">%1$d يوم حضور</item>
@@ -350,6 +352,7 @@
     <string name="schedule_open_student_profile_description">فتح ملف الطالب %1$s</string>
     <string name="schedule_day_counts">%1$s · %2$s</string>
     <string name="schedule_hours_loading">جارٍ تحميل الساعات</string>
+    <string name="loading">جارٍ التحميل</string>
     <string name="schedule_today">اليوم</string>
     <string name="schedule_decrease_capacity">إنقاص الحد الأقصى للطلاب</string>
     <string name="schedule_increase_capacity">زيادة الحد الأقصى للطلاب</string>
@@ -396,4 +399,5 @@
     <string name="student_detail_busy_conflict_title">دروس متداخلة</string>
     <string name="student_detail_busy_conflict_message">يتداخل هذا الموعد المشغول مع الدروس التالية، وسيتم إزالتها:</string>
     <string name="student_detail_busy_conflict_confirm">إزالة الدروس وحفظ</string>
+    <string name="student_detail_tab_count_format">(%1$d)</string>
 </resources>

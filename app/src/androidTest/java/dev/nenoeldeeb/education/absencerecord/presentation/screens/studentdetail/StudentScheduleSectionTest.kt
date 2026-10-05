@@ -213,4 +213,26 @@ class StudentScheduleSectionTest {
             recorded
         )
     }
+
+    @Test
+    fun section_tabsShowPerWeekdayCounts() {
+        setSection(
+            aState(
+                schedule =
+                    StudentScheduleView(
+                        studentId = 1,
+                        lessons =
+                            listOf(
+                                StudentLessonEntry(DayOfWeek.SATURDAY, 540, 600),
+                                StudentLessonEntry(DayOfWeek.SATURDAY, 660, 720)
+                            ),
+                        busy = emptyList()
+                    )
+            )
+        )
+
+        composeTestRule.onNodeWithText(context.getString(R.string.student_detail_tab_lessons)).assertIsDisplayed()
+        composeTestRule.onNodeWithText("(2)").assertIsDisplayed()
+        composeTestRule.onNodeWithText("(0)").assertIsDisplayed()
+    }
 }

@@ -43,10 +43,11 @@ class StudentScheduleTabsDelegate(
     }
 
     fun selectWeekday(weekday: DayOfWeek) {
+        // Keep stale hours until the new weekday's flow emits: clearing to empty
+        // caused a double recomposition (empty flash, then loaded) on every switch.
         updateState {
             it.copy(
                 selectedScheduleWeekday = weekday,
-                hoursForWeekday = emptyList(),
                 isAddLessonDialogOpen = false,
                 selectedLessonHourId = null
             )

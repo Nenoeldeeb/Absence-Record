@@ -80,8 +80,10 @@ class StudentDetailViewModel(
                 classManagementUseCases.getAllClassesUseCase(),
                 attendanceUseCases.getStudentAttendanceDatesUseCase(studentId)
             ) { studentResult, classesResult, datesResult ->
+                Triple(studentResult, classesResult, datesResult)
+            }.collectLatest { (studentResult, classesResult, datesResult) ->
                 mergeLoadResults(studentResult, classesResult, datesResult)
-            }.collectLatest { }
+            }
         }
         studentScheduleDelegate.observe(studentId)
     }

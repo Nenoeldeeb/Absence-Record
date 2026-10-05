@@ -1,7 +1,8 @@
 package dev.nenoeldeeb.education.absencerecord.presentation.screens.studentdetail.dialogs
 
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.OutlinedTextField
@@ -46,20 +47,23 @@ internal fun EditStudentNameDialog(
                         capitalization = KeyboardCapitalization.Words,
                         imeAction = ImeAction.Done
                     ),
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth().imePadding()
             )
         },
         confirmButton = {
             TextButton(
                 onClick = { onConfirm(trimmedName) },
                 enabled = trimmedName.isNotEmpty(),
-                modifier = Modifier.height(48.dp)
+                modifier = Modifier.defaultMinSize(minHeight = 48.dp)
             ) {
                 Text(stringResource(R.string.action_save))
             }
         },
         dismissButton = {
-            TextButton(onClick = onDismiss) {
+            TextButton(
+                onClick = onDismiss,
+                modifier = Modifier.defaultMinSize(minHeight = 48.dp)
+            ) {
                 Text(stringResource(R.string.action_cancel))
             }
         },

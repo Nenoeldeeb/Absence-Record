@@ -10,6 +10,8 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.key
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -31,7 +33,14 @@ internal fun StudentScheduleLessonsTab(
     onAddLesson: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val lessons = schedule?.lessons.orEmpty().filter { it.weekday == selectedWeekday }
+    // Filter+sort once per schedule/weekday change instead of on every recomposition
+    // (dialog typing, slider drags, snackbar passes all recompose this tab).
+    val lessons =
+        remember(schedule, selectedWeekday) {
+            schedule?.lessons.orEmpty()
+                .filter { it.weekday == selectedWeekday }
+                .sortedBy { it.startMinutes }
+        }
     Column(
         modifier = modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(8.dp)
@@ -46,8 +55,10 @@ internal fun StudentScheduleLessonsTab(
                 Text(stringResource(R.string.student_detail_add_lesson))
             }
         } else {
-            lessons.sortedBy { it.startMinutes }.forEach { lesson ->
-                LessonRow(lesson = lesson, onUnassign = { onUnassign(lesson) })
+            lessons.forEach { lesson ->
+                key(lesson.startMinutes) {
+                    LessonRow(lesson = lesson, onUnassign = { onUnassign(lesson) })
+                }
             }
             Text(
                 text = stringResource(R.string.student_detail_lesson_already_booked),

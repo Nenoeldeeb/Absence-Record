@@ -1,18 +1,18 @@
 package dev.nenoeldeeb.education.absencerecord.presentation.screens.studentdetail.dialogs
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -22,9 +22,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.res.vectorResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 import dev.nenoeldeeb.education.absencerecord.R
 import dev.nenoeldeeb.education.absencerecord.domain.models.StudentClass
@@ -65,12 +64,18 @@ internal fun ChangeClassDialog(
             }
         },
         confirmButton = {
-            TextButton(onClick = { onConfirm(selectedClassId) }) {
+            TextButton(
+                onClick = { onConfirm(selectedClassId) },
+                modifier = Modifier.defaultMinSize(minHeight = 48.dp)
+            ) {
                 Text(stringResource(R.string.action_save))
             }
         },
         dismissButton = {
-            TextButton(onClick = onDismiss) {
+            TextButton(
+                onClick = onDismiss,
+                modifier = Modifier.defaultMinSize(minHeight = 48.dp)
+            ) {
                 Text(stringResource(R.string.action_cancel))
             }
         },
@@ -88,7 +93,12 @@ private fun ClassOptionRow(
         modifier =
             Modifier
                 .fillMaxWidth()
-                .clickable(onClick = onClick)
+                .defaultMinSize(minHeight = 48.dp)
+                .selectable(
+                    selected = isSelected,
+                    onClick = onClick,
+                    role = Role.RadioButton
+                )
                 .padding(horizontal = 16.dp, vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -97,14 +107,10 @@ private fun ClassOptionRow(
             style = MaterialTheme.typography.bodyLarge,
             modifier = Modifier.weight(1f)
         )
-        if (isSelected) {
-            Icon(
-                imageVector = ImageVector.vectorResource(R.drawable.outline_check_24),
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.size(24.dp)
-            )
-        }
+        RadioButton(
+            selected = isSelected,
+            onClick = null
+        )
     }
     HorizontalDivider()
 }

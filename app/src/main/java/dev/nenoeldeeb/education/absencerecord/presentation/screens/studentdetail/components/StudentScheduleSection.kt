@@ -2,14 +2,17 @@ package dev.nenoeldeeb.education.absencerecord.presentation.screens.studentdetai
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Card
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.SecondaryTabRow
-import androidx.compose.material3.Tab
+import androidx.compose.material3.SegmentedButton
+import androidx.compose.material3.SegmentedButtonDefaults
+import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.heading
@@ -27,6 +30,20 @@ internal fun StudentScheduleSection(
     onEvent: (StudentDetailScreenEvent) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    // Single pass over both lists; previously two full scans ran on every recomposition.
+    val weekdayCounts =
+        remember(uiState.studentSchedule, uiState.selectedScheduleWeekday) {
+            var lessons = 0
+            var busy = 0
+            uiState.studentSchedule?.lessons?.forEach {
+                if (it.weekday == uiState.selectedScheduleWeekday) lessons++
+            }
+            uiState.studentSchedule?.busy?.forEach {
+                if (it.weekday == uiState.selectedScheduleWeekday) busy++
+            }
+            lessons to busy
+        }
+    val (lessonsForWeekday, busyForWeekday) = weekdayCounts
     Card(modifier = modifier.fillMaxWidth()) {
         Column(
             modifier = Modifier.padding(16.dp),
@@ -44,26 +61,38 @@ internal fun StudentScheduleSection(
                 },
                 modifier = Modifier.fillMaxWidth()
             )
-            SecondaryTabRow(
-                selectedTabIndex = uiState.selectedScheduleTab.ordinal
+            SingleChoiceSegmentedButtonRow(
+                modifier = Modifier.fillMaxWidth()
             ) {
-                Tab(
+                SegmentedButton(
                     selected = uiState.selectedScheduleTab == StudentScheduleTab.Lessons,
                     onClick = {
                         onEvent(
                             StudentDetailScreenEvent.SelectScheduleTab(StudentScheduleTab.Lessons)
                         )
                     },
-                    text = { Text(stringResource(R.string.student_detail_tab_lessons)) }
+                    shape = SegmentedButtonDefaults.itemShape(index = 0, count = 2),
+                    label = {
+                        CountedTabLabel(
+                            label = stringResource(R.string.student_detail_tab_lessons),
+                            count = lessonsForWeekday
+                        )
+                    }
                 )
-                Tab(
+                SegmentedButton(
                     selected = uiState.selectedScheduleTab == StudentScheduleTab.Busy,
                     onClick = {
                         onEvent(
                             StudentDetailScreenEvent.SelectScheduleTab(StudentScheduleTab.Busy)
                         )
                     },
-                    text = { Text(stringResource(R.string.student_detail_tab_busy)) }
+                    shape = SegmentedButtonDefaults.itemShape(index = 1, count = 2),
+                    label = {
+                        CountedTabLabel(
+                            label = stringResource(R.string.student_detail_tab_busy),
+                            count = busyForWeekday
+                        )
+                    }
                 )
             }
             when (uiState.selectedScheduleTab) {
@@ -95,5 +124,24 @@ internal fun StudentScheduleSection(
                     )
             }
         }
+    }
+}
+
+@Composable
+private fun CountedTabLabel(
+    label: String,
+    count: Int,
+    modifier: Modifier = Modifier
+) {
+    Row(
+        modifier = modifier,
+        horizontalArrangement = Arrangement.spacedBy(4.dp)
+    ) {
+        Text(text = label)
+        Text(
+            text = stringResource(R.string.student_detail_tab_count_format, count),
+            style = MaterialTheme.typography.labelMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
     }
 }
