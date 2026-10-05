@@ -10,6 +10,7 @@ import dev.nenoeldeeb.education.absencerecord.domain.usecases.ReportUseCases
 import dev.nenoeldeeb.education.absencerecord.domain.usecases.StudentManagementUseCases
 import dev.nenoeldeeb.education.absencerecord.domain.usecases.schedule.ScheduleUseCases
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.studentdetail.delegates.BusyManagementDelegate
+import dev.nenoeldeeb.education.absencerecord.presentation.screens.studentdetail.delegates.StudentDeleteUndoDelegate
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.studentdetail.delegates.StudentDetailReportDelegate
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.studentdetail.delegates.StudentScheduleDelegate
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.studentdetail.delegates.StudentScheduleTabsDelegate
@@ -57,6 +58,16 @@ class StudentDetailViewModel(
 
     private val busyManagementDelegate =
         BusyManagementDelegate(scheduleUseCases, viewModelScope) { _uiState.update(it) }
+
+    private val deleteUndoDelegate =
+        StudentDeleteUndoDelegate(
+            studentManagementUseCases = studentManagementUseCases,
+            attendanceUseCases = attendanceUseCases,
+            scheduleUseCases = scheduleUseCases,
+            scope = viewModelScope,
+            updateState = { _uiState.update(it) },
+            emitNavigateBack = { _uiEffect.emit(StudentDetailUiEffect.NavigateBack) }
+        )
 
     private val reportDelegate =
         StudentDetailReportDelegate(
@@ -153,6 +164,12 @@ class StudentDetailViewModel(
 
             is StudentDetailScreenEvent.ConfirmDeleteStudent -> confirmDeleteStudent()
 
+            is StudentDetailScreenEvent.UndoDeleteStudent ->
+                deleteUndoDelegate.undoDelete(_uiState.value)
+
+            is StudentDetailScreenEvent.DismissDeletedStudent ->
+                deleteUndoDelegate.dismissDeleted()
+
             is StudentDetailScreenEvent.SelectMonth ->
                 _uiState.update { it.copy(selectedMonth = event.month) }
 
@@ -201,7 +218,19 @@ class StudentDetailViewModel(
                 busyManagementDelegate.confirmBusyConflict(_uiState.value)
 
             is StudentDetailScreenEvent.DeleteBusyAppointment ->
-                busyManagementDelegate.deleteBusyAppointment(event.id)
+                busyManagementDelegate.deleteBusyAppointment(_uiState.value, event.id)
+
+            is StudentDetailScreenEvent.UndoUnassignLesson ->
+                scheduleTabsDelegate.undoUnassignLesson(_uiState.value)
+
+            is StudentDetailScreenEvent.ConsumeDeletedLesson ->
+                scheduleTabsDelegate.consumeDeletedLesson()
+
+            is StudentDetailScreenEvent.UndoDeleteBusy ->
+                busyManagementDelegate.undoDeleteBusy(_uiState.value)
+
+            is StudentDetailScreenEvent.ConsumeDeletedBusy ->
+                busyManagementDelegate.consumeDeletedBusy()
 
             is StudentDetailScreenEvent.ConsumeError ->
                 _uiState.update { it.copy(error = null) }
@@ -258,18 +287,6 @@ class StudentDetailViewModel(
     }
 
     private fun confirmDeleteStudent() {
-        val currentStudent = _uiState.value.student ?: return
-        viewModelScope.launch {
-            studentManagementUseCases.deleteStudentsUseCase(listOf(currentStudent))
-                .onSuccess {
-                    _uiState.update { it.copy(isDeleteConfirmationDialogOpen = false) }
-                    _uiEffect.emit(StudentDetailUiEffect.NavigateBack)
-                }
-                .onFailure { e ->
-                    _uiState.update { state ->
-                        state.copy(isDeleteConfirmationDialogOpen = false, error = e.toUiText())
-                    }
-                }
-        }
+        deleteUndoDelegate.confirmDelete(_uiState.value)
     }
 }

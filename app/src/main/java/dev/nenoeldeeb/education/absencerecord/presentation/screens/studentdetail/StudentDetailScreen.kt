@@ -10,8 +10,10 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
@@ -47,18 +49,79 @@ fun StudentDetailScreen(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
     val snackbarHostState = remember { SnackbarHostState() }
+    // Stable event dispatcher: viewModel::onEvent allocates per recomposition and would
+    // invalidate every downstream lambda (pager callbacks, dialog handlers) each pass.
+    val onEvent =
+        remember(viewModel) {
+            { event: StudentDetailScreenEvent ->
+                viewModel.onEvent(event)
+            }
+        }
+    val studentName = uiState.student?.name
+    val studentFirstName =
+        remember(studentName) {
+            studentName?.trim()?.substringBefore(" ")?.takeIf { it.isNotBlank() }
+        }
 
     LaunchedEffect(uiState.error) {
         uiState.error?.let {
             snackbarHostState.showSnackbar(it.asString(context))
-            viewModel.onEvent(StudentDetailScreenEvent.ConsumeError)
+            onEvent(StudentDetailScreenEvent.ConsumeError)
         }
     }
 
     LaunchedEffect(uiState.toastMessage) {
         uiState.toastMessage?.let {
             snackbarHostState.showSnackbar(it.asString(context))
-            viewModel.onEvent(StudentDetailScreenEvent.ConsumeToastMessage)
+            onEvent(StudentDetailScreenEvent.ConsumeToastMessage)
+        }
+    }
+
+    LaunchedEffect(uiState.deletedLesson) {
+        uiState.deletedLesson?.let {
+            val result =
+                snackbarHostState.showSnackbar(
+                    message = context.getString(R.string.student_detail_lesson_unassigned),
+                    actionLabel = context.getString(R.string.action_undo),
+                    duration = SnackbarDuration.Long
+                )
+            if (result == SnackbarResult.ActionPerformed) {
+                onEvent(StudentDetailScreenEvent.UndoUnassignLesson)
+            } else {
+                onEvent(StudentDetailScreenEvent.ConsumeDeletedLesson)
+            }
+        }
+    }
+
+    LaunchedEffect(uiState.deletedBusy) {
+        uiState.deletedBusy?.let {
+            val result =
+                snackbarHostState.showSnackbar(
+                    message = context.getString(R.string.student_detail_busy_deleted),
+                    actionLabel = context.getString(R.string.action_undo),
+                    duration = SnackbarDuration.Long
+                )
+            if (result == SnackbarResult.ActionPerformed) {
+                onEvent(StudentDetailScreenEvent.UndoDeleteBusy)
+            } else {
+                onEvent(StudentDetailScreenEvent.ConsumeDeletedBusy)
+            }
+        }
+    }
+
+    LaunchedEffect(uiState.deletedStudentBackup) {
+        uiState.deletedStudentBackup?.let {
+            val result =
+                snackbarHostState.showSnackbar(
+                    message = context.getString(R.string.student_detail_student_deleted),
+                    actionLabel = context.getString(R.string.action_undo),
+                    duration = SnackbarDuration.Long
+                )
+            if (result == SnackbarResult.ActionPerformed) {
+                onEvent(StudentDetailScreenEvent.UndoDeleteStudent)
+            } else {
+                onEvent(StudentDetailScreenEvent.DismissDeletedStudent)
+            }
         }
     }
 

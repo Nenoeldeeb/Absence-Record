@@ -399,5 +399,8 @@
     <string name="student_detail_busy_conflict_title">دروس متداخلة</string>
     <string name="student_detail_busy_conflict_message">يتداخل هذا الموعد المشغول مع الدروس التالية، وسيتم إزالتها:</string>
     <string name="student_detail_busy_conflict_confirm">إزالة الدروس وحفظ</string>
+    <string name="student_detail_lesson_unassigned">تم إلغاء تسجيل الدرس</string>
+    <string name="student_detail_busy_deleted">تم حذف الموعد المشغول</string>
+    <string name="student_detail_student_deleted">تم حذف الطالب</string>
     <string name="student_detail_tab_count_format">(%1$d)</string>
 </resources>
