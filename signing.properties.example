@@ -1,0 +1,34 @@
+# ---------------------------------------------------------------------------
+# Copy this file to `signing.properties` in the repository root, then fill in
+# your own values:
+#
+#     cp signing.properties.example signing.properties
+#
+# `signing.properties` and `keystores/` are git-ignored — never commit real
+# keystore paths or passwords. Only this `.example` template is tracked.
+#
+# `app/build.gradle.kts` reads this file at configuration time, so no Gradle
+# task can run until it exists and every key below is filled in.
+#
+# Notes:
+# - `*.store.file` paths are resolved by `app/build.gradle.kts` relative to the
+#   `app/` module directory, so `../keystores/x.jks` points at
+#   `<repo-root>/keystores/x.jks`.
+# - Create a keystore first, e.g.:
+#     keytool -genkeypair -v -keystore keystores/debug.jks -keyalg RSA \
+#       -keysize 2048 -validity 10000 -alias debug \
+#       -storepassword CHANGE_ME -keypassword CHANGE_ME \
+#       -dname "CN=Absence Record, O=Absence Record, C=US"
+# - If the keystore was created with one password for both the store and the
+#   key, keep `*.key.password` and `*.store.password` identical.
+# ---------------------------------------------------------------------------
+
+release.store.file=../keystores/release.jks
+release.key.alias=CHANGE_ME
+release.key.password=CHANGE_ME
+release.store.password=CHANGE_ME
+
+debug.store.file=../keystores/debug.jks
+debug.key.alias=CHANGE_ME
+debug.key.password=CHANGE_ME
+debug.store.password=CHANGE_ME

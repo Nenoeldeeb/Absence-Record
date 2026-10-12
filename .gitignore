@@ -6,6 +6,7 @@ build/
 keystores/
 local.properties
 signing.properties
+!signing.properties.example
 *.iml
 *.class
 *.jar
