@@ -17,6 +17,61 @@
       },
       "registered_skills": [],
       "installed_at": "2026-09-18T15:21:44.673661+00:00"
+    },
+    "bug": {
+      "version": "1.0.0",
+      "source": "local",
+      "manifest_hash": "sha256:1d0da5458f3c18ff08cf1602d88cecc33fad07068208951fb7128090cfa90c90",
+      "enabled": true,
+      "priority": 10,
+      "registered_commands": {
+        "opencode": [
+          "speckit.bug.assess",
+          "speckit.bug.fix",
+          "speckit.bug.test"
+        ]
+      },
+      "registered_skills": [],
+      "installed_at": "2026-10-08T16:26:03.649712+00:00"
+    },
+    "assess": {
+      "version": "1.0.1",
+      "source": "local",
+      "manifest_hash": "sha256:a1c87d9ce8088e7865f1d352137777a693b0595ccc310957c7c051a604ca1db2",
+      "enabled": true,
+      "priority": 10,
+      "registered_commands": {
+        "opencode": [
+          "speckit.assess.intake",
+          "speckit.assess.research",
+          "speckit.assess.define",
+          "speckit.assess.shape",
+          "speckit.assess.decide"
+        ]
+      },
+      "registered_skills": [],
+      "installed_at": "2026-10-08T16:26:15.207007+00:00"
+    },
+    "superspec": {
+      "version": "1.0.2",
+      "source": {
+        "kind": "catalog",
+        "catalog": "comunity-installable"
+      },
+      "manifest_hash": "sha256:6e23ee6c18f9e05d077293c7cd3ab8aaa982f1b7e35996267dc32b51e5fc8e54",
+      "enabled": true,
+      "priority": 10,
+      "registered_commands": {
+        "opencode": [
+          "speckit.superspec.status",
+          "speckit.superspec.brainstorm",
+          "speckit.superspec.tasks",
+          "speckit.superspec.execute",
+          "speckit.superspec.review"
+        ]
+      },
+      "registered_skills": [],
+      "installed_at": "2026-10-12T09:49:43.431513+00:00"
     }
   }
 }

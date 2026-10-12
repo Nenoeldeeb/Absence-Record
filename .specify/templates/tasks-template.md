@@ -21,10 +21,35 @@ description: "Task list template for feature implementation"
 
 ## Path Conventions
 
-- **Single project**: `src/`, `tests/` at repository root
-- **Web app**: `backend/src/`, `frontend/src/`
-- **Mobile**: `api/src/`, `ios/src/` or `android/src/`
-- Paths shown below assume single project - adjust based on plan.md structure
+Base package: `app/src/main/java/dev/nenoeldeeb/education/absencerecord/`
+
+- **Domain**: `domain/models/`, `domain/repositories/`, `domain/services/`, `domain/usecases/[group]/`
+- **Data**: `data/datasources/local/{entities,daos}/`, `data/repositories/`, `data/mappers/`, `data/services/`, `data/utils/`
+- **Presentation**: `presentation/screens/[feature]/`, `presentation/screens/components/`, `presentation/theme/`, `presentation/utils/`
+- **Navigation / app wiring**: `app/`, `app/navigation/`
+- **Unit tests**: `app/src/test/java/dev/nenoeldeeb/education/absencerecord/` (mirror the package path)
+- **Instrumented tests**: `app/src/androidTest/java/dev/nenoeldeeb/education/absencerecord/`
+- **Strings**: `app/src/main/res/values/strings.xml` and `app/src/main/res/values-ar/strings.xml`
+
+Dependency direction: `presentation/` → `domain/` ← `data/`. Tasks MUST be
+ordered so domain and data land before presentation.
+
+### Build & Test Commands
+
+```bash
+# Format (also runs automatically as a preBuild dependency)
+./gradlew ktlintFormat
+
+# Full validation: ktlint + lint + unit tests
+./gradlew check
+
+# Targeted unit test (JVM)
+./gradlew testDebugUnitTest --tests "PackageOrClass"
+
+# Instrumented tests — AGP 9 REJECTS --tests here; use the runner argument.
+# Filter with -Pandroid.testInstrumentationRunnerArguments.class="PackageOrClass"
+./gradlew connectedDebugAndroidTest
+```
 
 <!--
   ============================================================================
@@ -50,8 +75,9 @@ description: "Task list template for feature implementation"
 **Purpose**: Project initialization and basic structure
 
 - [ ] T001 Create project structure per implementation plan
-- [ ] T002 Initialize [language] project with [framework] dependencies
-- [ ] T003 [P] Configure linting and formatting tools
+- [ ] T002 Confirm dependencies in `gradle/libs.versions.toml` (no new libs unless the plan justifies them)
+- [ ] T003 Add any new English strings to `app/src/main/res/values/strings.xml`
+- [ ] T004 [P] Add matching Arabic translations to `app/src/main/res/values-ar/strings.xml`
 
 ---
 
@@ -61,14 +87,19 @@ description: "Task list template for feature implementation"
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete
 
-Examples of foundational tasks (adjust based on your project):
+Order the foundation domain-first, then data, then wiring:
 
-- [ ] T004 Setup database schema and migrations framework
-- [ ] T005 [P] Implement authentication/authorization framework
-- [ ] T006 [P] Setup API routing and middleware structure
-- [ ] T007 Create base models/entities that all stories depend on
-- [ ] T008 Configure error handling and logging infrastructure
-- [ ] T009 Setup environment configuration management
+- [ ] T005 Create domain models in `domain/models/` (no Android imports)
+- [ ] T006 Add repository interface(s) in `domain/repositories/`
+- [ ] T007 Add pure business rules in `domain/services/` if the feature has thresholds or overlaps
+- [ ] T008 Add single-action use cases in `domain/usecases/[group]/` returning `Result<T>`
+- [ ] T009 [P] Add Room entity + DAO in `data/datasources/local/` (suspend or `Flow`, never blocking)
+- [ ] T010 [P] Add mapper(s) in `data/mappers/`
+- [ ] T011 Implement the repository in `data/repositories/` — catch errors here, return `Result`
+- [ ] T012 [P] Add the Room `Migration` + version bump, and commit the regenerated `app/schemas/` JSON (REQUIRED if the schema changes; destructive migration is NOT acceptable)
+- [ ] T013 [P] Add migration test in `androidTest/` if the schema changed
+- [ ] T014 Register the repository in `AppContainer` and expose the ViewModel factory in `AppViewModelProvider`
+- [ ] T015 [P] Write shared-state wiring if this feature participates in cross-screen state (e.g. the class filter `StateFlow`)
 
 **Checkpoint**: Foundation ready - user story implementation can now begin in parallel
 
@@ -83,18 +114,25 @@ Examples of foundational tasks (adjust based on your project):
 ### Tests for User Story 1 (OPTIONAL - only if tests requested) ⚠️
 
 > **NOTE: Write these tests FIRST, ensure they FAIL before implementation**
+>
+> Convention (Constitution IV): cover BOTH the `onSuccess` and the `onFailure`
+> path for every use case and ViewModel touched by this story, and assert that
+> the error state binds to the UI.
 
-- [ ] T010 [P] [US1] Contract test for [endpoint] in tests/contract/test_[name].py
-- [ ] T011 [P] [US1] Integration test for [user journey] in tests/integration/test_[name].py
+- [ ] T016 [P] [US1] Unit test (JUnit 6 + MockK) for the use case in `app/src/test/.../domain/usecases/[group]/[Name]UseCaseTest.kt` — success and failure paths
+- [ ] T017 [P] [US1] Unit test for the ViewModel in `app/src/test/.../presentation/screens/[feature]/[Feature]ViewModelTest.kt`
+- [ ] T018 [US1] Compose UI test in `app/src/androidTest/.../` using a stateless content composable + harness (mockk-android cannot mock final ViewModels on-device)
 
 ### Implementation for User Story 1
 
-- [ ] T012 [P] [US1] Create [Entity1] model in src/models/[entity1].py
-- [ ] T013 [P] [US1] Create [Entity2] model in src/models/[entity2].py
-- [ ] T014 [US1] Implement [Service] in src/services/[service].py (depends on T012, T013)
-- [ ] T015 [US1] Implement [endpoint/feature] in src/[location]/[file].py
-- [ ] T016 [US1] Add validation and error handling
-- [ ] T017 [US1] Add logging for user story 1 operations
+- [ ] T019 [P] [US1] Extend domain model in `domain/models/[Entity].kt`
+- [ ] T020 [P] [US1] Add use case in `domain/usecases/[group]/[Action]UseCase.kt` (single-action `operator fun invoke`, returns `Result<T>`)
+- [ ] T021 [US1] Implement the data operation in `data/repositories/[Name]RepositoryImpl.kt` — catch here, return `Result`
+- [ ] T022 [US1] Add/extend `[Feature]ScreenState.kt` and `[Feature]ScreenEvent.kt`
+- [ ] T023 [US1] Handle the event in `[Feature]ViewModel.kt` via `_uiState.update { it.copy(...) }`
+- [ ] T024 [P] [US1] Build the UI in `[Feature]Screen.kt` + `components/` (48dp targets, `contentDescription`, no color-only state)
+- [ ] T025 [US1] Add English + Arabic strings
+- [ ] T026 [US1] Verify: `./gradlew ktlintFormat check` and confirm every touched file is under 300 lines (extract a `delegates/` class if not)
 
 **Checkpoint**: At this point, User Story 1 should be fully functional and testable independently
 
@@ -108,15 +146,13 @@ Examples of foundational tasks (adjust based on your project):
 
 ### Tests for User Story 2 (OPTIONAL - only if tests requested) ⚠️
 
-- [ ] T018 [P] [US2] Contract test for [endpoint] in tests/contract/test_[name].py
-- [ ] T019 [P] [US2] Integration test for [user journey] in tests/integration/test_[name].py
+- [ ] T027 [P] [US2] Unit test for the use case / ViewModel in `app/src/test/.../` — success and failure paths
+- [ ] T028 [P] [US2] Compose UI test in `app/src/androidTest/.../` if the story has user-facing UI
 
 ### Implementation for User Story 2
 
-- [ ] T020 [P] [US2] Create [Entity] model in src/models/[entity].py
-- [ ] T021 [US2] Implement [Service] in src/services/[service].py
-- [ ] T022 [US2] Implement [endpoint/feature] in src/[location]/[file].py
-- [ ] T023 [US2] Integrate with User Story 1 components (if needed)
+- [ ] T029 [P] [US2] Add domain use case in `domain/usecases/[group]/`
+- [ ] T030 [US2] Integrate with User Story 1 components (if needed)
 
 **Checkpoint**: At this point, User Stories 1 AND 2 should both work independently
 
@@ -130,14 +166,13 @@ Examples of foundational tasks (adjust based on your project):
 
 ### Tests for User Story 3 (OPTIONAL - only if tests requested) ⚠️
 
-- [ ] T024 [P] [US3] Contract test for [endpoint] in tests/contract/test_[name].py
-- [ ] T025 [P] [US3] Integration test for [user journey] in tests/integration/test_[name].py
+- [ ] T031 [P] [US3] Unit test for the use case / ViewModel in `app/src/test/.../` — success and failure paths
+- [ ] T032 [P] [US3] Compose UI test in `app/src/androidTest/.../` if the story has user-facing UI
 
 ### Implementation for User Story 3
 
-- [ ] T026 [P] [US3] Create [Entity] model in src/models/[entity].py
-- [ ] T027 [US3] Implement [Service] in src/services/[service].py
-- [ ] T028 [US3] Implement [endpoint/feature] in src/[location]/[file].py
+- [ ] T033 [P] [US3] Add domain use case in `domain/usecases/[group]/`
+- [ ] T034 [US3] Implement the UI in `presentation/screens/[feature]/`
 
 **Checkpoint**: All user stories should now be independently functional
 
@@ -151,11 +186,13 @@ Examples of foundational tasks (adjust based on your project):
 
 **Purpose**: Improvements that affect multiple user stories
 
-- [ ] TXXX [P] Documentation updates in docs/
-- [ ] TXXX Code cleanup and refactoring
-- [ ] TXXX Performance optimization across all stories
-- [ ] TXXX [P] Additional unit tests (if requested) in tests/unit/
-- [ ] TXXX Security hardening
+- [ ] TXXX Run `./gradlew ktlintFormat` and `./gradlew check` — both MUST pass
+- [ ] TXXX Verify every new/modified file is under 300 lines (Constitution V)
+- [ ] TXXX Confirm all new strings exist in BOTH `values/strings.xml` and `values-ar/strings.xml`
+- [ ] TXXX Accessibility pass: `contentDescription`, 48dp targets, color not the sole state indicator, TalkBack check
+- [ ] TXXX Confirm CPU-heavy work (serialization, date parsing, bulk processing) is offloaded via `withContext`
+- [ ] TXXX Confirm no `try-catch` escapes the data layer and no `java.time` import was introduced
+- [ ] TXXX Update `AGENTS.md` and `README.md` — the constitution requires both to reflect new features/technologies
 - [ ] TXXX Run quickstart.md validation
 
 ---
@@ -180,8 +217,8 @@ Examples of foundational tasks (adjust based on your project):
 ### Within Each User Story
 
 - Tests (if included) MUST be written and FAIL before implementation
-- Models before services
-- Services before endpoints
+- Domain models before use cases
+- Domain before data, data before presentation (dependency direction)
 - Core implementation before integration
 - Story complete before moving to next priority
 
@@ -198,14 +235,29 @@ Examples of foundational tasks (adjust based on your project):
 
 ## Parallel Example: User Story 1
 
-```bash
+```text
 # Launch all tests for User Story 1 together (if tests requested):
-Task: "Contract test for [endpoint] in tests/contract/test_[name].py"
-Task: "Integration test for [user journey] in tests/integration/test_[name].py"
+Task: "[US1] Unit test for the use case in app/src/test/.../domain/usecases/[group]/[Name]UseCaseTest.kt"
+Task: "[US1] Unit test for the ViewModel in app/src/test/.../presentation/screens/[feature]/[Feature]ViewModelTest.kt"
+Task: "[US1] Compose UI test in app/src/androidTest/.../"
 
-# Launch all models for User Story 1 together:
-Task: "Create [Entity1] model in src/models/[entity1].py"
-Task: "Create [Entity2] model in src/models/[entity2].py"
+# Launch all domain models for User Story 1 together:
+Task: "[US1] Extend domain model in domain/models/[Entity].kt"
+Task: "[US1] Add domain model in domain/models/[Other].kt"
+```
+
+### Verifying this story
+
+```bash
+# Targeted unit tests for the packages touched by this story:
+./gradlew testDebugUnitTest --tests "dev.nenoeldeeb.education.absencerecord.domain.*"
+./gradlew testDebugUnitTest --tests "dev.nenoeldeeb.education.absencerecord.presentation.*"
+
+# Full gate:
+./gradlew ktlintFormat check
+
+# Instrumented (AGP 9: no --tests; use the runner argument):
+./gradlew connectedDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.class="dev.nenoeldeeb.education.absencerecord.presentation.*"
 ```
 
 ---
