@@ -34,10 +34,12 @@ This project leverages the latest tools and libraries in the Android ecosystem t
 
 ### Architecture & Design Principles
 
-- **Clean Architecture**: The codebase is strictly separated into Presentation, Domain, and Data layers to ensure testability, maintainability, and independence of frameworks.
+- **Clean Architecture**: The codebase is strictly separated into Presentation, Domain, and Data layers to ensure testability, maintainability, and independence of frameworks. Dependencies point **inward only** — `presentation/` → `domain/` ← `data/`. `domain/` never imports from `data/` or `presentation/`, and `presentation/` reaches persistence only through use cases.
 - **MVI (Model-View-Intent)**: Used for state management in the Presentation layer by wrapping them in a single UiState data class and for handling side effects by wrapping them in a sealed interface.
 - **Repository Pattern**: Abstracts the data layer, providing a clean API for the domain layer to access data irrespective of the source (Database, API, etc.).
+- **ViewModel Delegates**: Behaviour that would push a ViewModel past the 300-line cap is extracted into a delegate class under `presentation/screens/<feature>/delegates/`. The ViewModel retains state ownership while a delegate holds the injected action handler — e.g. `ScheduleViewModel` → `HourManagementDelegate`, `StudentsViewModel` → 4 delegates.
 - **Composition-Based Navigation**: Navigation is implemented without a navigation library. `AppDestination` (sealed interface) + `AppNavigation` (composable) drive a `rememberSaveable` back-stack rendered with `AnimatedContent`, with `BackHandler` for pop support. Tapping a student pushes a `StudentDetail` destination onto the stack.
+- **Room Migrations**: Schema changes require an explicit `Migration` with a version bump — destructive migration is never used, since it would destroy user data. Exported schemas are version-controlled under `app/schemas/` and every schema change ships with a migration test.
 - **Synchronized Class Filtering**: A shared `ClassFilterRepository` (domain/repositories) backed by `ClassFilterRepositoryImpl` (data/repositories) holds an in-memory `selectedClassIds: StateFlow<Set<Int>>` (emptySet by default) that keeps the multi-select `ClassCheckboxFilter` in sync across the Calendar attendance dialog and Students screens. An empty selection shows unassigned students only; checked classes show enrolled students in those classes; there is no "Select All" entry.
 - **SOLID Principles**: Adherence to key object-oriented design principles (SRP, OCP, LSP, ISP, DIP) for robust and scalable code.
 - **Accessibility**: All user-facing composables must be accessible — content descriptions, 48dp touch targets, sufficient color contrast, and TalkBack compatibility.
@@ -50,22 +52,59 @@ To get this project up and running on your local machine:
 1. **Clone the repository**:
    ```bash
    git clone https://github.com/Nenoeldeeb/Absence-Record.git
+   cd Absence-Record
    ```
-2. **Create Your own copy of `signing.properties` file in the root directory** Put the following properties in the file:
+
+2. **Create your keystores** (one per build type). The paths below match the
+   template in step 3 and are git-ignored:
+   ```bash
+   mkdir -p keystores
+   keytool -genkeypair -v -keystore keystores/debug.jks -keyalg RSA \
+     -keysize 2048 -validity 10000 -alias debug \
+     -storepassword CHANGE_ME -keypassword CHANGE_ME \
+     -dname "CN=Absence Record, O=Absence Record, C=US"
+   ```
+   Repeat with `keystores/release.jks` and an alias of your choice for release
+   builds, and keep a backup — a lost release keystore means you can never
+   update the app on Play.
+
+3. **Create your own copy of `signing.properties` in the repository root** by
+   copying the tracked template, then fill in your values:
+   ```bash
+   cp signing.properties.example signing.properties
+   # Windows: copy signing.properties.example signing.properties
+   ```
+   The template contains every key the build reads:
    ```properties
-   release.store.file=path/to/keystore
-   release.key.alias=alias_name
-   release.key.password=alias_password
-   release.store.password=store_password(use the same password as alias_password)
-   debug.store.file=path/to/keystore
-   debug.key.alias=alias_name
-   debug.key.password=alias_password
-   debug.store.password=store_password(use the same password as alias_password)
+   release.store.file=../keystores/release.jks
+   release.key.alias=CHANGE_ME
+   release.key.password=CHANGE_ME
+   release.store.password=CHANGE_ME
+   debug.store.file=../keystores/debug.jks
+   debug.key.alias=CHANGE_ME
+   debug.key.password=CHANGE_ME
+   debug.store.password=CHANGE_ME
    ```
+   - `*.store.file` paths are resolved relative to the `app/` module directory,
+     so `../keystores/x.jks` points at `<repo-root>/keystores/x.jks`.
+   - If a keystore was created with one password for both the store and the
+     key, keep `*.key.password` and `*.store.password` identical.
+
+4. **Build** (see [Development](#development) for the full list of commands):
+   ```bash
+   ./gradlew assembleDebug
+   ```
+
+> **Note**: `signing.properties` and `keystores/` are git-ignored — never commit
+> them. Only `signing.properties.example` is tracked. The build reads
+> `signing.properties` at configuration time, so **no** Gradle task can run
+> until the file exists with every key filled in.
 
 ## Development
 
 ### Building
+
+Requires a local `signing.properties` (see [Building](#building)).
 
 ```bash
 ./gradlew assembleDebug        # Debug build
@@ -92,6 +131,16 @@ To get this project up and running on your local machine:
 ./gradlew connectedDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.class="dev.nenoeldeeb.education.absencerecord.presentation.screens.schedule.ScheduleScreenAppointmentsTest"
 ```
 
+> **Note**: Android Gradle Plugin 9 rejects the `--tests` flag on
+> `connectedDebugAndroidTest`. Always filter instrumented tests with
+> `-Pandroid.testInstrumentationRunnerArguments.class=...`.
+>
+> **Note**: `mockk-android` cannot mock final ViewModel classes on-device.
+> Instrumented UI tests extract a stateless content composable and drive it
+> through a hand-rolled harness (`MutableStateFlow` + event recorder) — see
+> `ScheduleScreenTestHarness` / `ScheduleScreenContent`. MockK remains the
+> standard for JVM unit tests.
+
 ### Code Quality & Linting
 
 ```bash
@@ -103,6 +152,9 @@ To get this project up and running on your local machine:
 
 > **Important**: `ktlintFormat` runs automatically before every build. Always run `./gradlew check` before committing to catch any issues.
 
+> **No CI**: this repository has no automated pipeline. Every gate above is run
+> locally and manually, so nothing will catch a violation for you.
+
 ### Pre-Commit Checklist
 
 Before pushing your changes:
@@ -112,8 +164,11 @@ Before pushing your changes:
 - [ ] Write tests for new functionality (both success and failure paths)
 - [ ] Keep strings in `res/values/strings.xml` (with Arabic translations in `values-ar/`)
 - [ ] Ensure all source files (including tests) are under 300 lines
+- [ ] Add a Room `Migration` + version bump (never destructive) and a migration test if the schema changed
 - [ ] Verify accessibility: content descriptions, 48dp touch targets, TalkBack
-- [ ] Follow naming conventions from [AGENTS.md](AGENTS.md)
+- [ ] Never commit `signing.properties` or `keystores/` — only `signing.properties.example` is tracked
+- [ ] Update `AGENTS.md` and `README.md` to reflect new features or technologies
+- [ ] Follow naming conventions from [AGENTS.md](AGENTS.md), and use Conventional Commits with a scope
 
 ## Project Structure
 
