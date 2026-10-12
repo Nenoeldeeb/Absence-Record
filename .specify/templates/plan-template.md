@@ -14,33 +14,43 @@
 
 <!--
   ACTION REQUIRED: Replace the content in this section with the technical details
-  for the project. The structure here is presented in advisory capacity to guide
-  the iteration process.
+  for the project. Defaults below are pre-filled from the detected stack —
+  adjust only where this feature genuinely differs.
 -->
 
-**Language/Version**: [e.g., Python 3.11, Swift 5.9, Rust 1.75 or NEEDS CLARIFICATION]
+**Language/Version**: Kotlin 2.4.10, JVM target 25, AGP 9.3.0, compileSdk/targetSdk 37, minSdk 26
 
-**Primary Dependencies**: [e.g., FastAPI, UIKit, LLVM or NEEDS CLARIFICATION]
+**Primary Dependencies**: Jetpack Compose (Material 3), Room 2.8.4, Coroutines 1.11.0, kotlinx-datetime 0.8.0, kotlinx-serialization-json 1.11.0, KSP 2.3.2, Accompanist Pager
 
-**Storage**: [if applicable, e.g., PostgreSQL, CoreData, files or N/A]
+**Storage**: Room (SQLite) via KSP. Offline-only — no backend, no network layer. Export/import via kotlinx.serialization JSON.
 
-**Testing**: [e.g., pytest, XCTest, cargo test or NEEDS CLARIFICATION]
+**Testing**: JUnit 6 (Jupiter) + MockK for JVM unit tests; JUnit4 + Compose `ui-test-junit4` + `room-testing` for instrumented tests
 
-**Target Platform**: [e.g., Linux server, iOS 15+, WASM or NEEDS CLARIFICATION]
+**Target Platform**: Android (minSdk 26+), single activity, single Gradle module `:app`
 
-**Project Type**: [e.g., library/cli/web-service/mobile-app/compiler/desktop-app or NEEDS CLARIFICATION]
+**Project Type**: mobile-app (offline, local-first)
 
-**Performance Goals**: [domain-specific, e.g., 1000 req/s, 10k lines/sec, 60 fps or NEEDS CLARIFICATION]
+**Performance Goals**: No blocking of the main thread — serialization, date parsing, and bulk collection processing MUST be offloaded via `withContext`. Compose UI at 60 fps.
 
-**Constraints**: [domain-specific, e.g., <200ms p95, <100MB memory, offline-capable or NEEDS CLARIFICATION]
+**Constraints**: Offline-capable (no network). Bilingual en/ar strings via `strings.xml` + `values-ar/`. `java.time` prohibited — use `kotlinx-datetime`. Max 300 lines per file. Accessibility: 48dp targets, contentDescription, color never the sole state indicator.
 
-**Scale/Scope**: [domain-specific, e.g., 10k users, 1M LOC, 50 screens or NEEDS CLARIFICATION]
+**Scale/Scope**: ~14.4k LOC production Kotlin, ~18k LOC test Kotlin, 4 screens, 7 Room entities, 36 use cases
 
 ## Constitution Check
 
 *GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
 
-[Gates determined based on constitution file]
+| Principle / Gate | Requirement | Status |
+|------------------|-------------|--------|
+| I. Clean Architecture & Layer Partitioning | Domain holds models/interfaces/use cases; Data holds Room + impls + mappers; Presentation holds Compose. Use cases are single-action `operator fun invoke` returning `Result<T>`. No `try-catch` escaping Data. | ⬜ |
+| II. MVI & Stable State | One `@Stable` immutable state data class per screen; mutate via `_uiState.update { it.copy(...) }`; `sealed interface ScreenEvent`; collect via `collectAsStateWithLifecycle()`; async in `viewModelScope.launch`, no raw `Job`. | ⬜ |
+| III. Androidx / Jetpack-First | Compose UI, Room storage, kotlinx.serialization, kotlinx-datetime. No `java.time`. No hardcoded strings — `strings.xml` + `values-ar/` + `UiText`. Manual DI via `AppContainer` / `AppViewModelProvider`. | ⬜ |
+| IV. Verification & Test Discipline | Both `onSuccess` and `onFailure` paths tested for use cases and ViewModels; error state binds to UI. JUnit + MockK. `runTest` for virtual time. | ⬜ |
+| V. Simplicity / Performance / Consistency | SOLID. CPU-heavy work off main thread. `ktlintFormat` + `./gradlew check` pass. **Max 300 lines per file** — decompose, or extract a delegate under `<feature>/delegates/`. | ⬜ |
+| VI. Accessibility | `contentDescription` on interactive elements, 48dp touch targets, color not the sole indicator, 4.5:1 contrast, TalkBack-verified. | ⬜ |
+| Dependency Direction | `presentation/` → `domain/` ← `data/`. Domain MUST NOT import data or presentation. Presentation MUST NOT import data directly. | ⬜ |
+
+**Complexity justification**: If any cell above is ❌, record it in Complexity Tracking with the reason and the simpler alternative rejected.
 
 ## Project Structure
 
@@ -58,50 +68,53 @@ specs/[###-feature]/
 
 ### Source Code (repository root)
 <!--
-  ACTION REQUIRED: Replace the placeholder tree below with the concrete layout
-  for this feature. Delete unused options and expand the chosen structure with
-  real paths (e.g., apps/admin, packages/something). The delivered plan must
-  not include Option labels.
+  ACTION REQUIRED: Keep the Clean Architecture layout below. Mark only the
+  layers this feature actually touches — do NOT re-describe the whole tree, and
+  do NOT add layers. Show concrete paths under app/src/main/java/
+  dev/nenoeldeeb/education/absencerecord/.
 -->
 
 ```text
-# [REMOVE IF UNUSED] Option 1: Single project (DEFAULT)
-src/
-├── models/
-├── services/
-├── cli/
-└── lib/
+app/src/main/java/dev/nenoeldeeb/education/absencerecord/
+├── app/                          # Application, MainActivity, AppContainer, AppViewModelProvider
+│   └── navigation/               # AppDestination, AppNavigation (composition-based)
+├── domain/
+│   ├── models/                   # Pure domain models (no Android imports)
+│   ├── repositories/             # Repository INTERFACES
+│   ├── services/                 # Pure business rules (e.g. ScheduleRules)
+│   └── usecases/
+│       ├── attendance/  classes/  report/
+│       └── schedule/     student/  transfer/
+├── data/
+│   ├── datasources/local/        # AppDatabase, DateConverters
+│   │   ├── entities/             # Room @Entity
+│   │   └── daos/                 # Room @Dao + query helpers
+│   ├── repositories/             # Interface implementations
+│   ├── mappers/                  # Entity <-> domain
+│   ├── services/                 # Serialization / storage
+│   └── utils/                    # e.g. CalendarImageGenerator
+├── presentation/
+│   ├── screens/
+│   │   ├── components/           # Cross-feature shared composables
+│   │   └── [feature]/            # Screen.kt, ViewModel.kt, ScreenState.kt, ScreenEvent.kt
+│   │       ├── components/       # Feature-private composables
+│   │       ├── dialogs/          # Feature-private dialogs
+│   │       ├── delegates/        # ViewModel behaviour extraction
+│   │       └── handlers/         # Event/intent helpers
+│   ├── theme/
+│   └── utils/                    # UiText, formatters, SoundPlayer
+└── res/
+    ├── values/strings.xml        # English strings
+    └── values-ar/strings.xml     # Arabic translations
 
-tests/
-├── contract/
-├── integration/
-└── unit/
-
-# [REMOVE IF UNUSED] Option 2: Web application (when "frontend" + "backend" detected)
-backend/
-├── src/
-│   ├── models/
-│   ├── services/
-│   └── api/
-└── tests/
-
-frontend/
-├── src/
-│   ├── components/
-│   ├── pages/
-│   └── services/
-└── tests/
-
-# [REMOVE IF UNUSED] Option 3: Mobile + API (when "iOS/Android" detected)
-api/
-└── [same as backend above]
-
-ios/ or android/
-└── [platform-specific structure: feature modules, UI flows, platform tests]
+app/src/test/java/dev/nenoeldeeb/education/absencerecord/     # JUnit 6 + MockK unit tests
+app/src/androidTest/java/dev/nenoeldeeb/education/absencerecord/  # Instrumented + Compose UI tests
+app/schemas/                    # Room exported schemas (version-controlled)
 ```
 
-**Structure Decision**: [Document the selected structure and reference the real
-directories captured above]
+**Layers touched by this feature**: [e.g. domain/models, domain/usecases/schedule, data/..., presentation/screens/schedule]
+
+**Structure Decision**: New UI groups into `presentation/screens/[feature]/`; new use cases into the matching `domain/usecases/[group]/`; a ViewModel that outgrows the 300-line cap is decomposed into `<feature>/delegates/`.
 
 ## Complexity Tracking
 

@@ -17,4 +17,5 @@ Thumbs.db
 *.tmp
 *.swp
 .specify/extensions/.cache/
+.specify/presets/.cache/
 .impeccable/critique/
