@@ -29,12 +29,47 @@
 - Every source file (including test files) MUST NOT exceed 300 lines. Break
   large files into focused units.
 
+## Code Boundaries & Dependency Direction
+
+Dependencies point **inward only**:
+
+```text
+presentation/  ──►  domain/  ◄──  data/
+                               (data implements the interfaces declared in domain)
+```
+
+- `domain/` MUST NOT import from `data/` or `presentation/`.
+- `presentation/` MUST NOT import from `data/` directly — reach persistence only
+  through use cases.
+- Base package: `app/src/main/java/dev/nenoeldeeb/education/absencerecord/`
+  - `domain/models|repositories|services|usecases/<group>/`
+  - `data/datasources/local/{entities,daos}/`, `data/repositories/`, `data/mappers/`
+  - `presentation/screens/<feature>/` (+ `components/`, `dialogs/`, `delegates/`, `handlers/`)
+  - `presentation/screens/components/` = cross-feature shared composables
+  - `app/navigation/` = composition-based navigation (NO navigation library)
+- New features group by **presentation feature**, not by scattering edits across
+  every layer. Use-case dirs mirror the existing groups: `attendance`, `classes`,
+  `report`, `schedule`, `student`, `transfer`.
+
+## ViewModel Delegates
+
+- When a ViewModel outgrows the 300-line cap, extract cohesive behaviour into
+  `presentation/screens/<feature>/delegates/<Name>Delegate.kt`. The ViewModel owns
+  state; the delegate holds the injected action/operation handler.
+- Established pattern: `ScheduleViewModel` → `HourManagementDelegate`;
+  `StudentDetailViewModel` → `StudentScheduleTabsDelegate` + `BusyManagementDelegate`;
+  `StudentsViewModel` → 4 delegates. Prefer this over letting a ViewModel grow.
+
 ## Kotlin & Project Specifics
 
 - **Dates**: Use `kotlinx.datetime` exclusively (NO `java.time`).
 - **Strings**: Use `strings.xml` (with `values-ar/` support) and the `UiText` wrapper state. NO hardcoded strings.
 - **Serialization**: Use `kotlinx.serialization` (`@Serializable`).
 - **DI**: Manual via `AppContainer` and `AppViewModelProvider`.
+- **Room migrations**: Any schema change MUST add an explicit `Migration` with a
+  version bump. Destructive migration is NOT acceptable (user data). Commit the
+  regenerated `app/schemas/` JSON and add a migration test in `androidTest/`
+  (see `ScheduleDaoMigrationTest`).
 - **Class Filter Pattern**: Unified multi-select class filter shared across Calendar (attendance dialog) and Students screens.
   - `ClassFilterRepository` (domain/repositories/) + `ClassFilterRepositoryImpl` (data/repositories/) share an in-memory `selectedClassIds: StateFlow<Set<Int>>` (default `emptySet()`) observed by both ViewModels.
   - `ClassCheckboxFilter` (presentation/screens/components/) is the shared multi-select checkbox dropdown used by both screens.
@@ -43,15 +78,39 @@
 ## Testing (JUnit 6 + MockK)
 
 - **Philosophy**: MUST explicitly test BOTH `onSuccess` and `onFailure` paths. Verify ViewModel error state bindings.
-- **UI Tests**: Use Compose rules (`@get:Rule`) and `mockk(relaxed = true)` for ViewModels.
+- **Unit tests (JVM)**: JUnit 6 + MockK is the standard. `mockk(relaxed = true)` is fine here.
+- **On-device UI tests**: `mockk-android` CANNOT mock final ViewModel classes on
+  device. Do NOT attempt it. Instead extract a stateless content composable and
+  drive it through a hand-rolled harness backed by `MutableStateFlow` plus an
+  event recorder — see `ScheduleScreenTestHarness` / `ScheduleScreenContent`.
 - **Async Tests**: Advance virtual time with `runTest`.
+
+## Naming, Branching & Commits
+
+- **Files**: `PascalCase.kt`; lowercase directories.
+- **Branches**: spec features use `NNN-kebab-case-feature-name`
+  (e.g. `007-lesson-scheduling`); ad-hoc use `feat/`, `fix/`, `chore/`,
+  `refactor/`. Long-lived: `develop`, `release`.
+- **Commits**: Conventional Commits **with a scope** naming the affected feature
+  or area — e.g. `feat(schedule): ...`, `fix(student-detail): ...`,
+  `refactor(calendar): ...`.
 
 ## Build & Lint Commands
 
+- **Setup**: A `signing.properties` file in the repo root is REQUIRED before any
+  Gradle task can configure (`app/build.gradle.kts` reads it for both the debug
+  and release signing configs). Copy the tracked template and fill it in:
+  `cp signing.properties.example signing.properties`. Keystore paths in that
+  file are resolved relative to the `app/` module directory
+  (`../keystores/x.jks` = `<repo-root>/keystores/x.jks`).
+- **Never commit** `signing.properties` or `keystores/` — they are git-ignored;
+  only `signing.properties.example` is tracked.
 - **Unit Test**: `./gradlew testDebugUnitTest --tests "PackageOrClass"`
 - **UI Test**: `./gradlew connectedDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.class="PackageOrClass"` (AGP 9 does NOT support `--tests` on this task)
-- **Format**: `./gradlew ktlintFormat` (ALWAYS run before commit)
+- **Format**: `./gradlew ktlintFormat` (ALWAYS run before commit; also auto-runs as a `preBuild` dependency)
 - **Validate**: `./gradlew check` (ktlint + lint + tests)
+- **Note**: There is no CI in this repository — all gates are run locally and
+  manually. Do not assume a pipeline will catch violations.
 
 <!-- SPECKIT START -->
 For additional context about technologies to be used, project structure,
