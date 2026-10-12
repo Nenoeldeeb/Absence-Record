@@ -72,7 +72,14 @@ android {
         sourceCompatibility(libs.versions.jvmTarget.get())
     }
     buildFeatures { compose = true }
-    lint { abortOnError = false }
+    lint {
+        // `./gradlew check` is the only quality gate in this repo, so lint errors
+        // must fail the build. The baseline holds the 12 known errors
+        // (LocalContext resource reads, missing Arabic "zero" quantity) so only
+        // newly introduced issues break the build; delete app/lint-baseline.xml
+        // once they are fixed.
+        baseline = file("lint-baseline.xml")
+    }
     testOptions { unitTests { all { it.useJUnitPlatform() } } }
 
     sourceSets {
