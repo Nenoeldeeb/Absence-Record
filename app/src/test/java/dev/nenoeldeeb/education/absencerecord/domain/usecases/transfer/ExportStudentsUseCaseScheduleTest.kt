@@ -23,6 +23,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 @DisplayName("ExportStudentsUseCase Schedule Tests")
@@ -75,7 +76,7 @@ class ExportStudentsUseCaseScheduleTest {
                     id = 5,
                     weekday = DayOfWeek.SATURDAY,
                     startMinutes = 480,
-                    maxStudents = 3
+                    durationMinutes = 30
                 )
             val assignment =
                 LessonAssignment(
@@ -105,7 +106,11 @@ class ExportStudentsUseCaseScheduleTest {
             val backup = captureBackup()
             assertEquals(1, backup.availableHours.size)
             assertEquals(480, backup.availableHours[0].startMinutes)
-            assertEquals(3, backup.availableHours[0].maxStudents)
+            assertEquals(30, backup.availableHours[0].durationMinutes)
+            assertNull(
+                backup.availableHours[0].maxStudents,
+                "the student-count field must never be written (FR-042)"
+            )
             assertEquals(DayOfWeek.SATURDAY.isoDayNumber, backup.availableHours[0].weekday)
             assertEquals(1, backup.students[0].lessonAssignments.size)
             assertEquals(480, backup.students[0].lessonAssignments[0].startMinutes)
@@ -125,7 +130,7 @@ class ExportStudentsUseCaseScheduleTest {
                     id = 5,
                     weekday = DayOfWeek.MONDAY,
                     startMinutes = 480,
-                    maxStudents = 2
+                    durationMinutes = 20
                 )
             val johnAssignment =
                 LessonAssignment(

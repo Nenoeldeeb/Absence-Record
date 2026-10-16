@@ -66,10 +66,7 @@ class StudentDetailViewModelDeleteTest : StudentDetailViewModelTestBase() {
             hour = AvailableLessonHour(id, DayOfWeek.SATURDAY, start, 5),
             endMinutes = start + 60,
             assignedStudentIds = emptyList(),
-            assignedCount = 0,
-            maxStudents = 5,
-            remainingSlots = 5,
-            isFull = false
+            assignedCount = 0
         )
 
     @Test

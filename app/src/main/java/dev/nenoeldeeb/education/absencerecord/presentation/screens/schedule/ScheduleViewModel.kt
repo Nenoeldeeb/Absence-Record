@@ -6,6 +6,7 @@ import dev.nenoeldeeb.education.absencerecord.domain.models.SortType
 import dev.nenoeldeeb.education.absencerecord.domain.usecases.StudentManagementUseCases
 import dev.nenoeldeeb.education.absencerecord.domain.usecases.schedule.ScheduleUseCases
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.schedule.delegates.HourManagementDelegate
+import dev.nenoeldeeb.education.absencerecord.presentation.screens.schedule.delegates.ReplanDelegate
 import dev.nenoeldeeb.education.absencerecord.presentation.utils.toUiText
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -29,6 +30,13 @@ class ScheduleViewModel(
 
     private val hourManagementDelegate =
         HourManagementDelegate(
+            scheduleUseCases = scheduleUseCases,
+            scope = viewModelScope,
+            updateState = { transform -> _uiState.update(transform) }
+        )
+
+    private val replanDelegate =
+        ReplanDelegate(
             scheduleUseCases = scheduleUseCases,
             scope = viewModelScope,
             updateState = { transform -> _uiState.update(transform) }
@@ -118,8 +126,12 @@ class ScheduleViewModel(
             is ScheduleScreenEvent.SetHourStart ->
                 hourManagementDelegate.setHourStart(event.minutes)
 
-            is ScheduleScreenEvent.SetHourMaxStudents ->
-                hourManagementDelegate.setHourMaxStudents(event.value)
+            is ScheduleScreenEvent.ConfirmReplan -> replanDelegate.confirm(uiState.value)
+
+            is ScheduleScreenEvent.DismissReplan -> replanDelegate.dismiss(uiState.value)
+
+            is ScheduleScreenEvent.SetHourDuration ->
+                hourManagementDelegate.setHourDuration(event.value)
 
             is ScheduleScreenEvent.SaveHour ->
                 hourManagementDelegate.saveHour(_uiState.value)

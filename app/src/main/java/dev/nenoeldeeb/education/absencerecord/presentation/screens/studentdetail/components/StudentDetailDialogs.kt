@@ -63,6 +63,8 @@ internal fun StudentDetailDialogs(
         AddLessonDialog(
             hours = uiState.hoursForWeekday,
             busyAppointments = weekdayBusy,
+            studentId = uiState.student?.id ?: 0,
+            studentName = uiState.student?.name.orEmpty(),
             selectedHourId = uiState.selectedLessonHourId,
             onHourSelected = { hourId ->
                 onEvent(StudentDetailScreenEvent.SelectLessonHour(hourId))

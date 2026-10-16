@@ -176,6 +176,7 @@ fun AppointmentsTab(
                         Modifier
                             .weight(1f)
                             .fillMaxWidth()
+                            .testTag(SCHEDULE_HOURS_LIST_TAG)
                 ) {
                     items(
                         items = hours,

@@ -31,6 +31,7 @@ import androidx.compose.ui.unit.dp
 import dev.nenoeldeeb.education.absencerecord.R
 import dev.nenoeldeeb.education.absencerecord.domain.models.BusyAppointment
 import dev.nenoeldeeb.education.absencerecord.domain.models.HourWithOccupancy
+import dev.nenoeldeeb.education.absencerecord.domain.services.LessonSlotPlanner.BusyWindow
 import dev.nenoeldeeb.education.absencerecord.domain.services.ScheduleRules
 import dev.nenoeldeeb.education.absencerecord.presentation.utils.TimeFormatter.formatTime
 
@@ -42,22 +43,40 @@ internal fun AddLessonDialog(
     onHourSelected: (Int) -> Unit,
     onConfirm: () -> Unit,
     onDismiss: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    studentId: Int = 0,
+    studentName: String = ""
 ) {
     // Sort once per hours change; the dialog recomposes on every radio selection.
     val sortedHours = remember(hours) { hours.sortedBy { it.hour.startMinutes } }
-    // Eligibility is O(hours x busy): memoize per inputs so each radio tap is an
-    // O(1) lookup instead of re-scanning every row.
-    val eligibility =
-        remember(hours, busyAppointments) {
-            hours.associate { hour -> hour.hour.id to hour.isEligible(busyAppointments) }
+    // Eligibility and conflict are both answered by the newcomer's OWN
+    // prospective ten minutes, not by the block's whole extent: a commitment
+    // later inside the block must not hide a block they could take (FR-027).
+    // Derived once and memoised, so each radio tap is an O(1) lookup.
+    val verdicts =
+        remember(hours, busyAppointments, studentId, studentName) {
+            val windows = busyAppointments.map { BusyWindow(it.startMinutes, it.durationMinutes) }
+            hours.associate { hour ->
+                val slot = hour.prospectiveSlotFor(studentId, studentName, windows)
+                val collides =
+                    slot != null &&
+                        windows.any { busy ->
+                            ScheduleRules.overlaps(
+                                slot.startMinutes,
+                                slot.endMinutes,
+                                busy.startMinutes,
+                                busy.endMinutes
+                            )
+                        }
+                // A null slot means the block is full, or the roster's own
+                // commitments are unknown. Neither can be called eligible.
+                hour.hour.id to Verdict(eligible = slot != null && !collides, conflict = collides)
+            }
         }
+    val eligibility = remember(verdicts) { verdicts.mapValues { it.value.eligible } }
     // Busy overlap is tracked separately so conflict styling takes priority
     // over full styling when both apply.
-    val busyOverlap =
-        remember(hours, busyAppointments) {
-            hours.associate { hour -> hour.hour.id to hour.hasBusyOverlap(busyAppointments) }
-        }
+    val busyOverlap = remember(verdicts) { verdicts.mapValues { it.value.conflict } }
     // Eligibility check is O(1) lookup; recompute only when its inputs change.
     val selectedIsEligible =
         remember(eligibility, selectedHourId) {
@@ -122,19 +141,6 @@ internal fun AddLessonDialog(
         modifier = modifier
     )
 }
-
-private fun HourWithOccupancy.isEligible(busyAppointments: List<BusyAppointment>): Boolean =
-    remainingSlots > 0 && !hasBusyOverlap(busyAppointments)
-
-private fun HourWithOccupancy.hasBusyOverlap(busyAppointments: List<BusyAppointment>): Boolean =
-    busyAppointments.any { busy ->
-        ScheduleRules.overlaps(
-            hour.startMinutes,
-            endMinutes,
-            busy.startMinutes,
-            busy.startMinutes + busy.durationMinutes
-        )
-    }
 
 @Composable
 private fun HourOptionRow(
@@ -257,3 +263,9 @@ private fun HourOptionRow(
         }
     }
 }
+
+/** Whether a newcomer can take a block, and whether a slot collision blocks it. */
+private data class Verdict(
+    val eligible: Boolean,
+    val conflict: Boolean
+)

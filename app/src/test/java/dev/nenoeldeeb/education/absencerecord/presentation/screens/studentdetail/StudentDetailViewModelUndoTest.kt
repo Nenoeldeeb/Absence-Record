@@ -34,13 +34,10 @@ class StudentDetailViewModelUndoTest : StudentDetailViewModelTestBase() {
 
     private fun hourWith(): HourWithOccupancy =
         HourWithOccupancy(
-            hour = AvailableLessonHour(2, DayOfWeek.SATURDAY, 540, 5),
+            hour = AvailableLessonHour(2, DayOfWeek.SATURDAY, 540, 50),
             endMinutes = 600,
             assignedStudentIds = listOf(1),
-            assignedCount = 1,
-            maxStudents = 5,
-            remainingSlots = 4,
-            isFull = false
+            assignedCount = 1
         )
 
     private fun busyAt(): BusyAppointment =

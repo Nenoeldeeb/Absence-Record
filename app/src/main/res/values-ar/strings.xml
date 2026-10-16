@@ -201,6 +201,9 @@
     <string name="error_database_operation_failed">فشلت عملية قاعدة البيانات.</string>
     <string name="error_reading_file">خطأ في قراءة الملف.</string>
     <string name="error_parsing_import_file">خطأ في تحليل ملف الاستيراد.</string>
+    <string name="error_import_file_too_large">ملف النسخة الاحتياطية هذا كبير جدًا للاستيراد</string>
+    <plurals name="import_complete_capped_skipped"><item quantity="zero">لم يتم تجاوز أي سجلات.</item><item quantity="one">تم تجاهل %1$d سجل بعد حد الاستيراد</item><item quantity="two">تم تجاهل %1$d سجلين بعد حد الاستيراد</item><item quantity="few">تم تجاهل %1$d سجلات بعد حد الاستيراد</item><item quantity="many">تم تجاهل %1$d سجلًا بعد حد الاستيراد</item><item quantity="other">تم تجاهل %1$d سجل بعد حد الاستيراد</item></plurals>
+    <string name="import_complete_student_cap_hit">يحتوي هذا الملف على عدد من الطلاب أكبر مما يمكن للنسخة الاحتياطية الاحتفاظ به (%1$d)، لذلك لم يتم استيراد البقية.</string>
     <string name="error_unsupported_backup_version">نسخة هذه النسخة الاحتياطية (%1$d) غير مدعومة.</string>
     <string name="error_writing_file">خطأ في كتابة الملف.</string>
     <string name="error_generating_report">فشلت عملية توليد التقرير.</string>
@@ -326,8 +329,7 @@
     <string name="schedule_start_time">وقت البدء</string>
     <string name="schedule_hour_ends_at">ينتهي في %1$s</string>
     <string name="error_hour_passes_midnight">ينتهي الدرس بعد منتصف الليل.</string>
-    <string name="schedule_max_students">الحد الأقصى للطلاب</string>
-    <string name="error_capacity_invalid">يجب أن يكون الحد الأقصى للطلاب 1 على الأقل.</string>
+    <string name="error_hour_length_invalid">يجب أن تكون مدة الحصة بين ١٠ و١٢٠ دقيقة، بخطوات ١٠ دقائق.</string>
     <string name="error_max_below_assigned">لا يمكن أن يكون الحد الأقصى للطلاب أقل من عدد الطلاب المسجلين.</string>
     <string name="schedule_delete_hour_named">حذف ساعة %1$s؟</string>
     <string name="schedule_delete_hour_message_empty">سيؤدي هذا إلى إزالة هذه الساعة. يمكنك التراجع مباشرة من شريط الإشعار.</string>
@@ -350,12 +352,36 @@
     <string name="schedule_change_start_time_action">تغيير وقت البدء</string>
     <string name="schedule_hour_options_description">خيارات إضافية لساعة %1$s</string>
     <string name="schedule_open_student_profile_description">فتح ملف الطالب %1$s</string>
+    <string name="schedule_open_student_slot_description">فتح ملف الطالب %1$s،时段 %2$s</string>
     <string name="schedule_day_counts">%1$s · %2$s</string>
     <string name="schedule_hours_loading">جارٍ تحميل الساعات</string>
     <string name="loading">جارٍ التحميل</string>
     <string name="schedule_today">اليوم</string>
-    <string name="schedule_decrease_capacity">إنقاص الحد الأقصى للطلاب</string>
-    <string name="schedule_increase_capacity">زيادة الحد الأقصى للطلاب</string>
+    <string name="schedule_duration_label">مدة الحصة</string>
+    <string name="schedule_duration_minutes">%1$d د</string>
+    <string name="schedule_duration_range">١٠–١٢٠ د</string>
+    <string name="schedule_derived_capacity">حتى %1$d طالب</string>
+    <string name="schedule_slot_range">%1$s – %2$s</string>
+    <string name="schedule_length_and_occupancy">%1$s · %2$s</string>
+    <string name="schedule_slider_description">مدة الحصة بالدقائق. المدة الحالية %1$d دقيقة، وتتسع حتى %2$d طالب.</string>
+    <plurals name="schedule_students_count">
+        <item quantity="zero">لا يوجد طلاب</item>
+        <item quantity="one">طالب واحد</item>
+        <item quantity="two">طالبان</item>
+        <item quantity="few">%1$d طلاب</item>
+        <item quantity="many">%1$d طالبًا</item>
+        <item quantity="other">%1$d طالب</item>
+    </plurals>
+    <string name="schedule_replan_title">هذا التغيير يؤثر على الطلاب المسندين</string>
+    <string name="schedule_replan_stay">يبقى هؤلاء الطلاب (%1$d):</string>
+    <string name="schedule_replan_leave">سيُزال هؤلاء الطلاب (%1$d):</string>
+    <string name="schedule_dropped_student">%1$s — لم تعد حصة الطالب تتسع</string>
+    <string name="schedule_replan_drop_all">سيُزال جميع الطلاب (%1$d).</string>
+    <string name="schedule_confirm_replan">تطبيق التغيير</string>
+    <string name="schedule_cancel_replan">الإبقاء كما هو</string>
+    <string name="error_hour_derived_full">هذه الحصة مكتملة بالفعل بحد أقصى %1$d طالب.</string>
+    <string name="error_slot_busy_conflict">لدى %1$s موعد مشغول من %2$s إلى %3$s.</string>
+    <string name="error_replan_drops_students">سيؤدي هذا التغيير إلى إزالة %1$d طالب.</string>
     <plurals name="schedule_day_summary_hours">
         <item quantity="zero">لا ساعات</item>
         <item quantity="one">ساعة واحدة</item>
@@ -395,6 +421,7 @@
     <string name="student_detail_no_hours_for_day">لم يتم تحديد ساعات دراسية لهذا اليوم. أضف الساعات من صفحة الجدول أولاً.</string>
     <string name="student_detail_select_hour">اختر ساعة</string>
     <string name="student_detail_lesson_unassign_description">إلغاء تسجيل %1$s</string>
+    <string name="student_detail_lesson_slot">وقتك: %1$s – %2$s</string>
     <string name="student_detail_no_busy_for_day">لا توجد مواعيد مشغولة لهذا الطالب في هذا اليوم.</string>
     <string name="student_detail_busy_conflict_title">دروس متداخلة</string>
     <string name="student_detail_busy_conflict_message">يتداخل هذا الموعد المشغول مع الدروس التالية، وسيتم إزالتها:</string>

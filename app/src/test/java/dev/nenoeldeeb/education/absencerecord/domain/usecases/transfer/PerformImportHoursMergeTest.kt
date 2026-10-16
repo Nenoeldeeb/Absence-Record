@@ -4,6 +4,7 @@ import dev.nenoeldeeb.education.absencerecord.domain.models.AssignmentRemovalRep
 import dev.nenoeldeeb.education.absencerecord.domain.models.AvailableHourExportData
 import dev.nenoeldeeb.education.absencerecord.domain.models.AvailableLessonHour
 import dev.nenoeldeeb.education.absencerecord.domain.models.BusyAppointmentExportData
+import dev.nenoeldeeb.education.absencerecord.domain.models.HourReplanResult
 import dev.nenoeldeeb.education.absencerecord.domain.models.LessonAssignment
 import dev.nenoeldeeb.education.absencerecord.domain.models.LessonAssignmentExportData
 import dev.nenoeldeeb.education.absencerecord.domain.models.ParsedImportData
@@ -33,7 +34,7 @@ class PerformImportHoursMergeTest : PerformImportUseCaseTestBase() {
             val result =
                 import(
                     parsedData(
-                        hours = listOf(AvailableHourExportData(DayOfWeek.SATURDAY.isoDayNumber, 480, 2))
+                        hours = listOf(AvailableHourExportData(DayOfWeek.SATURDAY.isoDayNumber, 480, durationMinutes = 20))
                     )
                 )
 
@@ -41,7 +42,7 @@ class PerformImportHoursMergeTest : PerformImportUseCaseTestBase() {
             assertEquals(1, result.getOrNull()?.hoursAddedCount)
             assertEquals(0, result.getOrNull()?.hoursSkippedOverlapCount)
             coVerify(exactly = 1) {
-                scheduleRepository.insertHour(DayOfWeek.SATURDAY, 480, 2)
+                scheduleRepository.insertHour(DayOfWeek.SATURDAY, 480, 20)
             }
         }
 
@@ -56,7 +57,7 @@ class PerformImportHoursMergeTest : PerformImportUseCaseTestBase() {
                                 id = 5,
                                 weekday = DayOfWeek.SATURDAY,
                                 startMinutes = 480,
-                                maxStudents = 2
+                                durationMinutes = 20
                             )
                         )
                     )
@@ -68,9 +69,9 @@ class PerformImportHoursMergeTest : PerformImportUseCaseTestBase() {
                     parsedData(
                         hours =
                             listOf(
-                                AvailableHourExportData(DayOfWeek.SATURDAY.isoDayNumber, 480, 3),
-                                AvailableHourExportData(DayOfWeek.SATURDAY.isoDayNumber, 420, 3),
-                                AvailableHourExportData(DayOfWeek.SATURDAY.isoDayNumber, 540, 3)
+                                AvailableHourExportData(DayOfWeek.SATURDAY.isoDayNumber, 480, durationMinutes = 30),
+                                AvailableHourExportData(DayOfWeek.SATURDAY.isoDayNumber, 420, durationMinutes = 30),
+                                AvailableHourExportData(DayOfWeek.SATURDAY.isoDayNumber, 540, durationMinutes = 30)
                             )
                     )
                 )
@@ -78,8 +79,8 @@ class PerformImportHoursMergeTest : PerformImportUseCaseTestBase() {
             assertTrue(result.isSuccess)
             assertEquals(2, result.getOrNull()?.hoursAddedCount)
             assertEquals(1, result.getOrNull()?.hoursSkippedOverlapCount)
-            coVerify(exactly = 1) { scheduleRepository.insertHour(DayOfWeek.SATURDAY, 420, 3) }
-            coVerify(exactly = 1) { scheduleRepository.insertHour(DayOfWeek.SATURDAY, 540, 3) }
+            coVerify(exactly = 1) { scheduleRepository.insertHour(DayOfWeek.SATURDAY, 420, 30) }
+            coVerify(exactly = 1) { scheduleRepository.insertHour(DayOfWeek.SATURDAY, 540, 30) }
             coVerify(exactly = 0) { scheduleRepository.insertHour(DayOfWeek.SATURDAY, 480, any()) }
         }
 
@@ -94,7 +95,7 @@ class PerformImportHoursMergeTest : PerformImportUseCaseTestBase() {
                                 id = 5,
                                 weekday = DayOfWeek.MONDAY,
                                 startMinutes = 480,
-                                maxStudents = 2
+                                durationMinutes = 20
                             )
                         )
                     )
@@ -132,7 +133,7 @@ class PerformImportHoursMergeTest : PerformImportUseCaseTestBase() {
                                 id = 5,
                                 weekday = DayOfWeek.MONDAY,
                                 startMinutes = 480,
-                                maxStudents = 1
+                                durationMinutes = 10
                             )
                         )
                     )
@@ -152,8 +153,8 @@ class PerformImportHoursMergeTest : PerformImportUseCaseTestBase() {
                 )
             every { studentRepository.getAllStudents() } returns
                 flowOf(Result.success(listOf(Student(id = 1, name = "John"))))
-            coEvery { scheduleRepository.updateHour(any(), any(), any(), any()) } returns
-                Result.success(AssignmentRemovalReport(emptyList()))
+            coEvery { scheduleRepository.updateHour(any(), any(), any(), any(), any()) } returns
+                Result.success(HourReplanResult.Applied(emptyList()))
             coEvery { studentRepository.insertStudent(any()) } returns Result.success(2L)
             coEvery { scheduleRepository.assignStudent(any(), any(), any()) } returns Result.success(Unit)
 
@@ -175,7 +176,7 @@ class PerformImportHoursMergeTest : PerformImportUseCaseTestBase() {
 
             assertTrue(result.isSuccess)
             assertEquals(1, result.getOrNull()?.lessonsAddedCount)
-            coVerify(exactly = 1) { scheduleRepository.updateHour(5, DayOfWeek.MONDAY, 480, 2) }
+            coVerify(exactly = 1) { scheduleRepository.updateHour(5, DayOfWeek.MONDAY, 480, 20, true) }
             coVerify(exactly = 1) { scheduleRepository.assignStudent(5, 2, DayOfWeek.MONDAY) }
         }
 
@@ -197,7 +198,7 @@ class PerformImportHoursMergeTest : PerformImportUseCaseTestBase() {
                                 lessonAssignments =
                                     listOf(
                                         LessonAssignmentExportData(9, 480),
-                                        LessonAssignmentExportData(DayOfWeek.MONDAY.isoDayNumber, 1385)
+                                        LessonAssignmentExportData(DayOfWeek.MONDAY.isoDayNumber, 1440)
                                     )
                             ),
                         hours =
@@ -266,7 +267,7 @@ class PerformImportHoursMergeTest : PerformImportUseCaseTestBase() {
                                 )
                             ),
                         availableHours =
-                            listOf(AvailableHourExportData(DayOfWeek.SATURDAY.isoDayNumber, 480, 2))
+                            listOf(AvailableHourExportData(DayOfWeek.SATURDAY.isoDayNumber, 480, durationMinutes = 20))
                     )
                 )
 
@@ -274,7 +275,7 @@ class PerformImportHoursMergeTest : PerformImportUseCaseTestBase() {
             assertEquals(1, result.getOrNull()?.newStudentsCount)
             assertEquals(1, result.getOrNull()?.hoursAddedCount)
             assertEquals(1, result.getOrNull()?.lessonsAddedCount)
-            coVerify(exactly = 1) { scheduleRepository.insertHour(DayOfWeek.SATURDAY, 480, 2) }
+            coVerify(exactly = 1) { scheduleRepository.insertHour(DayOfWeek.SATURDAY, 480, 20) }
             coVerify(exactly = 1) { scheduleRepository.insertBusyAppointment(1, DayOfWeek.SUNDAY, 600, 30) }
             coVerify(exactly = 1) { scheduleRepository.assignStudent(5, 1, DayOfWeek.SATURDAY) }
         }
