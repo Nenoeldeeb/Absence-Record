@@ -93,12 +93,22 @@ abstract class ScheduleDao {
     @Query("SELECT COUNT(*) FROM lesson_assignments WHERE availableHourId = :hourId")
     abstract suspend fun countAssignmentsForHour(hourId: Int): Int
 
+    /**
+     * Same-day blocks whose own extent overlaps the proposed one (FR-008).
+     *
+     * Both lengths matter and they are *different* lengths: `startMinutes` and
+     * `durationMinutes` belong to the existing row, while `:startMinutes` and
+     * `:endMinutes` describe the block being saved. Comparing the existing row
+     * against the proposed block's duration silently misses any overlap where
+     * the proposed block is shorter and later — see
+     * `ScheduleDaoHourOverlapTest`.
+     */
     @Query(
         """
         SELECT COUNT(*) FROM available_lesson_hours
         WHERE weekday = :weekday
           AND startMinutes < :endMinutes
-          AND startMinutes + :lessonDuration > :startMinutes
+          AND startMinutes + durationMinutes > :startMinutes
           AND id != :excludeId
         """
     )
@@ -106,7 +116,6 @@ abstract class ScheduleDao {
         weekday: Int,
         startMinutes: Int,
         endMinutes: Int,
-        lessonDuration: Int,
         excludeId: Int
     ): Int
 
@@ -170,10 +179,11 @@ abstract class ScheduleDao {
             throw StudentError.HourOverlap
         }
         val plan = planHourWith(weekday, startMinutes, durationMinutes, id)
-        val dropped = plan.dropped
+        val lost = closedDropSet(weekday, startMinutes, durationMinutes, id)
+
         // Nothing is written until the teacher confirms (FR-011, FR-013).
-        if (dropped.isNotEmpty() && !confirmed) {
-            return HourReplanResult.NeedsConfirmation(plan.plan, dropped)
+        if (lost.isNotEmpty() && !confirmed) {
+            return HourReplanResult.NeedsConfirmation(plan.plan, lost)
         }
         updateAvailableHour(
             AvailableLessonHourEntity(
@@ -185,9 +195,9 @@ abstract class ScheduleDao {
         )
         // Confirming must ACTUALLY unassign the students the teacher agreed to
         // lose, not merely report them (FR-013).
-        dropped.forEach { deleteAssignment(id, it.studentId) }
+        lost.forEach { deleteAssignment(id, it.studentId) }
         val removed =
-            dropped.map { it.studentId } + removeBusyConflictingAssignments(weekday, id).removedStudentIds
+            lost.map { it.studentId } + removeBusyConflictingAssignments(weekday, id).removedStudentIds
         return HourReplanResult.Applied(removed.distinct())
     }
 
