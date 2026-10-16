@@ -2,6 +2,7 @@ package dev.nenoeldeeb.education.absencerecord.data.repositories
 
 import dev.nenoeldeeb.education.absencerecord.data.datasources.local.daos.ScheduleDao
 import dev.nenoeldeeb.education.absencerecord.domain.models.AssignmentRemovalReport
+import dev.nenoeldeeb.education.absencerecord.domain.models.HourReplanResult
 import dev.nenoeldeeb.education.absencerecord.domain.models.StudentError
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -50,26 +51,37 @@ class ScheduleRepositoryImplTest {
         }
 
     @Test
-    fun `updateHour returns AssignmentRemovalReport on success`() =
+    fun `updateHour returns Applied on success`() =
         runTest {
-            val report = AssignmentRemovalReport(listOf(7, 8))
-            coEvery { scheduleDao.updateHour(1, 6, 600, 4) } returns report
+            val outcome = HourReplanResult.Applied(listOf(7, 8))
+            coEvery { scheduleDao.updateHour(1, 6, 600, 40, false) } returns outcome
 
-            val result = repository.updateHour(1, DayOfWeek.SATURDAY, 600, 4)
+            val result = repository.updateHour(1, DayOfWeek.SATURDAY, 600, 40)
 
             assertTrue(result.isSuccess)
-            assertEquals(listOf(7, 8), result.getOrNull()?.removedStudentIds)
+            assertEquals(listOf(7, 8), (result.getOrNull() as HourReplanResult.Applied).removedStudentIds)
         }
 
     @Test
-    fun `updateHour propagates MaxBelowAssigned failure`() =
+    fun `updateHour passes confirmed through so the caller can commit`() =
         runTest {
-            coEvery { scheduleDao.updateHour(1, 6, 600, 4) } throws StudentError.MaxBelowAssigned
+            val outcome = HourReplanResult.Applied(emptyList())
+            coEvery { scheduleDao.updateHour(1, 6, 600, 40, true) } returns outcome
 
-            val result = repository.updateHour(1, DayOfWeek.SATURDAY, 600, 4)
+            repository.updateHour(1, DayOfWeek.SATURDAY, 600, 40, confirmed = true)
+
+            coVerify(exactly = 1) { scheduleDao.updateHour(1, 6, 600, 40, true) }
+        }
+
+    @Test
+    fun `updateHour propagates an overlap failure`() =
+        runTest {
+            coEvery { scheduleDao.updateHour(1, 6, 600, 40, false) } throws StudentError.HourOverlap
+
+            val result = repository.updateHour(1, DayOfWeek.SATURDAY, 600, 40)
 
             assertTrue(result.isFailure)
-            assertEquals(StudentError.MaxBelowAssigned, result.exceptionOrNull())
+            assertEquals(StudentError.HourOverlap, result.exceptionOrNull())
         }
 
     @Test

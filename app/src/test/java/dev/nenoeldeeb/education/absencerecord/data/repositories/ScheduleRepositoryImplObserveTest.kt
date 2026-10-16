@@ -24,7 +24,7 @@ class ScheduleRepositoryImplObserveTest {
     fun `observeHours maps entities on success`() =
         runTest {
             val entity =
-                AvailableLessonHourEntity(id = 1, weekday = 6, startMinutes = 540, maxStudents = 5)
+                AvailableLessonHourEntity(id = 1, weekday = 6, startMinutes = 540, durationMinutes = 50)
             every { scheduleDao.observeHours() } returns flowOf(listOf(entity))
 
             val result = repository.observeHours().first()
@@ -53,17 +53,19 @@ class ScheduleRepositoryImplObserveTest {
     fun `observeHoursForWeekday combines occupancy`() =
         runTest {
             val hourEntity =
-                AvailableLessonHourEntity(id = 1, weekday = 6, startMinutes = 540, maxStudents = 2)
+                AvailableLessonHourEntity(id = 1, weekday = 6, startMinutes = 540, durationMinutes = 20)
             val assignment =
                 LessonAssignmentEntity(id = 1, availableHourId = 1, studentId = 7, weekday = 6)
             every { scheduleDao.observeHoursForWeekday(6) } returns flowOf(listOf(hourEntity))
             every { scheduleDao.observeAssignments() } returns flowOf(listOf(assignment))
+            every { scheduleDao.observeBusyAppointmentsForWeekday(6) } returns flowOf(emptyList())
+            every { scheduleDao.observeStudentNames() } returns flowOf(emptyList())
 
             val result = repository.observeHoursForWeekday(DayOfWeek.SATURDAY).first()
 
             assertTrue(result.isSuccess)
             val hour = result.getOrNull()!!.single()
-            assertEquals(600, hour.endMinutes)
+            assertEquals(560, hour.endMinutes)
             assertEquals(listOf(7), hour.assignedStudentIds)
             assertEquals(1, hour.assignedCount)
             assertEquals(1, hour.remainingSlots)
@@ -76,6 +78,8 @@ class ScheduleRepositoryImplObserveTest {
             every { scheduleDao.observeHoursForWeekday(6) } returns
                 flow { throw RuntimeException("boom") }
             every { scheduleDao.observeAssignments() } returns flowOf(emptyList())
+            every { scheduleDao.observeBusyAppointmentsForWeekday(6) } returns flowOf(emptyList())
+            every { scheduleDao.observeStudentNames() } returns flowOf(emptyList())
 
             val result = repository.observeHoursForWeekday(DayOfWeek.SATURDAY).first()
 
@@ -149,7 +153,7 @@ class ScheduleRepositoryImplObserveTest {
     fun `observeStudentSchedule aggregates lessons and busy`() =
         runTest {
             val hourEntity =
-                AvailableLessonHourEntity(id = 1, weekday = 6, startMinutes = 540, maxStudents = 5)
+                AvailableLessonHourEntity(id = 1, weekday = 6, startMinutes = 540, durationMinutes = 50)
             val assignment =
                 LessonAssignmentEntity(id = 1, availableHourId = 1, studentId = 7, weekday = 6)
             val busyEntity =
@@ -163,6 +167,8 @@ class ScheduleRepositoryImplObserveTest {
             every { scheduleDao.observeAssignments() } returns flowOf(listOf(assignment))
             every { scheduleDao.observeBusyAppointmentsForStudent(7) } returns flowOf(listOf(busyEntity))
             every { scheduleDao.observeHours() } returns flowOf(listOf(hourEntity))
+            every { scheduleDao.observeBusyAppointments() } returns flowOf(emptyList())
+            every { scheduleDao.observeStudentNames() } returns flowOf(emptyList())
 
             val result = repository.observeStudentSchedule(7).first()
 
@@ -170,7 +176,7 @@ class ScheduleRepositoryImplObserveTest {
             val view = result.getOrNull()!!
             assertEquals(1, view.lessons.size)
             assertEquals(540, view.lessons.single().startMinutes)
-            assertEquals(600, view.lessons.single().endMinutes)
+            assertEquals(590, view.lessons.single().endMinutes)
             assertEquals(1, view.busy.size)
         }
 
@@ -180,6 +186,8 @@ class ScheduleRepositoryImplObserveTest {
             every { scheduleDao.observeAssignments() } returns flow { throw RuntimeException("boom") }
             every { scheduleDao.observeBusyAppointmentsForStudent(7) } returns flowOf(emptyList())
             every { scheduleDao.observeHours() } returns flowOf(emptyList())
+            every { scheduleDao.observeBusyAppointments() } returns flowOf(emptyList())
+            every { scheduleDao.observeStudentNames() } returns flowOf(emptyList())
 
             val result = repository.observeStudentSchedule(7).first()
 
