@@ -2,6 +2,7 @@ package dev.nenoeldeeb.education.absencerecord.presentation.screens.schedule
 
 import androidx.compose.runtime.Stable
 import dev.nenoeldeeb.education.absencerecord.domain.models.AvailableLessonHour
+import dev.nenoeldeeb.education.absencerecord.domain.models.HourReplanResult
 import dev.nenoeldeeb.education.absencerecord.domain.models.HourWithOccupancy
 import dev.nenoeldeeb.education.absencerecord.domain.models.Student
 import dev.nenoeldeeb.education.absencerecord.domain.services.ScheduleRules
@@ -17,8 +18,9 @@ data class ScheduleScreenState(
     val isHourDialogOpen: Boolean = false,
     val editingHour: AvailableLessonHour? = null,
     val hourStartMinutes: Int = ScheduleRules.DEFAULT_NEW_HOUR_START_MINUTES,
-    val hourMaxStudents: String = ScheduleRules.DEFAULT_NEW_HOUR_MAX_STUDENTS.toString(),
+    val hourDurationMinutes: Int = ScheduleRules.DEFAULT_NEW_HOUR_DURATION_MINUTES,
     val hourValidationError: UiText? = null,
+    val pendingReplan: HourReplanResult.NeedsConfirmation? = null,
     val hourToDelete: AvailableLessonHour? = null,
     val deletedHour: AvailableLessonHour? = null,
     val deletedHourAssignedIds: List<Int> = emptyList(),

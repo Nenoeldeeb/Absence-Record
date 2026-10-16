@@ -1,8 +1,8 @@
 package dev.nenoeldeeb.education.absencerecord.presentation.screens.schedule
 
 import dev.nenoeldeeb.education.absencerecord.R
-import dev.nenoeldeeb.education.absencerecord.domain.models.AssignmentRemovalReport
 import dev.nenoeldeeb.education.absencerecord.domain.models.AvailableLessonHour
+import dev.nenoeldeeb.education.absencerecord.domain.models.HourReplanResult
 import dev.nenoeldeeb.education.absencerecord.domain.models.HourWithOccupancy
 import dev.nenoeldeeb.education.absencerecord.domain.models.SortType
 import dev.nenoeldeeb.education.absencerecord.domain.models.Student
@@ -38,7 +38,7 @@ class ScheduleViewModelHourTest : ScheduleViewModelTestBase() {
 
             viewModel.onEvent(ScheduleScreenEvent.OpenHourDialog(null))
             viewModel.onEvent(ScheduleScreenEvent.SetHourStart(540))
-            viewModel.onEvent(ScheduleScreenEvent.SetHourMaxStudents("5"))
+            viewModel.onEvent(ScheduleScreenEvent.SetHourDuration(50))
             coEvery { insertHourUseCase(any(), any(), any()) } returns Result.success(1)
 
             viewModel.onEvent(ScheduleScreenEvent.SaveHour)
@@ -51,8 +51,8 @@ class ScheduleViewModelHourTest : ScheduleViewModelTestBase() {
                 state.hourStartMinutes
             )
             assertEquals(
-                ScheduleRules.DEFAULT_NEW_HOUR_MAX_STUDENTS.toString(),
-                state.hourMaxStudents
+                ScheduleRules.DEFAULT_NEW_HOUR_DURATION_MINUTES,
+                state.hourDurationMinutes
             )
             assertEquals(null, state.hourValidationError)
         }
@@ -68,7 +68,7 @@ class ScheduleViewModelHourTest : ScheduleViewModelTestBase() {
 
             viewModel.onEvent(ScheduleScreenEvent.OpenHourDialog(null))
             viewModel.onEvent(ScheduleScreenEvent.SetHourStart(540))
-            viewModel.onEvent(ScheduleScreenEvent.SetHourMaxStudents("5"))
+            viewModel.onEvent(ScheduleScreenEvent.SetHourDuration(50))
             coEvery { insertHourUseCase(any(), any(), any()) } returns Result.success(1)
             viewModel.onEvent(ScheduleScreenEvent.SaveHour)
             advanceUntilIdle()
@@ -90,7 +90,7 @@ class ScheduleViewModelHourTest : ScheduleViewModelTestBase() {
 
             viewModel.onEvent(ScheduleScreenEvent.OpenHourDialog(null))
             viewModel.onEvent(ScheduleScreenEvent.SetHourStart(540))
-            viewModel.onEvent(ScheduleScreenEvent.SetHourMaxStudents("5"))
+            viewModel.onEvent(ScheduleScreenEvent.SetHourDuration(50))
             coEvery { insertHourUseCase(any(), any(), any()) } returns
                 Result.failure(StudentError.HourOverlap)
 
@@ -106,7 +106,7 @@ class ScheduleViewModelHourTest : ScheduleViewModelTestBase() {
         }
 
     @Test
-    fun `hour save with max students below one shows capacity inline error without calling use case`() =
+    fun `hour save with an invalid length shows the length error without calling the use case`() =
         runTest {
             coEvery { observeHoursForWeekdayUseCase(any()) } returns
                 flowOf(Result.success(emptyList()))
@@ -115,7 +115,7 @@ class ScheduleViewModelHourTest : ScheduleViewModelTestBase() {
 
             viewModel.onEvent(ScheduleScreenEvent.OpenHourDialog(null))
             viewModel.onEvent(ScheduleScreenEvent.SetHourStart(540))
-            viewModel.onEvent(ScheduleScreenEvent.SetHourMaxStudents("0"))
+            viewModel.onEvent(ScheduleScreenEvent.SetHourDuration(0))
 
             viewModel.onEvent(ScheduleScreenEvent.SaveHour)
             advanceUntilIdle()
@@ -123,7 +123,7 @@ class ScheduleViewModelHourTest : ScheduleViewModelTestBase() {
             val state = viewModel.uiState.value
             assertEquals(true, state.isHourDialogOpen)
             assertEquals(
-                UiText.StringResource(R.string.error_capacity_invalid),
+                UiText.StringResource(R.string.error_hour_length_invalid),
                 state.hourValidationError
             )
             coVerify(exactly = 0) { insertHourUseCase(any(), any(), any()) }
@@ -132,7 +132,7 @@ class ScheduleViewModelHourTest : ScheduleViewModelTestBase() {
     @Test
     fun `hour delete confirm first opens confirmation then deletes`() =
         runTest {
-            val hour = AvailableLessonHour(1, DayOfWeek.SATURDAY, 540, 5)
+            val hour = AvailableLessonHour(1, DayOfWeek.SATURDAY, 540, 50)
             coEvery { deleteHourUseCase(any()) } returns Result.success(Unit)
             createViewModel()
             advanceUntilIdle()
@@ -150,7 +150,7 @@ class ScheduleViewModelHourTest : ScheduleViewModelTestBase() {
     @Test
     fun `hour delete failure surfaces error`() =
         runTest {
-            val hour = AvailableLessonHour(1, DayOfWeek.SATURDAY, 540, 5)
+            val hour = AvailableLessonHour(1, DayOfWeek.SATURDAY, 540, 50)
             coEvery { deleteHourUseCase(any()) } returns Result.failure(StudentError.Database)
             createViewModel()
             advanceUntilIdle()
@@ -190,18 +190,19 @@ class ScheduleViewModelHourTest : ScheduleViewModelTestBase() {
         }
 
     @Test
-    fun `hour update capacity-drop validation failure surfaces inline error`() =
+    fun `hour update validation failure surfaces inline error`() =
         runTest {
             coEvery { observeHoursForWeekdayUseCase(any()) } returns
                 flowOf(Result.success(emptyList()))
             createViewModel()
             advanceUntilIdle()
 
-            val existing = AvailableLessonHour(1, DayOfWeek.SATURDAY, 540, 5)
+            val existing = AvailableLessonHour(1, DayOfWeek.SATURDAY, 540, 50)
             viewModel.onEvent(ScheduleScreenEvent.OpenHourDialog(existing))
-            viewModel.onEvent(ScheduleScreenEvent.SetHourMaxStudents("2"))
+            // a VALID length, so the use case is reached and its failure surfaces
+            viewModel.onEvent(ScheduleScreenEvent.SetHourDuration(30))
             coEvery { updateHourUseCase(any(), any(), any(), any()) } returns
-                Result.failure(StudentError.MaxBelowAssigned)
+                Result.failure(StudentError.HourOverlap)
 
             viewModel.onEvent(ScheduleScreenEvent.SaveHour)
             advanceUntilIdle()
@@ -209,7 +210,7 @@ class ScheduleViewModelHourTest : ScheduleViewModelTestBase() {
             val state = viewModel.uiState.value
             assertEquals(true, state.isHourDialogOpen)
             assertEquals(
-                UiText.StringResource(R.string.error_max_below_assigned),
+                UiText.StringResource(R.string.error_hour_overlap),
                 state.hourValidationError
             )
         }
@@ -224,10 +225,10 @@ class ScheduleViewModelHourTest : ScheduleViewModelTestBase() {
             createViewModel()
             advanceUntilIdle()
 
-            val existing = AvailableLessonHour(1, DayOfWeek.SATURDAY, 540, 5)
+            val existing = AvailableLessonHour(1, DayOfWeek.SATURDAY, 540, 50)
             viewModel.onEvent(ScheduleScreenEvent.OpenHourDialog(existing))
             coEvery { updateHourUseCase(any(), any(), any(), any()) } returns
-                Result.success(AssignmentRemovalReport(listOf(1)))
+                Result.success(HourReplanResult.Applied(listOf(1)))
 
             viewModel.onEvent(ScheduleScreenEvent.SaveHour)
             advanceUntilIdle()
@@ -251,12 +252,9 @@ class ScheduleViewModelHourTest : ScheduleViewModelTestBase() {
         assigned: Int = 0
     ): HourWithOccupancy =
         HourWithOccupancy(
-            hour = AvailableLessonHour(id, weekday, start, max),
-            endMinutes = start + 60,
+            hour = AvailableLessonHour(id, weekday, start, max * 10),
+            endMinutes = start + max * 10,
             assignedStudentIds = (1..assigned).toList(),
-            assignedCount = assigned,
-            maxStudents = max,
-            remainingSlots = max - assigned,
-            isFull = assigned >= max
+            assignedCount = assigned
         )
 }

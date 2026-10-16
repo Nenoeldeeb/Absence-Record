@@ -34,7 +34,7 @@ class PerformImportScheduleMergeTest : PerformImportUseCaseTestBase() {
                                 id = 5,
                                 weekday = DayOfWeek.MONDAY,
                                 startMinutes = 480,
-                                maxStudents = 2
+                                durationMinutes = 20
                             )
                         )
                     )
@@ -87,7 +87,7 @@ class PerformImportScheduleMergeTest : PerformImportUseCaseTestBase() {
                                 id = 5,
                                 weekday = DayOfWeek.MONDAY,
                                 startMinutes = 480,
-                                maxStudents = 2
+                                durationMinutes = 20
                             )
                         )
                     )
@@ -146,7 +146,7 @@ class PerformImportScheduleMergeTest : PerformImportUseCaseTestBase() {
                                         LessonAssignmentExportData(DayOfWeek.SATURDAY.isoDayNumber, 480)
                                     )
                             ),
-                        hours = listOf(AvailableHourExportData(DayOfWeek.SATURDAY.isoDayNumber, 480, 2))
+                        hours = listOf(AvailableHourExportData(DayOfWeek.SATURDAY.isoDayNumber, 480, durationMinutes = 20))
                     )
                 )
 
@@ -196,7 +196,7 @@ class PerformImportScheduleMergeTest : PerformImportUseCaseTestBase() {
                                 id = 5,
                                 weekday = DayOfWeek.MONDAY,
                                 startMinutes = 480,
-                                maxStudents = 2
+                                durationMinutes = 20
                             )
                         )
                     )

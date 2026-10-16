@@ -25,6 +25,7 @@ import dev.nenoeldeeb.education.absencerecord.app.AppViewModelProvider
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.schedule.components.AppointmentsTab
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.schedule.components.WeekdaySelector
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.schedule.dialogs.HourDialog
+import dev.nenoeldeeb.education.absencerecord.presentation.screens.schedule.dialogs.ReplanConfirmDialog
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.schedule.dialogs.ScheduleConfirmDialog
 import dev.nenoeldeeb.education.absencerecord.presentation.utils.TimeFormatter.formatTime
 
@@ -140,14 +141,14 @@ fun ScheduleScreenContent(
             } ?: 0
         HourDialog(
             startMinutes = uiState.hourStartMinutes,
-            maxStudents = uiState.hourMaxStudents,
+            durationMinutes = uiState.hourDurationMinutes,
             validationError = uiState.hourValidationError,
             isEdit = uiState.editingHour != null,
             onStartSelected = {
                 onEvent(ScheduleScreenEvent.SetHourStart(it))
             },
-            onMaxStudentsChange = {
-                onEvent(ScheduleScreenEvent.SetHourMaxStudents(it))
+            onDurationChange = {
+                onEvent(ScheduleScreenEvent.SetHourDuration(it))
             },
             onSave = { onEvent(ScheduleScreenEvent.SaveHour) },
             onDismiss = {
@@ -174,6 +175,15 @@ fun ScheduleScreenContent(
             onDismiss = {
                 onEvent(ScheduleScreenEvent.DismissDeleteHourDialog)
             }
+        )
+    }
+
+    // Nothing has been written yet — this is the review step (FR-011, FR-012).
+    uiState.pendingReplan?.let { pending ->
+        ReplanConfirmDialog(
+            pending = pending,
+            onConfirm = { onEvent(ScheduleScreenEvent.ConfirmReplan) },
+            onDismiss = { onEvent(ScheduleScreenEvent.DismissReplan) }
         )
     }
 }

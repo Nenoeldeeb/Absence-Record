@@ -103,7 +103,7 @@ class ExportStudentsUseCase(
                         AvailableHourExportData(
                             weekday = hour.weekday.isoDayNumber,
                             startMinutes = hour.startMinutes,
-                            maxStudents = hour.maxStudents
+                            durationMinutes = hour.durationMinutes
                         )
                     }
             )

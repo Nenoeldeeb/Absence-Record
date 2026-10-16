@@ -21,7 +21,12 @@ internal class ImportMergeEngine(
         counters: ImportCounters
     ) {
         availableHours.forEach { hourData ->
-            if (!isValidHourExport(hourData)) {
+            if (!counters.admitHours()) return@forEach
+            // A block carrying both length signals, or neither, is ambiguous and
+            // is counted rather than guessed at (FR-046, SC-009). A legacy
+            // capacity is converted here, at the boundary (FR-040, FR-041).
+            val durationMinutes = hourData.resolvedDurationMinutes()
+            if (durationMinutes == null || !isValidHourExport(hourData.weekday, hourData.startMinutes, durationMinutes)) {
                 counters.malformedSkipped++
                 return@forEach
             }
@@ -31,9 +36,9 @@ internal class ImportMergeEngine(
                     existing.weekday == weekday &&
                         ScheduleRules.overlaps(
                             hourData.startMinutes,
-                            hourData.startMinutes + ScheduleRules.LESSON_DURATION_MINUTES,
+                            hourData.startMinutes + durationMinutes,
                             existing.startMinutes,
-                            existing.startMinutes + ScheduleRules.LESSON_DURATION_MINUTES
+                            existing.startMinutes + existing.durationMinutes
                         )
                 }
             if (overlapsExisting) {
@@ -41,14 +46,14 @@ internal class ImportMergeEngine(
                 return@forEach
             }
             scheduleRepository
-                .insertHour(weekday, hourData.startMinutes, hourData.maxStudents)
+                .insertHour(weekday, hourData.startMinutes, durationMinutes)
                 .onSuccess { newId ->
                     val hour =
                         AvailableLessonHour(
                             id = newId,
                             weekday = weekday,
                             startMinutes = hourData.startMinutes,
-                            maxStudents = hourData.maxStudents
+                            durationMinutes = durationMinutes
                         )
                     mutableHours += hour
                     hourIdByKey[weekday.isoDayNumber to hourData.startMinutes] = newId
@@ -100,6 +105,7 @@ internal class ImportMergeEngine(
         studentsToImport: List<StudentExportData>,
         studentIdByName: Map<String, Int>,
         hourIdByKey: Map<Pair<Int, Int>, Int>,
+        durationByHourId: Map<Int, Int>,
         assignments: List<LessonAssignment>,
         busy: List<BusyAppointment>,
         counters: ImportCounters
@@ -128,7 +134,17 @@ internal class ImportMergeEngine(
                     counters.lessonsSkipped++
                     return@forEach
                 }
-                if (hasBusyConflict(studentId, lessonData.weekday, lessonData.startMinutes, busy)) {
+                if (
+                    hasBusyConflict(
+                        studentId = studentId,
+                        weekday = lessonData.weekday,
+                        startMinutes = lessonData.startMinutes,
+                        durationMinutes =
+                            durationByHourId[hourId]
+                                ?: ScheduleRules.DEFAULT_NEW_HOUR_DURATION_MINUTES,
+                        busy = busy
+                    )
+                ) {
                     counters.lessonsSkipped++
                     return@forEach
                 }
@@ -150,8 +166,20 @@ internal class ImportMergeEngine(
             val currentAssigned = assignments.count { it.availableHourId == hour.id }
             val requiredCapacity = currentAssigned + planned.size
             if (requiredCapacity > hour.maxStudents) {
+                // Grow the block's length to the smallest valid step that fits.
+                val grownDuration =
+                    (requiredCapacity * ScheduleRules.SLOT_DURATION_MINUTES)
+                        .coerceAtMost(ScheduleRules.MAX_HOUR_DURATION_MINUTES)
                 scheduleRepository
-                    .updateHour(hour.id, hour.weekday, hour.startMinutes, requiredCapacity)
+                    // Import is an automatic merge, not a teacher edit, so there
+                    // is nobody to confirm with — commit directly.
+                    .updateHour(
+                        hour.id,
+                        hour.weekday,
+                        hour.startMinutes,
+                        grownDuration,
+                        confirmed = true
+                    )
                     .onFailure { }
             }
         }
@@ -163,6 +191,7 @@ internal class ImportMergeEngine(
     ) {
         plannedByHour.forEach { (hourId, plannedLessons) ->
             plannedLessons.forEach { planned ->
+                if (!counters.admitLessons()) return@forEach
                 scheduleRepository
                     .assignStudent(hourId, planned.studentId, DayOfWeek(planned.weekday))
                     .onSuccess { counters.lessonsAdded++ }
@@ -175,9 +204,10 @@ internal class ImportMergeEngine(
         studentId: Int,
         weekday: Int,
         startMinutes: Int,
+        durationMinutes: Int,
         busy: List<BusyAppointment>
     ): Boolean {
-        val lessonEnd = startMinutes + ScheduleRules.LESSON_DURATION_MINUTES
+        val lessonEnd = startMinutes + durationMinutes
         return busy.any { appointment ->
             appointment.studentId == studentId &&
                 appointment.weekday.isoDayNumber == weekday &&
@@ -190,10 +220,12 @@ internal class ImportMergeEngine(
         }
     }
 
-    private fun isValidHourExport(hour: AvailableHourExportData): Boolean =
-        hour.weekday in 1..7 &&
-            ScheduleRules.isHourStartValid(hour.startMinutes) &&
-            hour.maxStudents >= 1
+    /** A block must sit on a real weekday and must not run past midnight (SC-012). */
+    private fun isValidHourExport(
+        weekday: Int,
+        startMinutes: Int,
+        durationMinutes: Int
+    ): Boolean = weekday in 1..7 && ScheduleRules.isHourStartValid(startMinutes, durationMinutes)
 
     private fun isValidBusyExport(busy: BusyAppointmentExportData): Boolean =
         busy.weekday in 1..7 &&
@@ -202,7 +234,12 @@ internal class ImportMergeEngine(
             ScheduleRules.isBusyDurationValid(busy.startMinutes, busy.durationMinutes)
 
     private fun isValidLessonExport(lesson: LessonAssignmentExportData): Boolean =
-        lesson.weekday in 1..7 && ScheduleRules.isHourStartValid(lesson.startMinutes)
+        lesson.weekday in 1..7 &&
+            // A lesson must start where even the shortest block still fits.
+            ScheduleRules.isHourStartValid(
+                lesson.startMinutes,
+                ScheduleRules.MIN_HOUR_DURATION_MINUTES
+            )
 }
 
 internal data class PlannedLesson(
@@ -221,4 +258,15 @@ internal class ImportCounters {
     var lessonsRemovedBusyWins: Int = 0
     var lessonsSkipped: Int = 0
     var malformedSkipped: Int = 0
+
+    /** Entries dropped because a record cap was reached (FR-056 … FR-059). */
+    var studentsCapped: Int = 0
+    var hoursCapped: Int = 0
+    var lessonsCapped: Int = 0
+    var datesCapped: Int = 0
+
+    val totalSkipped: Int
+        get() =
+            datesSkipped + hoursOverlapSkipped + lessonsSkipped + malformedSkipped +
+                studentsCapped + hoursCapped + lessonsCapped + datesCapped
 }

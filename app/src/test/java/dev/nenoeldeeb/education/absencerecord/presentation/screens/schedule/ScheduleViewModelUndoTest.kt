@@ -26,11 +26,11 @@ class ScheduleViewModelUndoTest : ScheduleViewModelTestBase() {
     @Test
     fun `hour delete onSuccess records deleted hour with assigned students for undo`() =
         runTest {
-            val hour = AvailableLessonHour(1, DayOfWeek.SATURDAY, 540, 5)
+            val hour = AvailableLessonHour(1, DayOfWeek.SATURDAY, 540, 50)
             coEvery { observeHoursForWeekdayUseCase(any()) } returns
                 flowOf(
                     Result.success(
-                        listOf(hourWith(id = 1, start = 540, max = 5, assigned = 2))
+                        listOf(hourWith(id = 1, start = 540, duration = 50, assigned = 2))
                     )
                 )
             coEvery { deleteHourUseCase(any()) } returns Result.success(Unit)
@@ -48,11 +48,11 @@ class ScheduleViewModelUndoTest : ScheduleViewModelTestBase() {
     @Test
     fun `undo delete restores hour and reassigns students`() =
         runTest {
-            val hour = AvailableLessonHour(1, DayOfWeek.SATURDAY, 540, 5)
+            val hour = AvailableLessonHour(1, DayOfWeek.SATURDAY, 540, 50)
             coEvery { observeHoursForWeekdayUseCase(any()) } returns
                 flowOf(
                     Result.success(
-                        listOf(hourWith(id = 1, start = 540, max = 5, assigned = 2))
+                        listOf(hourWith(id = 1, start = 540, duration = 50, assigned = 2))
                     )
                 )
             coEvery { deleteHourUseCase(any()) } returns Result.success(Unit)
@@ -68,7 +68,7 @@ class ScheduleViewModelUndoTest : ScheduleViewModelTestBase() {
             viewModel.onEvent(ScheduleScreenEvent.UndoDeleteHour)
             advanceUntilIdle()
 
-            coVerify(exactly = 1) { insertHourUseCase(DayOfWeek.SATURDAY, 540, 5) }
+            coVerify(exactly = 1) { insertHourUseCase(DayOfWeek.SATURDAY, 540, 50) }
             coVerify(exactly = 1) { assignStudentUseCase(9, 1, DayOfWeek.SATURDAY) }
             coVerify(exactly = 1) { assignStudentUseCase(9, 2, DayOfWeek.SATURDAY) }
             assertEquals(null, viewModel.uiState.value.deletedHour)
@@ -78,7 +78,7 @@ class ScheduleViewModelUndoTest : ScheduleViewModelTestBase() {
     @Test
     fun `undo delete with restore failure surfaces error`() =
         runTest {
-            val hour = AvailableLessonHour(1, DayOfWeek.SATURDAY, 540, 5)
+            val hour = AvailableLessonHour(1, DayOfWeek.SATURDAY, 540, 50)
             coEvery { observeHoursForWeekdayUseCase(any()) } returns
                 flowOf(Result.success(emptyList()))
             coEvery { deleteHourUseCase(any()) } returns Result.success(Unit)
@@ -103,16 +103,13 @@ class ScheduleViewModelUndoTest : ScheduleViewModelTestBase() {
     private fun hourWith(
         id: Int,
         start: Int,
-        max: Int,
+        duration: Int,
         assigned: Int = 0
     ): HourWithOccupancy =
         HourWithOccupancy(
-            hour = AvailableLessonHour(id, DayOfWeek.SATURDAY, start, max),
-            endMinutes = start + 60,
+            hour = AvailableLessonHour(id, DayOfWeek.SATURDAY, start, duration),
+            endMinutes = start + duration,
             assignedStudentIds = (1..assigned).toList(),
-            assignedCount = assigned,
-            maxStudents = max,
-            remainingSlots = max - assigned,
-            isFull = assigned >= max
+            assignedCount = assigned
         )
 }

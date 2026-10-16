@@ -3,19 +3,14 @@
 package dev.nenoeldeeb.education.absencerecord.presentation.screens.schedule.dialogs
 
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TimeInput
@@ -29,19 +24,16 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import dev.nenoeldeeb.education.absencerecord.R
 import dev.nenoeldeeb.education.absencerecord.domain.services.ScheduleRules
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.components.StartTimeField
+import dev.nenoeldeeb.education.absencerecord.presentation.screens.schedule.components.LengthSlider
 import dev.nenoeldeeb.education.absencerecord.presentation.utils.TimeFormatter.formatTime
 import dev.nenoeldeeb.education.absencerecord.presentation.utils.UiText
 
@@ -53,11 +45,11 @@ const val HOUR_TIME_PICKER_DISMISS_TAG = "hour_time_picker_dismiss"
 @Composable
 fun HourDialog(
     startMinutes: Int,
-    maxStudents: String,
+    durationMinutes: Int,
     validationError: UiText?,
     isEdit: Boolean,
     onStartSelected: (Int) -> Unit,
-    onMaxStudentsChange: (String) -> Unit,
+    onDurationChange: (Int) -> Unit,
     onSave: () -> Unit,
     onDismiss: () -> Unit,
     modifier: Modifier = Modifier,
@@ -65,17 +57,7 @@ fun HourDialog(
 ) {
     var isTimePickerOpen by remember { mutableStateOf(false) }
     var displayMode by remember { mutableStateOf(TimePickerDisplayMode.Picker) }
-    val isStartValid = ScheduleRules.isHourStartValid(startMinutes)
-    val enteredMax = ScheduleRules.parseMaxStudents(maxStudents)
-    val showsOverfillPreview =
-        isEdit && enteredMax != null && enteredMax < assignedCount && validationError == null
-    // Step from zero when the field holds no parseable number, so the
-    // stepper always lands on a valid capacity instead of preserving garbage.
-    val stepperBase = enteredMax ?: 0
-
-    fun onStepperClick(next: Int) {
-        onMaxStudentsChange(next.toString())
-    }
+    val isStartValid = ScheduleRules.isHourStartValid(startMinutes, durationMinutes)
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -114,7 +96,7 @@ fun HourDialog(
                             stringResource(
                                 R.string.schedule_hour_ends_at,
                                 formatTime(
-                                    startMinutes + ScheduleRules.LESSON_DURATION_MINUTES
+                                    startMinutes + durationMinutes
                                 )
                             )
                         },
@@ -127,68 +109,16 @@ fun HourDialog(
                         },
                     modifier = Modifier.padding(top = 12.dp)
                 )
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.padding(top = 12.dp)
-                ) {
-                    IconButton(
-                        onClick = { onStepperClick(stepperBase - 1) },
-                        enabled = stepperBase > 1,
-                        modifier =
-                            Modifier
-                                .defaultMinSize(48.dp, 48.dp)
-                                .testTag("hour_capacity_decrease")
-                    ) {
-                        Icon(
-                            imageVector =
-                                ImageVector.vectorResource(R.drawable.outline_remove_24),
-                            contentDescription =
-                                stringResource(R.string.schedule_decrease_capacity)
-                        )
-                    }
-                    OutlinedTextField(
-                        value = maxStudents,
-                        onValueChange = onMaxStudentsChange,
-                        label = { Text(stringResource(R.string.schedule_max_students)) },
-                        singleLine = true,
-                        isError = validationError != null || showsOverfillPreview,
-                        supportingText =
-                            validationError?.let {
-                                {
-                                    Text(it.asString())
-                                }
-                            },
-                        keyboardOptions =
-                            KeyboardOptions(
-                                keyboardType = KeyboardType.Number
-                            ),
-                        modifier = Modifier.weight(1f)
-                    )
-                    IconButton(
-                        onClick = { onStepperClick(stepperBase + 1) },
-                        enabled = stepperBase < ScheduleRules.MAX_HOUR_CAPACITY,
-                        modifier =
-                            Modifier
-                                .defaultMinSize(48.dp, 48.dp)
-                                .testTag("hour_capacity_increase")
-                    ) {
-                        Icon(
-                            imageVector =
-                                ImageVector.vectorResource(R.drawable.outline_add_24),
-                            contentDescription =
-                                stringResource(R.string.schedule_increase_capacity)
-                        )
-                    }
-                }
-                if (showsOverfillPreview) {
+                LengthSlider(
+                    durationMinutes = durationMinutes,
+                    onDurationChange = onDurationChange
+                )
+                validationError?.let {
                     Text(
-                        text = stringResource(R.string.error_max_below_assigned),
-                        style = MaterialTheme.typography.bodyMedium,
+                        text = it.asString(),
+                        style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.error,
-                        modifier =
-                            Modifier
-                                .padding(top = 8.dp)
-                                .testTag(HOUR_CAPACITY_OVERFILL_TAG)
+                        modifier = Modifier.padding(top = 8.dp)
                     )
                 }
             }
