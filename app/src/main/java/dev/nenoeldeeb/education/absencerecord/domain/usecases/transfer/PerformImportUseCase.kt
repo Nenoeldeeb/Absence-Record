@@ -114,18 +114,13 @@ class PerformImportUseCase(
 
                 val postBusyAssignments =
                     scheduleRepository.observeAssignments().first().getOrElse { return Result.failure(it) }
-                val postBusy =
-                    scheduleRepository.observeBusyAppointments().first().getOrElse { return Result.failure(it) }
 
-                val durationByHourId = existingHours.associate { it.id to it.durationMinutes }
                 val plannedByHour =
                     mergeEngine.collectPlannedLessons(
                         studentsToImport,
                         studentIdByName,
                         hourIdByKey,
-                        durationByHourId,
                         postBusyAssignments,
-                        postBusy,
                         counters
                     )
 
