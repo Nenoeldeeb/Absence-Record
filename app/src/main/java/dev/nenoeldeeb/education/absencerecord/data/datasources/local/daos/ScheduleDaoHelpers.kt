@@ -2,6 +2,7 @@ package dev.nenoeldeeb.education.absencerecord.data.datasources.local.daos
 
 import dev.nenoeldeeb.education.absencerecord.data.datasources.local.entities.AvailableLessonHourEntity
 import dev.nenoeldeeb.education.absencerecord.domain.models.AssignmentRemovalReport
+import dev.nenoeldeeb.education.absencerecord.domain.models.DroppedStudent
 import dev.nenoeldeeb.education.absencerecord.domain.models.PlanResult
 import dev.nenoeldeeb.education.absencerecord.domain.models.StudentError
 import dev.nenoeldeeb.education.absencerecord.domain.services.LessonSlotPlanner
@@ -96,34 +97,29 @@ internal suspend fun ScheduleDao.hasOverlappingHour(
         weekday = weekday,
         startMinutes = startMinutes,
         endMinutes = startMinutes + durationMinutes,
-        lessonDuration = durationMinutes,
         excludeId = excludeId
     ) > 0
 
 /**
- * True when any of the student's commitments overlaps the given slot.
+ * Everyone who cannot survive an edit to this block, closed under deletion.
  *
- * The slot is the student's own ten minutes, NOT the block's whole extent — a
- * commitment later inside the block must not reject them (FR-027). Ranges are
- * half-open, so a commitment starting exactly when the slot ends is fine and one
- * starting exactly when the slot starts is not (FR-028).
+ * Read through the roster rather than from a one-off plan, because the running
+ * order is derived: removing a student re-plans everyone else's slots, so a
+ * single pass misses students who only collide once someone ahead of them goes.
+ * The teacher must be shown every name before consenting to lose any of them
+ * (FR-011, FR-013, SC-015).
  */
-internal suspend fun ScheduleDao.hasBusyConflict(
-    studentId: Int,
+internal suspend fun ScheduleDao.closedDropSet(
     weekday: Int,
-    slotStart: Int,
-    slotEnd: Int
-): Boolean {
-    val busyAppointments = getBusyAppointmentsForStudentAndWeekday(studentId, weekday)
-    return busyAppointments.any { busy ->
-        ScheduleRules.overlaps(
-            slotStart,
-            slotEnd,
-            busy.startMinutes,
-            busy.startMinutes + busy.durationMinutes
-        )
-    }
-}
+    startMinutes: Int,
+    durationMinutes: Int,
+    hourId: Int
+): List<DroppedStudent> =
+    LessonSlotPlanner.closedLosses(
+        startMinutes,
+        durationMinutes,
+        studentInputsForHour(hourId, weekday)
+    )
 
 /**
  * Evicts assignments whose occupant's own ten minutes no longer survive a change

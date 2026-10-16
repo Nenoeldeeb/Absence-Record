@@ -61,9 +61,25 @@ data class PlanResult(
     val plan: PlannedHour,
     val conflicts: List<SlotConflict>,
     val dropped: List<DroppedStudent>
-) {
-    /** True when nothing was dropped and no slot collides with a commitment. */
-    val isValid: Boolean get() = conflicts.isEmpty() && dropped.isEmpty()
+)
+
+/**
+ * Everyone this single plan would cost the teacher.
+ *
+ * A student is lost two ways, and **both** are the teacher's decision: the block
+ * got smaller and they are past its derived maximum (FR-010), or their own slot
+ * sits on one of their commitments (FR-015, FR-038).
+ *
+ * This is one pass. Because the running order is derived, it is not the whole
+ * answer either — see `LessonSlotPlanner.closedLosses`, which closes the set
+ * under deletion.
+ */
+fun PlanResult.studentsLost(): List<DroppedStudent> {
+    val conflicted =
+        conflicts.map {
+            DroppedStudent(it.studentId, it.studentName, DropReason.SlotConflictsWithBusy)
+        }
+    return (dropped + conflicted).distinctBy { it.studentId }
 }
 
 /**
