@@ -14,5 +14,9 @@ data class ImportResult(
     val lessonsAddedCount: Int = 0,
     val lessonsRemovedBusyWinsCount: Int = 0,
     val lessonsSkippedCount: Int = 0,
-    val malformedEntriesSkippedCount: Int = 0
+    val malformedEntriesSkippedCount: Int = 0,
+    /** Entries left out because a record cap was reached (FR-056 … FR-059). */
+    val cappedEntriesSkippedCount: Int = 0,
+    /** The student cap that was hit, so the teacher knows why records were left out (FR-058). */
+    val studentCapHit: Boolean = false
 )
