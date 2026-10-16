@@ -6,6 +6,7 @@ import dev.nenoeldeeb.education.absencerecord.domain.models.PlanResult
 import dev.nenoeldeeb.education.absencerecord.domain.models.PlannedHour
 import dev.nenoeldeeb.education.absencerecord.domain.models.PlannedSlot
 import dev.nenoeldeeb.education.absencerecord.domain.models.SlotConflict
+import dev.nenoeldeeb.education.absencerecord.domain.models.studentsLost
 import java.util.Locale
 
 /**
@@ -92,6 +93,46 @@ object LessonSlotPlanner {
             dropped = dropped
         )
     }
+
+    /**
+     * Everyone who cannot survive an edit to this block, **closed under deletion**.
+     *
+     * One pass of [plan] is not enough, because the running order is derived
+     * rather than stored: removing a student re-plans everyone else's slots. A
+     * survivor can therefore slide backwards into a slot that lands on their own
+     * commitment — and a drop list built from a single pass would unassign them
+     * without ever having shown the teacher their name (FR-013, SC-015).
+     *
+     * Concretely, for a block holding two students where one is committed from
+     * before the block starts and therefore sorts last: moving the block a few
+     * minutes later makes the *first* student collide, and only once she is gone
+     * does the second slide into the colliding slot.
+     *
+     * So the set is computed by repeatedly planning the remaining roster and
+     * absorbing whoever the new plan displaces. Every pass that continues removes
+     * at least one student, so this terminates in at most [MAX_STUDENTS_PER_BLOCK]
+     * passes; capacity drops need no iteration, since shortening the roster can
+     * only move them further out of contention.
+     */
+    fun closedLosses(
+        blockStartMinutes: Int,
+        blockDurationMinutes: Int,
+        students: List<StudentInput>
+    ): List<DroppedStudent> {
+        val lost = mutableListOf<DroppedStudent>()
+        var remaining = students
+        while (remaining.isNotEmpty()) {
+            val next = plan(blockStartMinutes, blockDurationMinutes, remaining).studentsLost()
+            if (next.isEmpty()) return lost
+            lost += next
+            val gone = next.map { it.studentId }.toSet()
+            remaining = remaining.filter { it.id !in gone }
+        }
+        return lost
+    }
+
+    /** The most students a block can hold: 120 minutes of ten-minute slots (FR-064). */
+    const val MAX_STUDENTS_PER_BLOCK = 12
 
     /** Every clash between one student's slots and that student's own commitments. */
     private fun conflictsFor(
