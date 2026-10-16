@@ -101,13 +101,27 @@ internal class ImportMergeEngine(
         }
     }
 
+    /**
+     * Which students are candidates for which block, before placement is judged.
+     *
+     * Deliberately does **not** pre-reject on a busy overlap. Where a student
+     * lands depends on where everyone else lands, so the only sound test is the
+     * derived slot — and the roster is still being assembled here, so any check
+     * run at this point is a guess. The guess that was in place compared the
+     * student's commitments against the block's **whole extent**, which refused
+     * every lesson whose owner had anything scheduled later in the block — the
+     * precise rejection FR-027 forbids, and a silent break in the export/import
+     * round trip for exactly the students the feature exists to accommodate.
+     *
+     * `ScheduleDao.assignStudent` re-plans the whole roster and judges every
+     * student against their own ten minutes; it refuses whoever cannot be placed
+     * and `executePlannedLessons` counts them. One rule, one place.
+     */
     fun collectPlannedLessons(
         studentsToImport: List<StudentExportData>,
         studentIdByName: Map<String, Int>,
         hourIdByKey: Map<Pair<Int, Int>, Int>,
-        durationByHourId: Map<Int, Int>,
         assignments: List<LessonAssignment>,
-        busy: List<BusyAppointment>,
         counters: ImportCounters
     ): MutableMap<Int, MutableSet<PlannedLesson>> {
         val plannedByHour = mutableMapOf<Int, MutableSet<PlannedLesson>>()
@@ -127,23 +141,10 @@ internal class ImportMergeEngine(
                     counters.lessonsSkipped++
                     return@forEach
                 }
+                // One lesson per day, against the plan that already exists (FR-049).
                 if (
                     alreadyPlanned.contains(studentId to lessonData.weekday) ||
                     existingLessonWeekdays.contains(studentId to lessonData.weekday)
-                ) {
-                    counters.lessonsSkipped++
-                    return@forEach
-                }
-                if (
-                    hasBusyConflict(
-                        studentId = studentId,
-                        weekday = lessonData.weekday,
-                        startMinutes = lessonData.startMinutes,
-                        durationMinutes =
-                            durationByHourId[hourId]
-                                ?: ScheduleRules.DEFAULT_NEW_HOUR_DURATION_MINUTES,
-                        busy = busy
-                    )
                 ) {
                     counters.lessonsSkipped++
                     return@forEach
@@ -197,26 +198,6 @@ internal class ImportMergeEngine(
                     .onSuccess { counters.lessonsAdded++ }
                     .onFailure { counters.lessonsSkipped++ }
             }
-        }
-    }
-
-    private fun hasBusyConflict(
-        studentId: Int,
-        weekday: Int,
-        startMinutes: Int,
-        durationMinutes: Int,
-        busy: List<BusyAppointment>
-    ): Boolean {
-        val lessonEnd = startMinutes + durationMinutes
-        return busy.any { appointment ->
-            appointment.studentId == studentId &&
-                appointment.weekday.isoDayNumber == weekday &&
-                ScheduleRules.overlaps(
-                    startMinutes,
-                    lessonEnd,
-                    appointment.startMinutes,
-                    appointment.startMinutes + appointment.durationMinutes
-                )
         }
     }
 

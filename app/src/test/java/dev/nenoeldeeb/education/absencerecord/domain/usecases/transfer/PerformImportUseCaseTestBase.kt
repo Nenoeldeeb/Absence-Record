@@ -41,6 +41,7 @@ abstract class PerformImportUseCaseTestBase {
         coEvery { studentClassRepository.getOrCreateClassByName(any()) } returns Result.success(1)
         coEvery { studentRepository.updateStudent(any()) } returns Result.success(Unit)
         coEvery { studentRepository.insertStudent(any()) } returns Result.success(1L)
+        coEvery { scheduleRepository.assignStudent(any(), any(), any()) } returns Result.success(Unit)
     }
 
     protected fun parsedData(

@@ -3,7 +3,6 @@ package dev.nenoeldeeb.education.absencerecord.domain.usecases.transfer
 import dev.nenoeldeeb.education.absencerecord.domain.models.AssignmentRemovalReport
 import dev.nenoeldeeb.education.absencerecord.domain.models.AvailableHourExportData
 import dev.nenoeldeeb.education.absencerecord.domain.models.AvailableLessonHour
-import dev.nenoeldeeb.education.absencerecord.domain.models.BusyAppointment
 import dev.nenoeldeeb.education.absencerecord.domain.models.BusyAppointmentExportData
 import dev.nenoeldeeb.education.absencerecord.domain.models.LessonAssignment
 import dev.nenoeldeeb.education.absencerecord.domain.models.LessonAssignmentExportData
@@ -76,56 +75,14 @@ class PerformImportScheduleMergeTest : PerformImportUseCaseTestBase() {
             assertEquals(0, result.getOrNull()?.lessonsAddedCount)
         }
 
-    @Test
-    fun `skips lessons overlapping the student busy appointments`() =
-        runTest {
-            every { scheduleRepository.observeHours() } returns
-                flowOf(
-                    Result.success(
-                        listOf(
-                            AvailableLessonHour(
-                                id = 5,
-                                weekday = DayOfWeek.MONDAY,
-                                startMinutes = 480,
-                                durationMinutes = 20
-                            )
-                        )
-                    )
-                )
-            every { scheduleRepository.observeBusyAppointments() } returns
-                flowOf(
-                    Result.success(
-                        listOf(
-                            BusyAppointment(
-                                id = 1,
-                                studentId = 1,
-                                weekday = DayOfWeek.MONDAY,
-                                startMinutes = 480,
-                                durationMinutes = 60
-                            )
-                        )
-                    )
-                )
-
-            val result =
-                import(
-                    parsedData(
-                        student =
-                            StudentExportData(
-                                "John",
-                                "",
-                                emptyList(),
-                                lessonAssignments =
-                                    listOf(
-                                        LessonAssignmentExportData(DayOfWeek.MONDAY.isoDayNumber, 480)
-                                    )
-                            )
-                    )
-                )
-
-            assertTrue(result.isSuccess)
-            assertEquals(1, result.getOrNull()?.lessonsSkippedCount)
-        }
+    // The "a busy appointment costs the lesson" case used to live here, asserted
+    // against the merge's own whole-extent pre-filter. That pre-filter is gone:
+    // it also refused students whose commitment fell merely LATER inside the
+    // block, which FR-027 forbids. Placement is now decided by
+    // `ScheduleDao.assignStudent` — which re-plans and judges each student on
+    // their own ten minutes — and the merge only has to count the refusals.
+    // Covered by `PerformImportSlotRestoreTest`; the refusal itself by
+    // `ScheduleDaoSlotValidationTest` (FR-026, FR-027).
 
     @Test
     fun `adds imported lessons when no conflicts exist`() =
