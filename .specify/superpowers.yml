@@ -1,0 +1,17 @@
+# Superpowers skill detection
+# Managed by /speckit.superspec.status and refreshed on demand.
+last_checked: 2026-10-13
+skills:
+  brainstorming:
+    detected: false
+    note: "No SKILL.md named *brainstorm* exists under .agents/, .opencode/skills/, ~/.agents/skills/ or ~/.config/opencode/skills/; superspec falls back to its built-in 5-category protocol."
+  writing-plans:
+    detected: false
+  executing-plans:
+    detected: false
+  subagent-driven-development:
+    detected: false
+  test-driven-development:
+    detected: false
+  requesting-code-review:
+    detected: false

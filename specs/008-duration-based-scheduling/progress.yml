@@ -1,0 +1,10 @@
+feature: duration-based-scheduling
+created: 2026-10-13
+current_phase: execute
+phases:
+  constitution: { status: done, updated: 2026-10-13 }
+  specify:      { status: done, updated: 2026-10-13 }
+  brainstorm:   { status: done, updated: 2026-10-13, sessions: 1, questions_asked: 5 }
+  plan:         { status: done, updated: 2026-10-13, artifacts: [research.md, data-model.md, contracts/backup-file-format.md, quickstart.md] }
+  tasks:        { status: done, updated: 2026-10-14, task_count: 86, checkpoints: 7, analyze_rounds: 2 }
+  execute:      { status: complete, updated: 2026-10-15, phase: 7, completed_tasks: 86, total_tasks: 86, note: "COMPLETE: all 7 phases, 86/86 tasks. SC-019 measured (derivation 3.3ms, render 33ms vs 1000ms budget). AGENTS.md + README.md updated. 2 API levels green."
