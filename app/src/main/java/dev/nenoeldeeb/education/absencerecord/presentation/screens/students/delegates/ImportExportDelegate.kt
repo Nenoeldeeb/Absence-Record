@@ -3,6 +3,7 @@ package dev.nenoeldeeb.education.absencerecord.presentation.screens.students.del
 import dev.nenoeldeeb.education.absencerecord.R
 import dev.nenoeldeeb.education.absencerecord.domain.models.ImportResult
 import dev.nenoeldeeb.education.absencerecord.domain.models.ParsedStudentImportData
+import dev.nenoeldeeb.education.absencerecord.domain.services.ImportCaps
 import dev.nenoeldeeb.education.absencerecord.presentation.utils.UiText
 
 /**
@@ -129,6 +130,26 @@ class ImportExportDelegate {
                     result.malformedEntriesSkippedCount
                 )
             )
+        }
+        // Records left out because a documented cap was reached. Said plainly,
+        // and naming the cap, so the teacher is never left guessing why a file
+        // did not fully import (FR-058, FR-059).
+        if (result.cappedEntriesSkippedCount > 0) {
+            parts.add(
+                UiText.PluralResource(
+                    R.plurals.import_complete_capped_skipped,
+                    result.cappedEntriesSkippedCount,
+                    result.cappedEntriesSkippedCount
+                )
+            )
+            if (result.studentCapHit) {
+                parts.add(
+                    UiText.StringResource(
+                        R.string.import_complete_student_cap_hit,
+                        ImportCaps.MAX_IMPORT_STUDENTS
+                    )
+                )
+            }
         }
 
         return UiText.Joined(parts, "\n")

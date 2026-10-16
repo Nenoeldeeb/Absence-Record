@@ -58,7 +58,7 @@ class ScheduleNavigationTest {
                     AvailableLessonHourEntity(
                         weekday = DayOfWeek.SATURDAY.isoDayNumber,
                         startMinutes = 540,
-                        maxStudents = 5
+                        durationMinutes = 50
                     )
                 )
             database.scheduleDao().insertAssignmentEntity(
