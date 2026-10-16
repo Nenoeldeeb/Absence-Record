@@ -10,11 +10,18 @@ import dev.nenoeldeeb.education.absencerecord.data.datasources.local.entities.Av
 import dev.nenoeldeeb.education.absencerecord.data.datasources.local.entities.BusyAppointmentEntity
 import dev.nenoeldeeb.education.absencerecord.data.datasources.local.entities.LessonAssignmentEntity
 import dev.nenoeldeeb.education.absencerecord.domain.models.AssignmentRemovalReport
+import dev.nenoeldeeb.education.absencerecord.domain.models.HourReplanResult
 import dev.nenoeldeeb.education.absencerecord.domain.models.StudentError
+import dev.nenoeldeeb.education.absencerecord.domain.services.LessonSlotPlanner
+import dev.nenoeldeeb.education.absencerecord.domain.services.ScheduleRules
 import kotlinx.coroutines.flow.Flow
 
 @Dao
 abstract class ScheduleDao {
+    /** Student names drive the alphabetical tie-break in the running order. */
+    @Query("SELECT id, name FROM students WHERE id IN (:ids)")
+    abstract suspend fun getStudentNamesByIds(ids: List<Int>): List<StudentNameRow>
+
     @Query("SELECT * FROM available_lesson_hours ORDER BY startMinutes ASC")
     abstract fun observeHours(): Flow<List<AvailableLessonHourEntity>>
 
@@ -32,6 +39,25 @@ abstract class ScheduleDao {
 
     @Query("SELECT * FROM busy_appointments WHERE studentId = :studentId")
     abstract fun observeBusyAppointmentsForStudent(studentId: Int): Flow<List<BusyAppointmentEntity>>
+
+    /**
+     * Commitments for one day across every student.
+     *
+     * The read path needs all of them at once to derive a block's running order
+     * (FR-019): querying per student would mean one round trip per occupant on
+     * every emission.
+     */
+    @Query("SELECT * FROM busy_appointments WHERE weekday = :weekday")
+    abstract fun observeBusyAppointmentsForWeekday(weekday: Int): Flow<List<BusyAppointmentEntity>>
+
+    /**
+     * Student names for the derived order's alphabetical tie-break (FR-022, FR-023).
+     *
+     * Observable because a rename must re-derive the running order; a one-shot
+     * read would leave the order stale until the block was next edited.
+     */
+    @Query("SELECT id, name FROM students")
+    abstract fun observeStudentNames(): Flow<List<StudentNameRow>>
 
     @Query("SELECT * FROM available_lesson_hours WHERE id = :id")
     abstract suspend fun getAvailableHourById(id: Int): AvailableLessonHourEntity?
@@ -115,17 +141,17 @@ abstract class ScheduleDao {
     open suspend fun insertHour(
         weekday: Int,
         startMinutes: Int,
-        maxStudents: Int
+        durationMinutes: Int
     ): Long {
-        validateHour(weekday, startMinutes, maxStudents)
-        if (hasOverlappingHour(weekday, startMinutes, excludeId = 0)) {
+        validateHour(weekday, startMinutes, durationMinutes)
+        if (hasOverlappingHour(weekday, startMinutes, durationMinutes, excludeId = 0)) {
             throw StudentError.HourOverlap
         }
         return insertAvailableHour(
             AvailableLessonHourEntity(
                 weekday = weekday,
                 startMinutes = startMinutes,
-                maxStudents = maxStudents
+                durationMinutes = durationMinutes
             )
         )
     }
@@ -135,26 +161,34 @@ abstract class ScheduleDao {
         id: Int,
         weekday: Int,
         startMinutes: Int,
-        maxStudents: Int
-    ): AssignmentRemovalReport {
+        durationMinutes: Int,
+        confirmed: Boolean
+    ): HourReplanResult {
         getAvailableHourById(id) ?: throw StudentError.Validation("Lesson hour not found")
-        validateHour(weekday, startMinutes, maxStudents)
-        if (hasOverlappingHour(weekday, startMinutes, excludeId = id)) {
+        validateHour(weekday, startMinutes, durationMinutes)
+        if (hasOverlappingHour(weekday, startMinutes, durationMinutes, excludeId = id)) {
             throw StudentError.HourOverlap
         }
-        val assignedCount = countAssignmentsForHour(id)
-        if (maxStudents < assignedCount) {
-            throw StudentError.MaxBelowAssigned
+        val plan = planHourWith(weekday, startMinutes, durationMinutes, id)
+        val dropped = plan.dropped
+        // Nothing is written until the teacher confirms (FR-011, FR-013).
+        if (dropped.isNotEmpty() && !confirmed) {
+            return HourReplanResult.NeedsConfirmation(plan.plan, dropped)
         }
         updateAvailableHour(
             AvailableLessonHourEntity(
                 id = id,
                 weekday = weekday,
                 startMinutes = startMinutes,
-                maxStudents = maxStudents
+                durationMinutes = durationMinutes
             )
         )
-        return removeBusyConflictingAssignments(weekday, id)
+        // Confirming must ACTUALLY unassign the students the teacher agreed to
+        // lose, not merely report them (FR-013).
+        dropped.forEach { deleteAssignment(id, it.studentId) }
+        val removed =
+            dropped.map { it.studentId } + removeBusyConflictingAssignments(weekday, id).removedStudentIds
+        return HourReplanResult.Applied(removed.distinct())
     }
 
     @Transaction
@@ -172,13 +206,20 @@ abstract class ScheduleDao {
         val hour =
             getAvailableHourById(hourId)
                 ?: throw StudentError.Validation("Lesson hour not found")
-        if (countAssignmentsForHour(hourId) >= hour.maxStudents) {
+        // The whole roster is re-planned, not just the newcomer: inserting a
+        // student earlier in the order pushes the others later, and one of them
+        // landing on their own commitment must refuse the whole addition
+        // (FR-031, FR-033, FR-035).
+        if (countAssignmentsForHour(hourId) >= ScheduleRules.capacityFor(hour.durationMinutes)) {
             throw StudentError.HourFull
         }
         if (getAssignmentsForStudentAndWeekday(studentId, weekday).isNotEmpty()) {
             throw StudentError.AssignmentExists
         }
-        if (hasBusyConflict(studentId, weekday, hour.startMinutes)) {
+        val prospective =
+            studentInputsForHour(hourId, hour.weekday) + studentInputFor(studentId, hour.weekday)
+        val result = LessonSlotPlanner.plan(hour.startMinutes, hour.durationMinutes, prospective)
+        if (result.dropped.isNotEmpty() || result.conflicts.isNotEmpty()) {
             throw StudentError.BusyConflict
         }
         try {
