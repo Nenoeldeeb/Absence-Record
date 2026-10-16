@@ -13,18 +13,33 @@ class StorageRepositoryImpl(
     private val context: Context,
     private val dispatcherProvider: DispatcherProvider
 ) : StorageRepository {
-    override suspend fun readTextFromUri(uriString: String): Result<String> =
+    override suspend fun readTextFromUri(
+        uriString: String,
+        maxBytes: Long
+    ): Result<String> =
         withContext(dispatcherProvider.io) {
             try {
                 val uri = uriString.toUri()
-                val content =
-                    context.contentResolver.openInputStream(uri)?.use { inputStream ->
-                        inputStream.readBytes().decodeToString()
+                val stream = context.contentResolver.openInputStream(uri)
+                if (stream == null) return@withContext Result.failure(StudentError.FileRead)
+                stream.use { inputStream ->
+                    val chunk = ByteArray(READ_CHUNK_BYTES)
+                    val collected = java.io.ByteArrayOutputStream()
+                    var total = 0L
+                    while (true) {
+                        val read = inputStream.read(chunk)
+                        if (read <= 0) break
+                        total += read
+                        // Bail the moment the limit is crossed, so an oversize
+                        // file is never held in memory (FR-063). Reading in
+                        // chunks rather than pre-sizing keeps an unlimited read
+                        // from allocating the whole file up front.
+                        if (total > maxBytes) {
+                            return@withContext Result.failure(StudentError.ImportFileTooLarge)
+                        }
+                        collected.write(chunk, 0, read)
                     }
-                if (content != null) {
-                    Result.success(content)
-                } else {
-                    Result.failure(StudentError.FileRead)
+                    Result.success(collected.toByteArray().decodeToString())
                 }
             } catch (e: Exception) {
                 if (e is CancellationException) throw e
@@ -56,4 +71,9 @@ class StorageRepositoryImpl(
                 Result.failure(StudentError.FileWrite)
             }
         }
+
+    private companion object {
+        /** Read granularity; unrelated to the limit, which is enforced cumulatively. */
+        const val READ_CHUNK_BYTES = 8 * 1024
+    }
 }
