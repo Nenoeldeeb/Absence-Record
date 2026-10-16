@@ -2,16 +2,12 @@ package dev.nenoeldeeb.education.absencerecord.presentation.screens.schedule
 
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsNotEnabled
-import androidx.compose.ui.test.hasSetTextAction
-import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithContentDescription
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
-import androidx.compose.ui.test.performTextClearance
-import androidx.compose.ui.test.performTextInput
 import androidx.compose.ui.test.performTextReplacement
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
@@ -43,14 +39,6 @@ class ScheduleScreenAppointmentsTest {
         composeTestRule
             .onNodeWithText(harness.getString(R.string.schedule_add_hour_title))
             .assertIsDisplayed()
-
-        composeTestRule
-            .onNode(hasSetTextAction() and !hasText(harness.time(480)))
-            .performTextClearance()
-        composeTestRule
-            .onNode(hasSetTextAction() and !hasText(harness.time(480)))
-            .performTextInput("5")
-        composeTestRule.onNodeWithText("5").assertIsDisplayed()
 
         composeTestRule.onNodeWithText(harness.time(480)).performClick()
         composeTestRule.waitForIdle()
@@ -119,12 +107,6 @@ class ScheduleScreenAppointmentsTest {
         composeTestRule
             .onNodeWithText(harness.getString(R.string.schedule_add_hour))
             .performClick()
-        composeTestRule
-            .onNode(hasSetTextAction() and !hasText(harness.time(480)))
-            .performTextClearance()
-        composeTestRule
-            .onNode(hasSetTextAction() and !hasText(harness.time(480)))
-            .performTextInput("5")
         composeTestRule.onNodeWithText(harness.getString(R.string.action_save)).performClick()
 
         composeTestRule

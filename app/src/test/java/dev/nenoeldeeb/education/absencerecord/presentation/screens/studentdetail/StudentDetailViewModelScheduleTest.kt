@@ -157,9 +157,6 @@ class StudentDetailViewModelScheduleTest : StudentDetailViewModelTestBase() {
             hour = AvailableLessonHour(id, weekday, start, max),
             endMinutes = start + 60,
             assignedStudentIds = emptyList(),
-            assignedCount = 0,
-            maxStudents = max,
-            remainingSlots = max,
-            isFull = false
+            assignedCount = 0
         )
 }

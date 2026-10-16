@@ -53,10 +53,7 @@ class StudentDetailViewModelLessonsTest : StudentDetailViewModelTestBase() {
             hour = AvailableLessonHour(id, DayOfWeek.SATURDAY, start, max),
             endMinutes = start + 60,
             assignedStudentIds = assignedStudentIds,
-            assignedCount = assignedStudentIds.size,
-            maxStudents = max,
-            remainingSlots = max - assignedStudentIds.size,
-            isFull = assignedStudentIds.size >= max
+            assignedCount = assignedStudentIds.size
         )
 
     @Test

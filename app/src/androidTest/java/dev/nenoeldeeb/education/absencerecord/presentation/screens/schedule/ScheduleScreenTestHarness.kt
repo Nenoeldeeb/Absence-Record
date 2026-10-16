@@ -6,6 +6,7 @@ import androidx.test.platform.app.InstrumentationRegistry
 import dev.nenoeldeeb.education.absencerecord.R
 import dev.nenoeldeeb.education.absencerecord.domain.models.AvailableLessonHour
 import dev.nenoeldeeb.education.absencerecord.domain.models.HourWithOccupancy
+import dev.nenoeldeeb.education.absencerecord.domain.models.PlannedSlot
 import dev.nenoeldeeb.education.absencerecord.domain.services.ScheduleRules
 import dev.nenoeldeeb.education.absencerecord.presentation.theme.AbsenceRecordTheme
 import dev.nenoeldeeb.education.absencerecord.presentation.utils.TimeFormatter
@@ -54,17 +55,29 @@ internal class ScheduleScreenTestHarness(
         start: Int,
         max: Int = 5,
         assigned: Int = 0,
-        weekday: DayOfWeek = DayOfWeek.SATURDAY
-    ): HourWithOccupancy =
-        HourWithOccupancy(
-            hour = AvailableLessonHour(id, weekday, start, max),
-            endMinutes = start + 60,
-            assignedStudentIds = (1..assigned).toList(),
+        weekday: DayOfWeek = DayOfWeek.SATURDAY,
+        slotMinutes: Int = 10
+    ): HourWithOccupancy {
+        val students = (1..assigned).toList()
+        return HourWithOccupancy(
+            hour = AvailableLessonHour(id, weekday, start, max * 10),
+            endMinutes = start + max * 10,
+            assignedStudentIds = students,
             assignedCount = assigned,
-            maxStudents = max,
-            remainingSlots = max - assigned,
-            isFull = assigned >= max
+            // Derived slots mirroring what the repository would compute, so the
+            // expanded row can be asserted end to end.
+            slots =
+                students.mapIndexed { index, studentId ->
+                    PlannedSlot(
+                        studentId = studentId,
+                        studentName = "Student $studentId",
+                        position = index + 1,
+                        startMinutes = start + index * slotMinutes,
+                        endMinutes = start + (index + 1) * slotMinutes
+                    )
+                }
         )
+    }
 
     fun containsEvent(event: ScheduleScreenEvent): Boolean = recordedEvents.contains(event)
 
@@ -117,9 +130,9 @@ internal class ScheduleScreenTestHarness(
                         hourStartMinutes =
                             event.hour?.startMinutes
                                 ?: ScheduleRules.DEFAULT_NEW_HOUR_START_MINUTES,
-                        hourMaxStudents =
-                            event.hour?.maxStudents?.toString()
-                                ?: ScheduleRules.DEFAULT_NEW_HOUR_MAX_STUDENTS.toString(),
+                        hourDurationMinutes =
+                            event.hour?.durationMinutes
+                                ?: ScheduleRules.DEFAULT_NEW_HOUR_DURATION_MINUTES,
                         hourValidationError = null
                     )
                 }
@@ -127,8 +140,8 @@ internal class ScheduleScreenTestHarness(
             is ScheduleScreenEvent.SetHourStart ->
                 stateFlow.update { it.copy(hourStartMinutes = event.minutes) }
 
-            is ScheduleScreenEvent.SetHourMaxStudents ->
-                stateFlow.update { it.copy(hourMaxStudents = event.value) }
+            is ScheduleScreenEvent.SetHourDuration ->
+                stateFlow.update { it.copy(hourDurationMinutes = event.value) }
 
             is ScheduleScreenEvent.SaveHour ->
                 stateFlow.update {

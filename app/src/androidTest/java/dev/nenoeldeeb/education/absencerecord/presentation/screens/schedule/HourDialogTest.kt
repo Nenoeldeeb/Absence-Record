@@ -4,11 +4,11 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.test.assert
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotEnabled
-import androidx.compose.ui.test.hasSetTextAction
-import androidx.compose.ui.test.hasText
+import androidx.compose.ui.test.hasContentDescription
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithContentDescription
 import androidx.compose.ui.test.onNodeWithContentDescription
@@ -16,15 +16,21 @@ import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextReplacement
+import androidx.compose.ui.test.performTouchInput
+import androidx.compose.ui.test.swipeRight
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import dev.nenoeldeeb.education.absencerecord.R
+import dev.nenoeldeeb.education.absencerecord.domain.services.ScheduleRules
+import dev.nenoeldeeb.education.absencerecord.presentation.screens.schedule.components.HOUR_LENGTH_SLIDER_TAG
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.schedule.dialogs.HOUR_TIME_PICKER_MODE_TOGGLE_TAG
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.schedule.dialogs.HourDialog
 import dev.nenoeldeeb.education.absencerecord.presentation.theme.AbsenceRecordTheme
 import dev.nenoeldeeb.education.absencerecord.presentation.utils.TimeFormatter
 import dev.nenoeldeeb.education.absencerecord.presentation.utils.UiText
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -40,11 +46,11 @@ class HourDialogTest {
 
     private fun setDialog(
         startMinutes: Int = 540,
-        maxStudents: String = "5",
+        durationMinutes: Int = 50,
         validationError: UiText? = null,
         isEdit: Boolean = false,
         onStartSelected: (Int) -> Unit = {},
-        onMaxStudentsChange: (String) -> Unit = {},
+        onDurationChange: (Int) -> Unit = {},
         onSave: () -> Unit = {},
         onDismiss: () -> Unit = {}
     ) {
@@ -53,14 +59,14 @@ class HourDialogTest {
                 var startMinutesState by remember { mutableStateOf(startMinutes) }
                 HourDialog(
                     startMinutes = startMinutesState,
-                    maxStudents = maxStudents,
+                    durationMinutes = durationMinutes,
                     validationError = validationError,
                     isEdit = isEdit,
                     onStartSelected = { minutes ->
                         startMinutesState = minutes
                         onStartSelected(minutes)
                     },
-                    onMaxStudentsChange = onMaxStudentsChange,
+                    onDurationChange = onDurationChange,
                     onSave = onSave,
                     onDismiss = onDismiss
                 )
@@ -76,7 +82,10 @@ class HourDialogTest {
             .onNodeWithText(context.getString(R.string.schedule_edit_hour_title))
             .assertIsDisplayed()
         composeTestRule.onNodeWithText(time(540)).assertIsDisplayed()
-        composeTestRule.onNodeWithText("5").assertIsDisplayed()
+        composeTestRule.onNodeWithTag(HOUR_LENGTH_SLIDER_TAG).assertIsDisplayed()
+        composeTestRule
+            .onNodeWithText(context.getString(R.string.schedule_derived_capacity, 5))
+            .assertIsDisplayed()
     }
 
     @Test
@@ -148,7 +157,7 @@ class HourDialogTest {
         assertEquals(547, requireNotNull(selectedStart))
         composeTestRule.onNodeWithText(time(547)).assertIsDisplayed()
         composeTestRule
-            .onNodeWithText(context.getString(R.string.schedule_hour_ends_at, time(607)))
+            .onNodeWithText(context.getString(R.string.schedule_hour_ends_at, time(597)))
             .assertIsDisplayed()
         composeTestRule.onNodeWithText(context.getString(R.string.action_save)).assertIsEnabled()
         composeTestRule.onNodeWithText(context.getString(R.string.action_save)).performClick()
@@ -157,17 +166,17 @@ class HourDialogTest {
 
     @Test
     fun hourDialog_showsEndsAtPreview() {
-        setDialog(startMinutes = 540)
+        setDialog(startMinutes = 540, durationMinutes = 50)
 
         composeTestRule
-            .onNodeWithText(context.getString(R.string.schedule_hour_ends_at, time(600)))
+            .onNodeWithText(context.getString(R.string.schedule_hour_ends_at, time(590)))
             .assertIsDisplayed()
         composeTestRule.onNodeWithText(context.getString(R.string.action_save)).assertIsEnabled()
     }
 
     @Test
     fun hourDialog_exactMidnightEnd_isAllowed() {
-        setDialog(startMinutes = 1380)
+        setDialog(startMinutes = 1380, durationMinutes = 60)
 
         composeTestRule
             .onNodeWithText(context.getString(R.string.schedule_hour_ends_at, time(1440)))
@@ -177,28 +186,17 @@ class HourDialogTest {
 
     @Test
     fun hourDialog_passesMidnight_showsErrorAndDisablesSave() {
-        setDialog(startMinutes = 1410)
+        setDialog(startMinutes = 1410, durationMinutes = 50)
 
         composeTestRule
             .onNodeWithText(context.getString(R.string.error_hour_passes_midnight))
             .assertIsDisplayed()
         composeTestRule
-            .onNodeWithText(context.getString(R.string.schedule_hour_ends_at, time(1470)))
+            .onNodeWithText(context.getString(R.string.schedule_hour_ends_at, time(1460)))
             .assertDoesNotExist()
         composeTestRule
             .onNodeWithText(context.getString(R.string.action_save))
             .assertIsNotEnabled()
-    }
-
-    @Test
-    fun hourDialog_typingMaxInvokesCallback() {
-        var maxValue: String? = null
-        setDialog(onMaxStudentsChange = { maxValue = it })
-
-        val maxFieldMatcher = hasSetTextAction() and !hasText(time(540))
-        composeTestRule.onNode(maxFieldMatcher).performTextReplacement("7")
-
-        assertEquals("7", requireNotNull(maxValue))
     }
 
     @Test
@@ -207,5 +205,43 @@ class HourDialogTest {
         setDialog(validationError = UiText.StringResource(R.string.error_hour_overlap))
 
         composeTestRule.onNodeWithText(errorText).assertIsDisplayed()
+    }
+
+    @Test
+    fun hourDialog_showsTheLengthSlider() {
+        setDialog()
+        composeTestRule.onNodeWithTag(HOUR_LENGTH_SLIDER_TAG).assertIsDisplayed()
+    }
+
+    @Test
+    fun hourDialog_spokenLabelCarriesMinutesAndDerivedCount() {
+        setDialog(durationMinutes = 30)
+        val expected = context.getString(R.string.schedule_slider_description, 30, 3)
+        composeTestRule
+            .onNodeWithTag(HOUR_LENGTH_SLIDER_TAG)
+            .assert(hasContentDescription(expected))
+    }
+
+    @Test
+    fun hourDialog_draggingTheSlider_emitsASteppedLength() {
+        var emitted: Int? = null
+        setDialog(onDurationChange = { emitted = it })
+
+        composeTestRule.onNodeWithTag(HOUR_LENGTH_SLIDER_TAG).performTouchInput { swipeRight() }
+        composeTestRule.waitForIdle()
+
+        val value = emitted
+        assertNotNull("expected the slider to emit a length", value)
+        // never an off-step value (FR-049, FR-052)
+        assertEquals(0, value!! % ScheduleRules.HOUR_DURATION_STEP_MINUTES)
+        assertTrue(value in ScheduleRules.MIN_HOUR_DURATION_MINUTES..ScheduleRules.MAX_HOUR_DURATION_MINUTES)
+    }
+
+    @Test
+    fun hourDialog_derivedCapacityFollowsTheLength() {
+        setDialog(durationMinutes = 120)
+        composeTestRule
+            .onNodeWithText(context.getString(R.string.schedule_derived_capacity, 12))
+            .assertIsDisplayed()
     }
 }

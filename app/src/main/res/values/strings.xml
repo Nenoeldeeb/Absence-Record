@@ -194,6 +194,9 @@
     <string name="error_database_operation_failed">Database operation failed.</string>
     <string name="error_reading_file">Error reading file.</string>
     <string name="error_parsing_import_file">Error parsing import file.</string>
+    <string name="error_import_file_too_large">This backup file is too large to import</string>
+    <plurals name="import_complete_capped_skipped"><item quantity="one">%1$d record past the import limit was left out</item><item quantity="other">%1$d records past the import limit were left out</item></plurals>
+    <string name="import_complete_student_cap_hit">This file has more students than one backup can hold (%1$d), so the rest were not imported.</string>
     <string name="error_unsupported_backup_version">This backup uses an unsupported format version (%1$d).</string>
     <string name="error_writing_file">Error writing file.</string>
     <string name="error_generating_report">Failed to generate report.</string>
@@ -294,8 +297,7 @@
     <string name="schedule_start_time">Start time</string>
     <string name="schedule_hour_ends_at">Ends at %1$s</string>
     <string name="error_hour_passes_midnight">Lesson ends after midnight.</string>
-    <string name="schedule_max_students">Max students</string>
-    <string name="error_capacity_invalid">Max students must be at least 1.</string>
+    <string name="error_hour_length_invalid">Lesson length must be between 10 and 120 minutes, in 10-minute steps.</string>
     <string name="error_max_below_assigned">Max students cannot be lower than the number of assigned students.</string>
     <string name="schedule_delete_hour_named">Delete the %1$s hour?</string>
     <string name="schedule_delete_hour_message_empty">This will remove this hour. You can undo right after from the snackbar.</string>
@@ -314,12 +316,32 @@
     <string name="schedule_change_start_time_action">Change start time</string>
     <string name="schedule_hour_options_description">More options for %1$s</string>
     <string name="schedule_open_student_profile_description">Open profile for %1$s</string>
+    <string name="schedule_open_student_slot_description">Open profile for %1$s, slot %2$s</string>
     <string name="schedule_day_counts">%1$s · %2$s</string>
     <string name="schedule_hours_loading">Loading hours</string>
     <string name="loading">Loading</string>
     <string name="schedule_today">Today</string>
-    <string name="schedule_decrease_capacity">Decrease max students</string>
-    <string name="schedule_increase_capacity">Increase max students</string>
+    <string name="schedule_duration_label">Lesson length</string>
+    <string name="schedule_duration_minutes">%1$d min</string>
+    <string name="schedule_duration_range">10–120 min</string>
+    <string name="schedule_derived_capacity">Up to %1$d students</string>
+    <string name="schedule_slot_range">%1$s – %2$s</string>
+    <string name="schedule_length_and_occupancy">%1$s · %2$s</string>
+    <string name="schedule_slider_description">Lesson length in minutes. Currently %1$d minutes, which holds up to %2$d students.</string>
+    <plurals name="schedule_students_count">
+        <item quantity="one">%1$d student</item>
+        <item quantity="other">%1$d students</item>
+    </plurals>
+    <string name="schedule_replan_title">This change affects assigned students</string>
+    <string name="schedule_replan_stay">These %1$d students stay:</string>
+    <string name="schedule_replan_leave">These %1$d students would be removed:</string>
+    <string name="schedule_dropped_student">%1$s — their lesson no longer fits</string>
+    <string name="schedule_replan_drop_all">All %1$d students would be removed.</string>
+    <string name="schedule_confirm_replan">Apply change</string>
+    <string name="schedule_cancel_replan">Keep as it is</string>
+    <string name="error_hour_derived_full">This hour already holds its maximum of %1$d students.</string>
+    <string name="error_slot_busy_conflict">%1$s has a busy appointment from %2$s to %3$s.</string>
+    <string name="error_replan_drops_students">This change would remove %1$d students.</string>
     <plurals name="schedule_day_summary_hours">
         <item quantity="one">%1$d hour</item>
         <item quantity="other">%1$d hours</item>
@@ -351,6 +373,7 @@
     <string name="student_detail_no_hours_for_day">No lesson hours set for this day. Add hours on the Schedule page first.</string>
     <string name="student_detail_select_hour">Select an hour</string>
     <string name="student_detail_lesson_unassign_description">Unassign %1$s</string>
+    <string name="student_detail_lesson_slot">Your slot: %1$s – %2$s</string>
     <string name="student_detail_no_busy_for_day">No busy appointments for this student on this day.</string>
     <string name="student_detail_busy_conflict_title">Overlapping lessons</string>
     <string name="student_detail_busy_conflict_message">This busy appointment overlaps these lessons, which will be removed:</string>
