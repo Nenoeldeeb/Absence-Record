@@ -31,39 +31,48 @@ import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import kotlin.time.Clock
 
+/**
+ * State-owning entry point. Deliberately thin: everything testable lives in
+ * [CalendarScreenContent], which takes a plain state object and an event sink.
+ *
+ * Instrumented tests drive that directly — a final ViewModel cannot be mocked
+ * on device, so tests must not depend on one.
+ */
 @Composable
 fun CalendarScreen(
     modifier: Modifier = Modifier,
     viewModel: CalendarViewModel = viewModel(factory = AppViewModelProvider.factory)
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    CalendarScreenContent(
+        uiState = uiState,
+        onEvent = viewModel::onEvent,
+        modifier = modifier
+    )
+}
+
+@Composable
+internal fun CalendarScreenContent(
+    uiState: CalendarScreenState,
+    onEvent: (CalendarScreenEvent) -> Unit,
+    modifier: Modifier = Modifier
+) {
     val context = LocalContext.current
     val snackbarHostState = remember { SnackbarHostState() }
-    val onDateSelected: (LocalDate) -> Unit =
-        remember(viewModel) {
-            { date -> viewModel.onEvent(CalendarScreenEvent.SelectDateForDialog(date)) }
-        }
-    val onToggleClassSelection: (Int) -> Unit =
-        remember(viewModel) {
-            { classId -> viewModel.onEvent(CalendarScreenEvent.ToggleClassSelection(classId)) }
-        }
-    val onToggleFilterDropdown: () -> Unit =
-        remember(viewModel) {
-            { viewModel.onEvent(CalendarScreenEvent.ToggleFilterDropdown) }
-        }
-    val onClearClassFilter: () -> Unit =
-        remember(viewModel) {
-            { viewModel.onEvent(CalendarScreenEvent.ClearClassFilter) }
-        }
-    val onDismissDialog: () -> Unit =
-        remember(viewModel) {
-            { viewModel.onEvent(CalendarScreenEvent.SelectDateForDialog(null)) }
-        }
+    val onDateSelected: (LocalDate) -> Unit = { date ->
+        onEvent(CalendarScreenEvent.SelectDateForDialog(date))
+    }
+    val onToggleClassSelection: (Int) -> Unit = { classId ->
+        onEvent(CalendarScreenEvent.ToggleClassSelection(classId))
+    }
+    val onToggleFilterDropdown: () -> Unit = { onEvent(CalendarScreenEvent.ToggleFilterDropdown) }
+    val onClearClassFilter: () -> Unit = { onEvent(CalendarScreenEvent.ClearClassFilter) }
+    val onDismissDialog: () -> Unit = { onEvent(CalendarScreenEvent.SelectDateForDialog(null)) }
 
     LaunchedEffect(uiState.error) {
         uiState.error?.let {
             snackbarHostState.showSnackbar(it.asString(context))
-            viewModel.onEvent(CalendarScreenEvent.ConsumeError)
+            onEvent(CalendarScreenEvent.ConsumeError)
         }
     }
 
@@ -81,9 +90,9 @@ fun CalendarScreen(
                     SnackbarResult.Dismissed
                 }
             if (result == SnackbarResult.ActionPerformed) {
-                viewModel.onEvent(CalendarScreenEvent.UndoLastAttendanceChange)
+                onEvent(CalendarScreenEvent.UndoLastAttendanceChange)
             } else {
-                viewModel.onEvent(CalendarScreenEvent.ConsumeAttendanceMessage)
+                onEvent(CalendarScreenEvent.ConsumeAttendanceMessage)
             }
         }
     }
@@ -95,7 +104,7 @@ fun CalendarScreen(
             } else {
                 SoundPlayer.playRemoveAttendanceSound(context)
             }
-            viewModel.onEvent(CalendarScreenEvent.ConsumeSound)
+            onEvent(CalendarScreenEvent.ConsumeSound)
         }
     }
 
@@ -149,17 +158,13 @@ fun CalendarScreen(
     uiState.selectedDateForDialog?.let { dialogDate ->
         val today = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date
         val onToggleAttendance: (Student, LocalDate, Boolean) -> Unit =
-            remember(viewModel, today) {
-                { student, date, isPresent ->
+            remember(today) {
+                { student: Student, date: LocalDate, isPresent: Boolean ->
                     if (date <= today) {
                         if (isPresent) {
-                            viewModel.onEvent(
-                                CalendarScreenEvent.DeleteStudentAttendance(student.id, date)
-                            )
+                            onEvent(CalendarScreenEvent.DeleteStudentAttendance(student.id, date))
                         } else {
-                            viewModel.onEvent(
-                                CalendarScreenEvent.MarkStudentAttendance(student.id, date)
-                            )
+                            onEvent(CalendarScreenEvent.MarkStudentAttendance(student.id, date))
                         }
                     }
                 }
