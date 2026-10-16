@@ -28,8 +28,10 @@ SYNC IMPACT REPORT
   * AGENTS.md (✅)
   * README.md (✅)
 - Follow-up TODOs:
-  * `app/src/androidTest/.../screens/students/StudentsScreenTest.kt` is 302
-    lines and violates Principle V's 300-line cap. Reported, not fixed here.
+  * None outstanding. The `StudentsScreenTest.kt` 302-line Principle V breach
+    recorded in this amendment was closed on 2026-10-16: the file was split into
+    `StudentsScreenTestBase` plus five focused classes, and
+    `find app/src -name "*.kt" | xargs wc -l` now reports a maximum of 300.
 
 --- Amendment 2026-06-20 (previous) ---
 - Version change: 1.0.0 → 1.1.0
