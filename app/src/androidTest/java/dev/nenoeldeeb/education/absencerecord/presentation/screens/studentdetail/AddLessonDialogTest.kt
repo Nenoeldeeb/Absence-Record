@@ -40,13 +40,10 @@ class AddLessonDialogTest {
         busyAppointments: List<BusyAppointment> = emptyList()
     ): HourWithOccupancy =
         HourWithOccupancy(
-            hour = AvailableLessonHour(id, DayOfWeek.SATURDAY, start, max),
-            endMinutes = start + 60,
+            hour = AvailableLessonHour(id, DayOfWeek.SATURDAY, start, max * 10),
+            endMinutes = start + max * 10,
             assignedStudentIds = List(assignedCount) { it + 1 },
-            assignedCount = assignedCount,
-            maxStudents = max,
-            remainingSlots = max - assignedCount,
-            isFull = assignedCount >= max
+            assignedCount = assignedCount
         )
 
     private fun setDialog(
@@ -88,7 +85,7 @@ class AddLessonDialogTest {
         val selected = mutableListOf<Int>()
         setDialog(hours = listOf(hourWith(id = 3, start = 540)), onHourSelected = { selected.add(it) })
 
-        composeTestRule.onNodeWithText("${time(540)} – ${time(600)}").performClick()
+        composeTestRule.onNodeWithText("${time(540)} – ${time(590)}").performClick()
         composeTestRule.waitForIdle()
 
         assertEquals(listOf(3), selected)
@@ -105,7 +102,7 @@ class AddLessonDialogTest {
         composeTestRule
             .onNodeWithContentDescription(context.getString(R.string.assign_reason_hour_full))
             .assertIsDisplayed()
-        composeTestRule.onNodeWithText("${time(540)} – ${time(600)}").performClick()
+        composeTestRule.onNodeWithText("${time(540)} – ${time(590)}").performClick()
         composeTestRule.waitForIdle()
 
         assertEquals(emptyList<Int>(), selected)
@@ -131,7 +128,7 @@ class AddLessonDialogTest {
         composeTestRule
             .onNodeWithContentDescription(context.getString(R.string.assign_reason_busy_conflict))
             .assertIsDisplayed()
-        composeTestRule.onNodeWithText("${time(540)} – ${time(600)}").performClick()
+        composeTestRule.onNodeWithText("${time(540)} – ${time(590)}").performClick()
         composeTestRule.waitForIdle()
 
         assertEquals(emptyList<Int>(), selected)
@@ -154,7 +151,7 @@ class AddLessonDialogTest {
         }
 
         composeTestRule.onNodeWithText(context.getString(R.string.action_save)).assertIsNotEnabled()
-        composeTestRule.onNodeWithText("${time(540)} – ${time(600)}").performClick()
+        composeTestRule.onNodeWithText("${time(540)} – ${time(590)}").performClick()
         composeTestRule.onNodeWithText(context.getString(R.string.action_save)).assertIsEnabled()
     }
 

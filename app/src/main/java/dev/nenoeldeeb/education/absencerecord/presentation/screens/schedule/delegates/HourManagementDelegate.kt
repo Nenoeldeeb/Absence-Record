@@ -3,6 +3,7 @@ package dev.nenoeldeeb.education.absencerecord.presentation.screens.schedule.del
 import dev.nenoeldeeb.education.absencerecord.R
 import dev.nenoeldeeb.education.absencerecord.domain.models.AssignmentRemovalReport
 import dev.nenoeldeeb.education.absencerecord.domain.models.AvailableLessonHour
+import dev.nenoeldeeb.education.absencerecord.domain.models.HourReplanResult
 import dev.nenoeldeeb.education.absencerecord.domain.services.ScheduleRules
 import dev.nenoeldeeb.education.absencerecord.domain.usecases.schedule.ScheduleUseCases
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.schedule.ScheduleScreenState
@@ -22,9 +23,8 @@ class HourManagementDelegate(
                 isHourDialogOpen = true,
                 editingHour = hour,
                 hourStartMinutes = hour?.startMinutes ?: ScheduleRules.DEFAULT_NEW_HOUR_START_MINUTES,
-                hourMaxStudents =
-                    hour?.maxStudents?.toString()
-                        ?: ScheduleRules.DEFAULT_NEW_HOUR_MAX_STUDENTS.toString(),
+                hourDurationMinutes =
+                    hour?.durationMinutes ?: ScheduleRules.DEFAULT_NEW_HOUR_DURATION_MINUTES,
                 hourValidationError = null
             )
         }
@@ -40,32 +40,40 @@ class HourManagementDelegate(
         updateState { it.copy(hourStartMinutes = minutes) }
     }
 
-    fun setHourMaxStudents(value: String) {
-        updateState { it.copy(hourMaxStudents = value) }
+    fun setHourDuration(value: Int) {
+        updateState { it.copy(hourDurationMinutes = value) }
     }
 
     fun saveHour(state: ScheduleScreenState) {
-        val maxStudents = ScheduleRules.parseMaxStudents(state.hourMaxStudents)
-        if (maxStudents == null || maxStudents < 1) {
+        val durationMinutes = state.hourDurationMinutes
+        if (!ScheduleRules.isHourDurationValid(durationMinutes)) {
             updateState {
-                it.copy(hourValidationError = UiText.StringResource(R.string.error_capacity_invalid))
+                it.copy(hourValidationError = UiText.StringResource(R.string.error_hour_length_invalid))
             }
             return
         }
         val weekday = state.selectedWeekday
         val startMinutes = state.hourStartMinutes
         val editingHour = state.editingHour
+        // A block must end by midnight (FR-007). Refuse here so the teacher gets
+        // the reason instead of a generic failure from the data layer.
+        if (!ScheduleRules.isHourStartValid(startMinutes, durationMinutes)) {
+            updateState {
+                it.copy(hourValidationError = UiText.StringResource(R.string.error_hour_passes_midnight))
+            }
+            return
+        }
         scope.launch {
             if (editingHour == null) {
-                scheduleUseCases.insertHourUseCase(weekday, startMinutes, maxStudents)
+                scheduleUseCases.insertHourUseCase(weekday, startMinutes, durationMinutes)
                     .onSuccess {
                         updateState {
                             it.copy(
                                 isHourDialogOpen = false,
                                 editingHour = null,
                                 hourStartMinutes = ScheduleRules.DEFAULT_NEW_HOUR_START_MINUTES,
-                                hourMaxStudents =
-                                    ScheduleRules.DEFAULT_NEW_HOUR_MAX_STUDENTS.toString(),
+                                hourDurationMinutes =
+                                    ScheduleRules.DEFAULT_NEW_HOUR_DURATION_MINUTES,
                                 hourValidationError = null
                             )
                         }
@@ -76,19 +84,44 @@ class HourManagementDelegate(
                         }
                     }
             } else {
-                scheduleUseCases.updateHourUseCase(editingHour.id, weekday, startMinutes, maxStudents)
+                scheduleUseCases.updateHourUseCase(
+                    editingHour.id,
+                    weekday,
+                    startMinutes,
+                    durationMinutes,
+                    confirmed = false
+                )
                     .onSuccess { report ->
-                        updateState {
-                            it.copy(
-                                isHourDialogOpen = false,
-                                editingHour = null,
-                                hourValidationError = null
-                            )
-                        }
-                        if (report.removedStudentIds.isNotEmpty()) {
+                        // A proposal has NOT been applied: keep editingHour so the
+                        // confirm step still knows which block it is about, and
+                        // leave the dialog open for the review (FR-011).
+                        if (report is HourReplanResult.NeedsConfirmation) {
+                            updateState { it.copy(pendingReplan = report) }
+                        } else {
                             updateState {
-                                it.copy(toastMessage = removalToast(state, report))
+                                it.copy(
+                                    isHourDialogOpen = false,
+                                    editingHour = null,
+                                    hourValidationError = null
+                                )
                             }
+                        }
+                        when (report) {
+                            is HourReplanResult.Applied -> {
+                                if (report.removedStudentIds.isNotEmpty()) {
+                                    updateState {
+                                        it.copy(
+                                            toastMessage =
+                                                removalToast(
+                                                    state,
+                                                    AssignmentRemovalReport(report.removedStudentIds)
+                                                )
+                                        )
+                                    }
+                                }
+                            }
+                            is HourReplanResult.NeedsConfirmation ->
+                                Unit // already parked above; nothing is written yet
                         }
                     }
                     .onFailure { e ->
@@ -132,7 +165,7 @@ class HourManagementDelegate(
         val assignedIds = state.deletedHourAssignedIds
         updateState { it.copy(deletedHour = null, deletedHourAssignedIds = emptyList()) }
         scope.launch {
-            scheduleUseCases.insertHourUseCase(hour.weekday, hour.startMinutes, hour.maxStudents)
+            scheduleUseCases.insertHourUseCase(hour.weekday, hour.startMinutes, hour.durationMinutes)
                 .onSuccess { newHourId ->
                     var firstError: UiText? = null
                     assignedIds.forEach { studentId ->

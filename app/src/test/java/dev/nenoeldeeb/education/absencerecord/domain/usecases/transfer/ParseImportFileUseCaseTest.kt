@@ -3,6 +3,8 @@ package dev.nenoeldeeb.education.absencerecord.domain.usecases.transfer
 import dev.nenoeldeeb.education.absencerecord.domain.models.AvailableHourExportData
 import dev.nenoeldeeb.education.absencerecord.domain.models.BACKUP_VERSION
 import dev.nenoeldeeb.education.absencerecord.domain.models.BackupExportData
+import dev.nenoeldeeb.education.absencerecord.domain.models.PREVIOUS_BACKUP_VERSION
+import dev.nenoeldeeb.education.absencerecord.domain.models.SUPPORTED_BACKUP_VERSIONS
 import dev.nenoeldeeb.education.absencerecord.domain.models.StudentError
 import dev.nenoeldeeb.education.absencerecord.domain.models.StudentExportData
 import dev.nenoeldeeb.education.absencerecord.domain.repositories.StorageRepository
@@ -17,6 +19,7 @@ import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 @DisplayName("ParseImportFileUseCase Tests")
@@ -42,7 +45,7 @@ class ParseImportFileUseCaseTest {
                 val jsonString = "{\"version\":2,\"students\":[],\"availableHours\":[]}"
                 val exportData = BackupExportData(students = emptyList(), availableHours = emptyList())
 
-                coEvery { storageRepository.readTextFromUri(uriString) } returns Result.success(jsonString)
+                coEvery { storageRepository.readTextFromUri(uriString, any()) } returns Result.success(jsonString)
                 every {
                     serializationService.decodeFromString(jsonString, any<KSerializer<BackupExportData>>())
                 } returns Result.success(exportData)
@@ -60,14 +63,14 @@ class ParseImportFileUseCaseTest {
                 val uriString = "content://file"
                 val jsonString =
                     "{\"version\":2,\"students\":[{\"name\":\"John\",\"dates\":[]}]," +
-                        "\"availableHours\":[{\"weekday\":6,\"startMinutes\":480,\"maxStudents\":2}]}"
+                        "\"availableHours\":[{\"weekday\":6,\"startMinutes\":480,\"durationMinutes\":50}]}"
                 val exportData =
                     BackupExportData(
                         students = listOf(StudentExportData("John", "", emptyList())),
-                        availableHours = listOf(AvailableHourExportData(6, 480, 2))
+                        availableHours = listOf(AvailableHourExportData(6, 480, durationMinutes = 50))
                     )
 
-                coEvery { storageRepository.readTextFromUri(uriString) } returns Result.success(jsonString)
+                coEvery { storageRepository.readTextFromUri(uriString, any()) } returns Result.success(jsonString)
                 every {
                     serializationService.decodeFromString(jsonString, any<KSerializer<BackupExportData>>())
                 } returns Result.success(exportData)
@@ -89,7 +92,7 @@ class ParseImportFileUseCaseTest {
                 val jsonString = "{\"version\":9,\"students\":[],\"availableHours\":[]}"
                 val exportData = BackupExportData(version = 9, students = emptyList(), availableHours = emptyList())
 
-                coEvery { storageRepository.readTextFromUri(uriString) } returns Result.success(jsonString)
+                coEvery { storageRepository.readTextFromUri(uriString, any()) } returns Result.success(jsonString)
                 every {
                     serializationService.decodeFromString(jsonString, any<KSerializer<BackupExportData>>())
                 } returns Result.success(exportData)
@@ -107,7 +110,7 @@ class ParseImportFileUseCaseTest {
                 val jsonString = "[{\"name\":\"John\",\"dates\":[\"2024-01-01\"]}]"
                 val legacyData = listOf(StudentExportData("John", "", listOf("2024-01-01")))
 
-                coEvery { storageRepository.readTextFromUri(uriString) } returns Result.success(jsonString)
+                coEvery { storageRepository.readTextFromUri(uriString, any()) } returns Result.success(jsonString)
                 every {
                     serializationService.decodeFromString(
                         jsonString,
@@ -133,7 +136,7 @@ class ParseImportFileUseCaseTest {
                 val uriString = "content://file"
                 val jsonString = "{ malformed"
 
-                coEvery { storageRepository.readTextFromUri(uriString) } returns Result.success(jsonString)
+                coEvery { storageRepository.readTextFromUri(uriString, any()) } returns Result.success(jsonString)
                 every {
                     serializationService.decodeFromString(
                         jsonString,
@@ -154,7 +157,7 @@ class ParseImportFileUseCaseTest {
         fun `should return empty data for blank file content`() =
             runTest {
                 val uriString = "content://empty"
-                coEvery { storageRepository.readTextFromUri(uriString) } returns
+                coEvery { storageRepository.readTextFromUri(uriString, any()) } returns
                     Result.success("  ")
 
                 val result = useCase(uriString)
@@ -169,7 +172,7 @@ class ParseImportFileUseCaseTest {
             runTest {
                 val uriString = "content://error"
                 val exception = StudentError.FileRead
-                coEvery { storageRepository.readTextFromUri(uriString) } returns
+                coEvery { storageRepository.readTextFromUri(uriString, any()) } returns
                     Result.failure(exception)
 
                 val result = useCase(uriString)
@@ -180,7 +183,14 @@ class ParseImportFileUseCaseTest {
     }
 
     @Test
-    fun `backup version constant is 2`() {
-        assertEquals(2, BACKUP_VERSION)
+    fun `backup version constant is 3`() {
+        assertEquals(3, BACKUP_VERSION)
+    }
+
+    @Test
+    fun `the previous version is still supported`() {
+        assertEquals(2, PREVIOUS_BACKUP_VERSION)
+        assertTrue(SUPPORTED_BACKUP_VERSIONS.containsAll(listOf(3, 2)))
+        assertFalse(SUPPORTED_BACKUP_VERSIONS.contains(1))
     }
 }

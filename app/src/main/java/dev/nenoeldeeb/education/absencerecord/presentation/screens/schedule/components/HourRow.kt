@@ -48,12 +48,10 @@ import dev.nenoeldeeb.education.absencerecord.domain.models.HourWithOccupancy
 import dev.nenoeldeeb.education.absencerecord.domain.models.Student
 import dev.nenoeldeeb.education.absencerecord.presentation.utils.TimeFormatter.formatTime
 
-const val HOUR_ROW_TAG_PREFIX = "hour_row_"
 const val HOUR_EXPAND_TAG_PREFIX = "hour_expand_"
 const val HOUR_OPTIONS_TAG_PREFIX = "hour_options_"
 const val HOUR_EDIT_TAG_PREFIX = "hour_edit_"
 const val HOUR_DELETE_TAG_PREFIX = "hour_delete_"
-const val HOUR_ASSIGNED_STUDENT_TAG_PREFIX = "assigned_student_"
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -92,6 +90,13 @@ fun HourRow(
             hour.assignedCount,
             hour.maxStudents
         )
+    // the block's length is the thing the teacher chose; capacity is derived
+    val lengthDescription =
+        stringResource(
+            R.string.schedule_length_and_occupancy,
+            stringResource(R.string.schedule_duration_minutes, hour.durationMinutes),
+            occupancyDescription
+        )
     val occupancyState =
         if (hour.isFull) {
             "$occupancyDescription, ${stringResource(R.string.schedule_hour_full)}"
@@ -105,11 +110,11 @@ fun HourRow(
         animationSpec = tween(durationMillis = 200),
         label = "hour_expand_rotation"
     )
+    // Already in the DERIVED running order (FR-020 … FR-025); sorting here by
+    // name would discard exactly the ordering the planner derived.
     val assignedStudents =
         remember(hour.assignedStudentIds, students) {
-            hour.assignedStudentIds
-                .mapNotNull { id -> students.firstOrNull { it.id == id } }
-                .sortedBy { it.name }
+            hour.assignedStudentIds.mapNotNull { id -> students.firstOrNull { it.id == id } }
         }
     Column(
         modifier =
@@ -166,7 +171,7 @@ fun HourRow(
                                 modifier = Modifier.size(16.dp)
                             )
                             Text(
-                                text = occupancyDescription,
+                                text = lengthDescription,
                                 style =
                                     MaterialTheme.typography.bodyMedium.copy(
                                         textDirection = TextDirection.Ltr
@@ -282,7 +287,8 @@ fun HourRow(
                 HorizontalDivider(modifier = Modifier.padding(top = 4.dp))
                 HourAssignedStudents(
                     students = assignedStudents,
-                    onStudentClick = onStudentClick
+                    onStudentClick = onStudentClick,
+                    slots = hour.slots
                 )
             }
         }

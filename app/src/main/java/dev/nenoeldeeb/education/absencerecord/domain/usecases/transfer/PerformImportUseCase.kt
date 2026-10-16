@@ -9,8 +9,10 @@ import dev.nenoeldeeb.education.absencerecord.domain.repositories.AttendanceRepo
 import dev.nenoeldeeb.education.absencerecord.domain.repositories.ScheduleRepository
 import dev.nenoeldeeb.education.absencerecord.domain.repositories.StudentClassRepository
 import dev.nenoeldeeb.education.absencerecord.domain.repositories.StudentRepository
+import dev.nenoeldeeb.education.absencerecord.domain.services.ImportCaps
 import dev.nenoeldeeb.education.absencerecord.domain.services.ImportCounters
 import dev.nenoeldeeb.education.absencerecord.domain.services.ImportMergeEngine
+import dev.nenoeldeeb.education.absencerecord.domain.services.retainedDateCount
 import kotlinx.coroutines.flow.first
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.isoDayNumber
@@ -58,6 +60,12 @@ class PerformImportUseCase(
                 val studentIdByName = mutableMapOf<String, Int>()
 
                 studentsToImport.forEach { studentData ->
+                    // Past the cap the remaining students are counted and left
+                    // out; the rest of the file still imports (FR-059).
+                    if (counters.newCount + counters.mergedCount >= ImportCaps.MAX_IMPORT_STUDENTS) {
+                        counters.studentsCapped++
+                        return@forEach
+                    }
                     val classId = resolveClassId(studentData.className, classCache)
                     val existingStudent = existingMap[studentData.name]
                     val studentId =
@@ -80,7 +88,14 @@ class PerformImportUseCase(
                     studentIdByName[studentData.name] = studentId
                     if (existingStudent != null) counters.mergedCount++
 
-                    studentData.dates.forEach { dateString ->
+                    // Attendance history is capped per student; anything beyond the cap is
+                    // counted and skipped rather than dropped silently (FR-056).
+                    val datesToImport =
+                        retainedDateCount(studentData.dates.size)
+                    if (datesToImport < studentData.dates.size) {
+                        counters.datesCapped += studentData.dates.size - datesToImport
+                    }
+                    studentData.dates.take(datesToImport).forEach { dateString ->
                         runCatching { LocalDate.parse(dateString) }
                             .onSuccess { localDate ->
                                 attendanceRepository.insertAttendance(
@@ -102,11 +117,13 @@ class PerformImportUseCase(
                 val postBusy =
                     scheduleRepository.observeBusyAppointments().first().getOrElse { return Result.failure(it) }
 
+                val durationByHourId = existingHours.associate { it.id to it.durationMinutes }
                 val plannedByHour =
                     mergeEngine.collectPlannedLessons(
                         studentsToImport,
                         studentIdByName,
                         hourIdByKey,
+                        durationByHourId,
                         postBusyAssignments,
                         postBusy,
                         counters
@@ -132,7 +149,11 @@ class PerformImportUseCase(
                 lessonsAddedCount = counters.lessonsAdded,
                 lessonsRemovedBusyWinsCount = counters.lessonsRemovedBusyWins,
                 lessonsSkippedCount = counters.lessonsSkipped,
-                malformedEntriesSkippedCount = counters.malformedSkipped
+                malformedEntriesSkippedCount = counters.malformedSkipped,
+                cappedEntriesSkippedCount =
+                    counters.studentsCapped + counters.hoursCapped +
+                        counters.lessonsCapped + counters.datesCapped,
+                studentCapHit = counters.studentsCapped > 0
             )
         )
     }

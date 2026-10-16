@@ -77,19 +77,42 @@ private fun LessonRow(
 ) {
     val timeRange =
         stringResource(R.string.time_range, formatTime(lesson.startMinutes), formatTime(lesson.endMinutes))
+    // The block spans everyone; this student's own ten minutes may be much
+    // shorter, so it is shown separately rather than implied by the block time.
+    val slotRange =
+        if (lesson.slotStartMinutes != null && lesson.slotEndMinutes != null) {
+            stringResource(
+                R.string.student_detail_lesson_slot,
+                formatTime(lesson.slotStartMinutes),
+                formatTime(lesson.slotEndMinutes)
+            )
+        } else {
+            null
+        }
     Row(
         modifier = modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        Text(
-            text = timeRange,
-            style =
-                MaterialTheme.typography.bodyMedium.copy(
-                    textDirection = TextDirection.Ltr
-                ),
-            modifier = Modifier.weight(1f)
-        )
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = timeRange,
+                style =
+                    MaterialTheme.typography.bodyMedium.copy(
+                        textDirection = TextDirection.Ltr
+                    )
+            )
+            if (slotRange != null) {
+                Text(
+                    text = slotRange,
+                    style =
+                        MaterialTheme.typography.bodySmall.copy(
+                            textDirection = TextDirection.Ltr
+                        ),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
         IconButton(onClick = onUnassign) {
             Icon(
                 imageVector = ImageVector.vectorResource(R.drawable.outline_person_remove_24),

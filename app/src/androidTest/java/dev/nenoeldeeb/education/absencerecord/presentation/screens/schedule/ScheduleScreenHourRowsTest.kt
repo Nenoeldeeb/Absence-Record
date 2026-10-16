@@ -63,10 +63,13 @@ class ScheduleScreenHourRowsTest {
             )
         )
 
-        val timeRange = "${harness.time(540)} – ${harness.time(600)}"
+        val timeRange = "${harness.time(540)} – ${harness.time(590)}"
         composeTestRule.onNodeWithText(timeRange).assertIsDisplayed()
         composeTestRule
-            .onNodeWithText(harness.getString(R.string.schedule_occupancy, 0, 5))
+            .onNodeWithText(
+                harness.getString(R.string.schedule_duration_minutes, 50) +
+                    " · " + harness.getString(R.string.schedule_occupancy, 0, 5)
+            )
             .assertIsDisplayed()
         composeTestRule
             .onNodeWithContentDescription(
