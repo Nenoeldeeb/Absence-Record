@@ -274,15 +274,15 @@ Two edits can invalidate students who are already assigned: shortening the block
 - **FR-056**: Backup import MUST enforce a documented maximum record count for students, lesson blocks, lesson assignments **and attendance dates per student**; entries beyond a maximum MUST be skipped and counted in the import summary rather than imported.
 - **FR-057**: The lesson-block maximum MUST be 1,008 — the number of non-overlapping 10-minute blocks that can physically exist in a week — and the assignment maximum MUST be the largest number of students those blocks could hold.
 - **FR-058**: The student maximum MUST be 10,000, far beyond any class set a single teacher manages, and MUST be stated in the import summary message when it is hit. The per-student attendance-date maximum MUST be 3,650 — ten years of daily attendance — because the unbounded date list, not the student count, is what drives import memory.
-- **FR-062**: The student maximum of 10,000 is a judgement-based figure, not a derived one; it is the one cap in this feature chosen by opinion rather than arithmetic, and it MUST stay far enough above real class sizes that no legitimate backup can ever reach it.
 - **FR-059**: Exceeding a maximum MUST NOT abort the import of the remaining valid entries and MUST NOT be reported as a parse failure; the teacher is told what was skipped.
 
 **Deriving the order**
 
 - **FR-060**: A block's running order MUST be derived from current data on every read; the system MUST NOT serve it from a stored position or from a cached order.
 - **FR-061**: Deriving a block's running order MUST NOT run on the main thread — the derivation MUST be performed off it and its result delivered back to the user-facing surface.
-- **FR-064**: A single derivation MUST consider at most the block's twelve students and, across a full day's view, at most the day's blocks; the derivation MUST stay within the response budget defined in the success criteria.
+- **FR-062**: The student maximum of 10,000 is a judgement-based figure, not a derived one; it is the one cap in this feature chosen by opinion rather than arithmetic, and it MUST stay far enough above real class sizes that no legitimate backup can ever reach it.
 - **FR-063**: Backup import MUST refuse a file larger than 32 MB **before** decoding it, reading no more than that many bytes, so that an implausibly large file is rejected without ever being materialised in memory. This is reported as its own error, distinct from a parse failure.
+- **FR-064**: A single derivation MUST consider at most the block's twelve students and, across a full day's view, at most the day's blocks; the derivation MUST stay within the response budget defined in the success criteria.
 
 ### Key Entities
 
@@ -402,7 +402,15 @@ edge-case bullets were added across scale, error and backward-compatibility grou
 
 **Numbering note**: requirements were renumbered several times during this session
 as rules were inserted mid-document. The final state was machine-verified —
-FR-001…FR-062 and SC-001…SC-019, both contiguous with no duplicates, and every
+FR-001…FR-064 and SC-001…SC-019, both contiguous with no duplicates, and every
 inline cross-reference resolving to an existing requirement.
+
+**Later amendment**: FR-063 (the pre-decode file-size guard) and FR-064 (the
+per-derivation bound) were added after that note was first written, taking the
+count from 62 to 64. The counts in this section and in `plan.md` were corrected
+to match during Phase 8 (T093); FR-062 had also been listed out of numeric order
+between FR-058 and FR-059 and was moved back into sequence. No requirement was
+renumbered, added or removed by that correction — only its position in the
+document and the stated totals.
 
 **Open**: none. Q1–Q8 all resolved.

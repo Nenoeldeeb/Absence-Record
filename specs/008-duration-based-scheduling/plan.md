@@ -67,7 +67,7 @@ unchanged and remain the two things to watch during execution.
 
 ```text
 specs/008-duration-based-scheduling/
-├── spec.md                       # 62 requirements, 19 success criteria, Q1–Q8 resolved
+├── spec.md                       # 64 requirements, 19 success criteria, Q1–Q8 resolved
 ├── plan.md                       # this file
 ├── research.md                   # D1–D10 decisions + rationale + alternatives
 ├── data-model.md                 # entities, ordering algorithm, caps
