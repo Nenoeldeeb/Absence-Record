@@ -296,7 +296,7 @@ block and assignment survives with a valid length; then import a v2 file and a
 - [x] **T081** Run `./gradlew connectedDebugAndroidTest` and confirm the schedule and student-detail instrumented suites pass. This does **not** cover the untouched screens — see T082 (SC-018)
 - [x] **T082** `[SUBAGENT]` **SC-018 regression check — the untouched screens.** This feature must not change the behaviour of the attendance, class-filter, student-detail or reporting screens. Run their instrumented suites explicitly — `AttendanceDaoQueryTest`, `AttendanceDaoTest`, `StudentDaoSortingTest`, `StudentDaoTest`, `StudentsScreenTest`, `ScheduleNavigationTest` — and confirm they pass unmodified (SC-018). T081's scope is the schedule and student-detail suites only, so these are NOT covered by it. If any fails, the cause is almost certainly a shared file touched by this feature (`AppContainer`, a mapper, or `ClassFilterRepositoryImpl`) — trace it before fixing the test
 - [x] **T083** Run the full quickstart.md validation, including the backward-compatibility walkthrough in §7
-- [x] **T084** Re-read spec.md and confirm every one of FR-001…FR-062 and SC-001…SC-019 is implemented or explicitly deferred — with a written reason for any deferral
+- [x] **T084** Re-read spec.md and confirm every one of FR-001…FR-064 and SC-001…SC-019 is implemented or explicitly deferred — with a written reason for any deferral
 - [x] **T085** `[SUBAGENT]` Done — plus rules added for the SQLite-version hazard, the two-device rule, and the import bounds. to reflect the duration-based model — the constitution's Governance section requires both before the feature is complete
 - [x] **T086** **SETTLED 2026-10-16.** User confirmed: cap students AND dates. `MAX_IMPORT_STUDENTS = 10_000` retained (FR-058, judgement-based, documented as such in FR-062/Assumptions). Added `MAX_IMPORT_ATTENDANCE_DATES_PER_STUDENT = 3_650` (10 years daily, derived) and a **32 MB `MAX_IMPORT_FILE_BYTES` guard enforced before decode** (new FR-063) — record caps alone cannot prevent an OOM because memory is already spent by decode time. research D9 rewritten with the measurements.
 
@@ -373,3 +373,64 @@ anything on top.
   e.g. `feat(schedule): add duration-based lesson planner`
 - Stop at every checkpoint to validate the story independently
 - Avoid: vague tasks, same-file conflicts, cross-story dependencies that break independence
+
+---
+
+## Phase 8: Convergence
+
+**Input**: `/speckit.converge` on 2026-10-16, run after Phase 7 completed
+86/86. The checkbox claims above were **not** treated as evidence — every
+requirement was re-verified against the code.
+
+**Outcome**: 7 findings. The feature is broadly complete, but three
+behavioural defects survive and one file breaks a constitution MUST. Two of
+the three behavioural defects sit on paths the phase-7 tests never exercised,
+which is why a green suite did not catch them.
+
+### Findings and remediation
+
+- [x] **T087** **DONE** — `StudentsScreenTest.kt` (302 lines) split into `StudentsScreenTestBase` plus five focused classes (EmptyState / StudentDialog / MultiSelectionHeader / BulkDeleteConfirmationDialog / ImportSelectionDialog); 10 tests in, 10 out, bodies verbatim. Verified on-device: 4/4 on API 26 and API 35. The constitution's own SYNC IMPACT TODO is now closed, and `find app/src -name '*.kt' | xargs wc -l` reports **zero** files above 300. **CRITICAL** Split `StudentsScreenTest.kt` (302 lines) into focused files to bring it under the 300-line cap per Constitution Principle V — `Every source file, including test files, MUST NOT exceed 300 lines`. It already has five self-declared regions (EmptyStateMessage, StudentDialog, MultiSelectionHeader, BulkDeleteConfirmationDialog, ImportSelectionDialog); lift each into its own class sharing a small base, or extract the repeated dialog-driving setup. **Evidence**: `find app/src -name "*.kt" | xargs wc -l | sort -rn` — this is the only file above the cap. No `MaxLineCount` lint gate exists, so `./gradlew check` passes and cannot surface it; the constitution's own SYNC IMPACT REPORT already flagged this exact file as an unfixed TODO. (contradicts)
+
+- [x] **T088** **DONE, RED→GREEN** — RED: `movingTheStart_asksBefore…` returned `Applied(removedStudentIds=[2])`, i.e. Bob was silently evicted, and `movingTheStart_writesNothingUntil…` saw the start already at 11:00. Fixed by extracting `PlanResult.studentsLost()` (capacity drops **and** conflict-driven drops, the latter now using the previously-dead `DropReason.SlotConflictsWithBusy`) and branching `updateHour` on it. 5/5 green; the 37 pre-existing DAO tests still pass. `ScheduleDao.kt` crossed the cap at 309, so the logic moved to `ScheduleDaoHelpers.kt` (296 / 209). Route start-time moves through the confirm-first re-plan instead of silently evicting students per FR-011, FR-015 and SC-015 — in `ScheduleDao.updateHour`, `dropped` is taken from `plan.dropped` alone, and `LessonSlotPlanner` populates that **only** for students past the derived capacity. A start move leaves the length and therefore the capacity unchanged, so `dropped` is always empty, `NeedsConfirmation` is never returned, `updateAvailableHour` writes the new start immediately, and `removeBusyConflictingAssignments` then deletes any assignment whose slot now collides — with no prompt. The teacher gets a toast (`HourManagementDelegate.kt:110-122`), and declining is impossible. Make the planner emit conflict-driven drops (this is what the already-declared-but-unused `DropReason.SlotConflictsWithBusy` is for) and have `updateHour` branch on `plan.conflicts` as well as `plan.dropped`, so a start move that would strand a student returns `NeedsConfirmation` with those students named and writes nothing until confirmed. Add a regression test: block 10:00 with three students, one holding a commitment at 11:05, moved to 11:00 — assert `NeedsConfirmation`, assert nothing written, then confirm and assert the unconfirmed case leaves all three in place (US1/AC9, US1/AC10). (contradicts)
+
+- [x] **T089** **DONE, RED→GREEN** — RED: `insertHour_rejectsOverlap_whenTheProposedBlockIsShorterAndLater` and `updateHour_rejectsOverlapWithABlockOfADifferentLength` both reported no overlap. Fixed `countHoursOverlapping` to use the existing row's own `durationMinutes` instead of the proposed `:lessonDuration`, and dropped the now-misleading parameter. 6/6 green, including two adjacent-block cases that guard against over-correcting. `ScheduleDaoHourOverlapTest.kt` uses **differing** lengths throughout — the shape the old tests never covered. Correct the same-day block overlap check to use each block's own length per FR-008 — `ScheduleDao.countHoursOverlapping` binds the **proposed** block's length as `:lessonDuration` and then uses it in the clause that requires the **existing** row's length: `AND startMinutes + :lessonDuration > :startMinutes` must be `AND startMinutes + durationMinutes > :startMinutes`. Whenever the two lengths differ, a genuine overlap passes undetected: an existing 10:00–12:00 block (120 min) plus a new 11:00–11:10 block (10 min) is accepted. Both existing overlap tests (`ScheduleDaoTest.kt:67` and `:122`) use equal lengths — the single shape in which the error is invisible. Fix the SQL and add a regression test with **differing** lengths on both the insert and the update path. (contradicts)
+
+- [x] **T090** **DONE, RED→GREEN** — RED: a 09:30 commitment cost a student their valid 08:00 slot. The merge no longer pre-rejects on busy overlap at all: placement is decided solely by `ScheduleDao.assignStudent`, which re-plans the roster and judges each student on their own ten minutes, and `executePlannedLessons` counts the refusals. The over-broad `hasBusyConflict` and two now-dead parameters (`durationByHourId`, `busy`) are gone. `PerformImportSlotRestoreTest` covers both the restore and the honest counting of a refusal. The superseded merge-level conflict test was replaced with a pointer rather than left asserting removed behaviour. Judge imported lessons against the student's prospective slot rather than the block's whole extent per FR-027 — `ImportMergeEngine.hasBusyConflict` is invoked with the block's full extent (`:137-150`, `:203-221`), so an imported lesson is skipped and counted whenever *any* of that student's commitments overlaps the whole block. That is precisely the rejection FR-027 forbids, and it means a lesson that was validly assigned, exported, and is being restored is silently dropped on re-import. Replace it with the prospective slot from the derived plan (the same mechanism `HourWithOccupancy.prospectiveSlotFor` already provides for `AddLessonDialog`), or reuse the correctly slot-scoped `ScheduleDao.hasBusyConflict` at `ScheduleDaoHelpers.kt:111-126`, which currently has zero callers. Add a regression test: export a block where a student's commitment falls later inside the block, re-import, and assert the lesson survives. (partial)
+
+- [x] **T091** **DONE** — the contract's cap table now lists all five, with a basis column, plus a section on why the size guard runs before decode and the record caps after, and that `ImportFileTooLarge` is distinct from `ImportParse`. Document the two missing import caps in `contracts/backup-file-format.md` per FR-056 — the "Import caps" table lists only `MAX_IMPORT_STUDENTS`, `MAX_IMPORT_HOURS` and `MAX_IMPORT_ASSIGNMENTS`. Both `MAX_IMPORT_ATTENDANCE_DATES_PER_STUDENT` (3,650) and `MAX_IMPORT_FILE_BYTES` (32 MB) are enforced in code but absent from the contract, and FR-056 requires a **documented** maximum. The size guard is the more important omission: it is the only layer that actually prevents the out-of-memory condition, because a cap applied after decoding is consulted too late. Note that the guard is enforced *before* decode and reported as its own error, distinct from a parse failure. (partial)
+
+- [x] **T092** **DONE** — `DropReason.SlotConflictsWithBusy` is now produced by `studentsLost()` and asserted in two tests (wired by T088). The two genuinely unreachable declarations — `ScheduleDao.hasBusyConflict`, whose logic `LessonSlotPlanner` already owns, and `PlanResult.isValid`, now superseded by `studentsLost()` — were deleted rather than shipped unused. Decide the fate of the three declarations this feature left unreachable per plan: internal correctness — `ScheduleDao.hasBusyConflict` (`ScheduleDaoHelpers.kt:111-126`), `PlanResult.isValid` (`LessonPlanning.kt`), and `DropReason.SlotConflictsWithBusy` (`LessonPlanning.kt`) are all declared and have no callers in main source. They are not neutral: `SlotConflictsWithBusy` exists precisely because T088 needs it, and `hasBusyConflict` exists precisely because T090 needs it. Wire them up there; if either remediation is implemented differently, delete what is left rather than shipping an unused API surface. (unrequested)
+
+- [x] **T093** **DONE** — `plan.md` now reads 64 requirements; the spec's numbering note reads FR-001…FR-064 with a note recording the late addition; FR-062 moved back into numeric position and FR-063/FR-064 put in ascending order. Machine-verified: 64 unique, FR-001..FR-064, contiguous, no duplicates, document order ascending. `tasks.md` T084's audit range corrected to match. Correct the requirement counts that drifted when FR-063 and FR-064 were added late — `plan.md:70` and `spec.md`'s brainstorm "Numbering note" both still say 62 requirements, and `tasks.md` T084 recorded its audit as covering "FR-001…FR-062" when the spec declares 64. FR-062 is also listed out of numeric order between FR-058 and FR-059. Update the counts in `plan.md` and `spec.md` so the traceability trail is accurate; `/speckit.converge` may not edit those files itself. (partial)
+
+---
+
+## Post-review amendments (2026-10-16)
+
+`/speckit.superspec.review` raised four findings against Phase 8; all four are
+fixed. Full write-up in [checklist-review.md](./checklist-review.md).
+
+- [x] **R1** **CRITICAL** — the confirm gate could unassign a student it never
+  showed. The drop list was computed in one pass, but the running order is
+  derived, so deleting a student re-plans the survivors and can slide one back
+  into a slot that hits their own commitment. Reproduced on a reachable state:
+  the proposal named `[1]` and confirming removed `[1, 2]`; an exhaustive search
+  over every legal length, start and commitment window found **5,903** such
+  rosters and **0** survivors that move later. Added pure
+  `LessonSlotPlanner.closedLosses()`, which iterates to a fixed point over the
+  remaining roster (at most 12 passes), and `ScheduleDao.closedDropSet()`.
+  `ScheduleDaoReplanFixedPointTest` (3) covers it: both names shown, removals
+  equal the confirmed set, declining removes nobody.
+- [x] **R2** **IMPORTANT** — the backup contract contradicted itself: the blanket
+  "never aborts the remaining entries" sentence now scopes to the record caps,
+  with the file-size guard documented as the exception that refuses the whole
+  file. Header spec range widened to include FR-048, FR-056…FR-058, FR-062, FR-063.
+- [x] **R3** **IMPORTANT** — `PlanResult.studentsLost()` was a pure business rule
+  parked in `data/datasources/local/daos/` to dodge the line cap, and `internal`
+  so only the data layer could reach it. Moved to `domain/models/LessonPlanning.kt`
+  per the constitution's source-tree map (principle: domain/services and
+  domain/models hold pure rules; the DAO folder holds `@Dao` interfaces and query
+  helpers).
+- [x] **R4** **IMPORTANT** — the constitution's SYNC IMPACT follow-up TODO still
+  listed the `StudentsScreenTest.kt` 302-line breach as open after T087 fixed it.
+  The TODO now records the closure, the method, and the verification.

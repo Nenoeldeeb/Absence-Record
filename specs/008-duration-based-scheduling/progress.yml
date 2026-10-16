@@ -7,4 +7,12 @@ phases:
   brainstorm:   { status: done, updated: 2026-10-13, sessions: 1, questions_asked: 5 }
   plan:         { status: done, updated: 2026-10-13, artifacts: [research.md, data-model.md, contracts/backup-file-format.md, quickstart.md] }
   tasks:        { status: done, updated: 2026-10-14, task_count: 86, checkpoints: 7, analyze_rounds: 2 }
-  execute:      { status: complete, updated: 2026-10-15, phase: 7, completed_tasks: 86, total_tasks: 86, note: "COMPLETE: all 7 phases, 86/86 tasks. SC-019 measured (derivation 3.3ms, render 33ms vs 1000ms budget). AGENTS.md + README.md updated. 2 API levels green."
+  converge:     { status: done, updated: 2026-10-16, findings: 7, critical: 1, high: 3, medium: 1, low: 2, note: "Checkbox claims were re-verified against the code, not trusted. Three behavioural defects survived a green 652-test suite because each sat exactly where no test reached." }
+  execute:      { status: complete, updated: 2026-10-16, phase: 8, completed_tasks: 93, total_tasks: 93, note: "COMPLETE: 8 phases, 93/93 tasks. Phase 8 fixed a constitution-V cap breach and three requirement defects, each by RED-GREEN: the 302-line StudentsScreenTest split; start-move collisions now go through confirm-first instead of silently evicting; same-day overlap judged on each block's own length; import placement decided per-slot by assignStudent rather than a whole-block pre-filter." }
+  gates:
+    jvm_unit:       { status: pass, updated: 2026-10-16, tests: 655 }
+    device_api_26:  { status: pass, updated: 2026-10-16, tests: 340 }
+    device_api_35:  { status: pass, updated: 2026-10-16, tests: 340 }
+    review:         { status: pass, updated: 2026-10-16, findings: 4, critical: 1, important: 3, all_fixed: true, report: checklist-review.md }
+    ktlint_check:   { status: pass, updated: 2026-10-16 }
+    line_cap:       { status: pass, updated: 2026-10-16, max_lines: 300, note: "verified over ALL files under app/src, not just modified ones" }
