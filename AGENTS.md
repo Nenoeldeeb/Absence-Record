@@ -70,6 +70,29 @@ presentation/  ──►  domain/  ◄──  data/
   version bump. Destructive migration is NOT acceptable (user data). Commit the
   regenerated `app/schemas/` JSON and add a migration test in `androidTest/`
   (see `ScheduleDaoMigrationTest`).
+  - **Do NOT use `ALTER TABLE … RENAME COLUMN`**: it needs SQLite 3.25 (API 30)
+    and this app supports API 26, so the migration fails outright below that.
+    Rebuild the table instead, and set `PRAGMA legacy_alter_table = ON` first —
+    otherwise renaming rewrites the child foreign keys, leaving them pointing at
+    the discarded copy, whose `DROP` then CASCADE-deletes the child rows
+    (see `ScheduleDaoMigrationRebuildTest`).
+  - Test migrations on more than one device. A second API 26 emulator is what
+    exposed the above; a single API 35 run reported green throughout.
+- **Lesson length, not headcount**: a lesson block's size is its LENGTH in
+  minutes (10–120, steps of 10). Student capacity is DERIVED as `length / 10`
+  and is never stored, never editable, and never displayed as a separate input.
+  Anything that still says "max students" as a *stored* value is a bug.
+- **Derived running order**: a student's position in a block is not stored
+  either. It is recomputed on every read by `LessonSlotPlanner` from the block's
+  students, their commitments and the block's length. Do NOT cache it, do NOT
+  add an ordering column, and do NOT re-sort the list the UI receives — the
+  order arriving from the repository is the order to render.
+- **Per-slot conflict checks**: a student is validated against their OWN ten
+  minutes, never against the block's full extent. A commitment later inside the
+  block must not reject or evict them (FR-027, FR-038).
+- **Conflicting edits are two-phase**: anything that could drop students returns
+  a proposal without writing, and commits only after an explicit confirmation.
+  A reported removal must actually be performed, not merely named.
 - **Class Filter Pattern**: Unified multi-select class filter shared across Calendar (attendance dialog) and Students screens.
   - `ClassFilterRepository` (domain/repositories/) + `ClassFilterRepositoryImpl` (data/repositories/) share an in-memory `selectedClassIds: StateFlow<Set<Int>>` (default `emptySet()`) observed by both ViewModels.
   - `ClassCheckboxFilter` (presentation/screens/components/) is the shared multi-select checkbox dropdown used by both screens.
@@ -80,10 +103,27 @@ presentation/  ──►  domain/  ◄──  data/
 - **Philosophy**: MUST explicitly test BOTH `onSuccess` and `onFailure` paths. Verify ViewModel error state bindings.
 - **Unit tests (JVM)**: JUnit 6 + MockK is the standard. `mockk(relaxed = true)` is fine here.
 - **On-device UI tests**: `mockk-android` CANNOT mock final ViewModel classes on
-  device. Do NOT attempt it. Instead extract a stateless content composable and
-  drive it through a hand-rolled harness backed by `MutableStateFlow` plus an
-  event recorder — see `ScheduleScreenTestHarness` / `ScheduleScreenContent`.
+  device. Do NOT attempt it — and do not ship a test that works with one and
+  passes only on a modern emulator. Instead extract a stateless content composable
+  and drive it through a hand-rolled harness backed by `MutableStateFlow` plus an
+  event recorder — see `ScheduleScreenContent` / `ScheduleScreenTestHarness` and
+  `CalendarScreenContent`.
 - **Async Tests**: Advance virtual time with `runTest`.
+
+## Import & Backup Bounds
+
+- **Backups are versioned** (`BACKUP_VERSION`, currently 3). A shape change must
+  be signalled TWICE: bump the version AND rename the field, so either signal
+  alone identifies the format.
+- **A backup entry must never be guessed at.** Carrying both a length field and
+  a legacy count — or neither — is malformed: skip it and count it (FR-046).
+- **Cap what is parsed, not only what is written.** Record caps applied after
+  decoding bound the database write but NOT the parse, by which point the memory
+  is already spent. A file-size guard must run *before* decode
+  (`StorageRepository.readTextFromUri`), and caps must live in `ImportCaps`
+  with a comment giving the basis for each number.
+- Anything skipped, capped or malformed is **counted and reported** in the
+  import summary. A partial import is still an import.
 
 ## Naming, Branching & Commits
 
@@ -107,6 +147,18 @@ presentation/  ──►  domain/  ◄──  data/
   only `signing.properties.example` is tracked.
 - **Unit Test**: `./gradlew testDebugUnitTest --tests "PackageOrClass"`
 - **UI Test**: `./gradlew connectedDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.class="PackageOrClass"` (AGP 9 does NOT support `--tests` on this task)
+  - **Run the WHOLE suite, not one class at a time.** Per-class invocations
+    overwrite each other's results under `app/build/outputs/androidTest-results/`,
+    so a green exit code can belong to neither run. `rm -rf` that directory first
+    if you must run per class.
+  - **Test on more than one API level.** API 26 and API 35 together have caught a
+    crash-in-migration (SQLite < 3.25) and a mock that only intercepts on newer
+    ART — neither visible on API 35 alone.
+  - AGP 9 creates **no** `connectedReleaseAndroidTest` task, so instrumented
+    timings are debug-build timings. Treat a cold-start figure as meaningless and
+    report warm numbers separately.
+  - A run reporting **zero tests** means the device dropped, not a pass. Check
+    `adb devices` before believing any result.
 - **Format**: `./gradlew ktlintFormat` (ALWAYS run before commit; also auto-runs as a `preBuild` dependency)
 - **Validate**: `./gradlew check` (ktlint + lint + tests)
 - **Note**: There is no CI in this repository — all gates are run locally and
