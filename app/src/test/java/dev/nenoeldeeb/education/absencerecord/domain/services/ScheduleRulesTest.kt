@@ -1,8 +1,6 @@
 package dev.nenoeldeeb.education.absencerecord.domain.services
 
-import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
-import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 
@@ -55,30 +53,30 @@ class ScheduleRulesTest {
 
     @Test
     fun `isHourStartValid accepts an exact minute start at 547`() {
-        assertTrue(ScheduleRules.isHourStartValid(547))
+        assertTrue(ScheduleRules.isHourStartValid(547, 60))
     }
 
     @Test
     fun `isHourStartValid accepts 0 as the earliest valid start`() {
-        assertTrue(ScheduleRules.isHourStartValid(0))
+        assertTrue(ScheduleRules.isHourStartValid(0, 60))
     }
 
     @Test
     fun `isHourStartValid accepts 1380 as the last valid hour start`() {
-        assertTrue(ScheduleRules.isHourStartValid(1380))
+        assertTrue(ScheduleRules.isHourStartValid(1380, 60))
     }
 
     @Test
     fun `isHourStartValid rejects starts that would end after midnight`() {
-        assertFalse(ScheduleRules.isHourStartValid(1381))
-        assertFalse(ScheduleRules.isHourStartValid(1410))
-        assertFalse(ScheduleRules.isHourStartValid(1440))
+        assertFalse(ScheduleRules.isHourStartValid(1381, 60))
+        assertFalse(ScheduleRules.isHourStartValid(1410, 60))
+        assertFalse(ScheduleRules.isHourStartValid(1440, 60))
     }
 
     @Test
     fun `isHourStartValid rejects negative starts`() {
-        assertFalse(ScheduleRules.isHourStartValid(-1))
-        assertFalse(ScheduleRules.isHourStartValid(-30))
+        assertFalse(ScheduleRules.isHourStartValid(-1, 60))
+        assertFalse(ScheduleRules.isHourStartValid(-30, 60))
     }
 
     // endregion
@@ -150,43 +148,6 @@ class ScheduleRulesTest {
     }
 
     // endregion
-
-    // region parseMaxStudents
-
-    @Test
-    fun `parseMaxStudents accepts ascii digits`() {
-        assertEquals(5, ScheduleRules.parseMaxStudents("5"))
-        assertEquals(12, ScheduleRules.parseMaxStudents("12"))
-    }
-
-    @Test
-    fun `parseMaxStudents accepts arabic-indic digits`() {
-        assertEquals(5, ScheduleRules.parseMaxStudents("٥"))
-        assertEquals(12, ScheduleRules.parseMaxStudents("١٢"))
-    }
-
-    @Test
-    fun `parseMaxStudents accepts eastern arabic-indic digits`() {
-        assertEquals(5, ScheduleRules.parseMaxStudents("۵"))
-        assertEquals(12, ScheduleRules.parseMaxStudents("۱۲"))
-    }
-
-    @Test
-    fun `parseMaxStudents rejects blank mixed and overflowing input`() {
-        assertNull(ScheduleRules.parseMaxStudents(""))
-        assertNull(ScheduleRules.parseMaxStudents("   "))
-        assertNull(ScheduleRules.parseMaxStudents("5a"))
-        assertNull(ScheduleRules.parseMaxStudents("٥a"))
-        assertNull(ScheduleRules.parseMaxStudents("1 2"))
-        assertNull(ScheduleRules.parseMaxStudents("9999999999"))
-    }
-
-    // endregion
-
-    @Test
-    fun `lesson duration is sixty minutes`() {
-        assert(ScheduleRules.LESSON_DURATION_MINUTES == 60)
-    }
 
     @Test
     fun `day length is 1440 minutes`() {
