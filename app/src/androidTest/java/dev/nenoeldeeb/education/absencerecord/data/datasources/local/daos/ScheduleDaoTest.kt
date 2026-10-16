@@ -4,6 +4,7 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import dev.nenoeldeeb.education.absencerecord.data.datasources.local.AppDatabase
 import dev.nenoeldeeb.education.absencerecord.data.datasources.local.TestDatabaseModule
 import dev.nenoeldeeb.education.absencerecord.data.datasources.local.entities.StudentEntity
+import dev.nenoeldeeb.education.absencerecord.domain.models.HourReplanResult
 import dev.nenoeldeeb.education.absencerecord.domain.models.StudentError
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
@@ -53,21 +54,21 @@ class ScheduleDaoTest {
     @Test
     fun insertHour_insertsHourOnGivenWeekday() =
         runTest {
-            val id = scheduleDao.insertHour(saturday, 540, 5)
+            val id = scheduleDao.insertHour(saturday, 540, 50)
 
             assertTrue(id > 0)
             val hours = scheduleDao.observeHoursForWeekday(saturday).first()
             assertEquals(1, hours.size)
             assertEquals(540, hours.single().startMinutes)
-            assertEquals(5, hours.single().maxStudents)
+            assertEquals(50, hours.single().durationMinutes)
         }
 
     @Test
     fun insertHour_rejectsOverlapOnSameWeekday() =
         runTest {
-            scheduleDao.insertHour(saturday, 540, 5)
+            scheduleDao.insertHour(saturday, 540, 50)
 
-            val error = captureFailure { scheduleDao.insertHour(saturday, 570, 5) }
+            val error = captureFailure { scheduleDao.insertHour(saturday, 570, 50) }
 
             assertTrue(error is StudentError.HourOverlap)
         }
@@ -75,9 +76,9 @@ class ScheduleDaoTest {
     @Test
     fun insertHour_allowsAdjacentHourOnSameWeekday() =
         runTest {
-            scheduleDao.insertHour(saturday, 540, 5)
+            scheduleDao.insertHour(saturday, 540, 50)
 
-            val id = scheduleDao.insertHour(saturday, 600, 5)
+            val id = scheduleDao.insertHour(saturday, 600, 50)
 
             assertTrue(id > 0)
         }
@@ -85,9 +86,9 @@ class ScheduleDaoTest {
     @Test
     fun insertHour_allowsSameStartOnDifferentWeekday() =
         runTest {
-            scheduleDao.insertHour(saturday, 540, 5)
+            scheduleDao.insertHour(saturday, 540, 50)
 
-            val id = scheduleDao.insertHour(sunday, 540, 5)
+            val id = scheduleDao.insertHour(sunday, 540, 50)
 
             assertTrue(id > 0)
         }
@@ -97,27 +98,33 @@ class ScheduleDaoTest {
     // region updateHour
 
     @Test
-    fun updateHour_rejectsCapacityDropBelowAssignedCount() =
+    fun updateHour_asksBeforeDroppingStudents() =
         runTest {
-            val hourId = scheduleDao.insertHour(saturday, 540, 2).toInt()
+            val hourId = scheduleDao.insertHour(saturday, 540, 20).toInt()
             val studentA = insertStudent("A")
             val studentB = insertStudent("B")
             scheduleDao.assignStudent(hourId, studentA, saturday)
             scheduleDao.assignStudent(hourId, studentB, saturday)
 
-            val error =
-                captureFailure { scheduleDao.updateHour(hourId, saturday, 540, 1) }
+            // unconfirmed: propose, write nothing
+            val proposed = scheduleDao.updateHour(hourId, saturday, 540, 10, false)
+            assertTrue(proposed is HourReplanResult.NeedsConfirmation)
+            assertEquals(1, (proposed as HourReplanResult.NeedsConfirmation).dropped.size)
+            assertEquals(2, scheduleDao.countAssignmentsForHour(hourId))
 
-            assertTrue(error is StudentError.MaxBelowAssigned)
+            // confirmed: commit
+            val applied = scheduleDao.updateHour(hourId, saturday, 540, 10, true)
+            assertTrue(applied is HourReplanResult.Applied)
+            assertEquals(1, scheduleDao.countAssignmentsForHour(hourId))
         }
 
     @Test
     fun updateHour_rejectsOverlapExcludingSelf() =
         runTest {
-            val id = scheduleDao.insertHour(saturday, 540, 5).toInt()
-            scheduleDao.insertHour(saturday, 660, 5)
+            val id = scheduleDao.insertHour(saturday, 540, 50).toInt()
+            scheduleDao.insertHour(saturday, 660, 50)
 
-            val error = captureFailure { scheduleDao.updateHour(id, saturday, 690, 5) }
+            val error = captureFailure { scheduleDao.updateHour(id, saturday, 690, 50, true) }
 
             assertTrue(error is StudentError.HourOverlap)
         }
@@ -125,14 +132,17 @@ class ScheduleDaoTest {
     @Test
     fun updateHour_returnsRemovedStudentIdsForBusyConflict() =
         runTest {
-            val hourId = scheduleDao.insertHour(saturday, 540, 5).toInt()
+            val hourId = scheduleDao.insertHour(saturday, 540, 50).toInt()
             val studentId = insertStudent()
             scheduleDao.assignStudent(hourId, studentId, saturday)
             scheduleDao.insertBusyAppointment(studentId, saturday, 480, 60)
 
-            val report = scheduleDao.updateHour(hourId, saturday, 510, 5)
+            val outcome = scheduleDao.updateHour(hourId, saturday, 510, 50, true)
 
-            assertEquals(listOf(studentId), report.removedStudentIds)
+            assertEquals(
+                listOf(studentId),
+                (outcome as HourReplanResult.Applied).removedStudentIds
+            )
             assertEquals(0, scheduleDao.countAssignmentsForHour(hourId))
         }
 
@@ -143,7 +153,7 @@ class ScheduleDaoTest {
     @Test
     fun assignStudent_rejectsWhenHourIsFull() =
         runTest {
-            val hourId = scheduleDao.insertHour(saturday, 540, 1).toInt()
+            val hourId = scheduleDao.insertHour(saturday, 540, 10).toInt()
             val studentA = insertStudent("A")
             val studentB = insertStudent("B")
             scheduleDao.assignStudent(hourId, studentA, saturday)
@@ -157,8 +167,8 @@ class ScheduleDaoTest {
     @Test
     fun assignStudent_rejectsSecondLessonForSameStudentOnSameDay() =
         runTest {
-            val hour1 = scheduleDao.insertHour(saturday, 540, 5).toInt()
-            val hour2 = scheduleDao.insertHour(saturday, 660, 5).toInt()
+            val hour1 = scheduleDao.insertHour(saturday, 540, 50).toInt()
+            val hour2 = scheduleDao.insertHour(saturday, 660, 50).toInt()
             val studentId = insertStudent()
             scheduleDao.assignStudent(hour1, studentId, saturday)
 
@@ -171,8 +181,8 @@ class ScheduleDaoTest {
     @Test
     fun assignStudent_allowsSameStudentOnDifferentWeekday() =
         runTest {
-            val hour1 = scheduleDao.insertHour(saturday, 540, 5).toInt()
-            val hour2 = scheduleDao.insertHour(sunday, 540, 5).toInt()
+            val hour1 = scheduleDao.insertHour(saturday, 540, 50).toInt()
+            val hour2 = scheduleDao.insertHour(sunday, 540, 50).toInt()
             val studentId = insertStudent()
 
             scheduleDao.assignStudent(hour1, studentId, saturday)
@@ -185,11 +195,26 @@ class ScheduleDaoTest {
         }
 
     @Test
-    fun assignStudent_rejectsWhenHourOverlapsBusyAppointment() =
+    fun assignStudent_acceptsWhenBusySitsLaterInsideTheBlock() =
         runTest {
-            val hourId = scheduleDao.insertHour(saturday, 540, 5).toInt()
+            // FR-025: only the student's own ten minutes matter. A commitment at
+            // 570-630 does not touch the 540-550 slot this student occupies, so
+            // the whole-block rejection this used to assert is gone.
+            val hourId = scheduleDao.insertHour(saturday, 540, 50).toInt()
             val studentId = insertStudent()
             scheduleDao.insertBusyAppointment(studentId, saturday, 570, 60)
+
+            scheduleDao.assignStudent(hourId, studentId, saturday)
+
+            assertEquals(1, scheduleDao.countAssignmentsForHour(hourId))
+        }
+
+    @Test
+    fun assignStudent_rejectsWhenBusyHitsTheirOwnSlot() =
+        runTest {
+            val hourId = scheduleDao.insertHour(saturday, 540, 50).toInt()
+            val studentId = insertStudent()
+            scheduleDao.insertBusyAppointment(studentId, saturday, 545, 30)
 
             val error =
                 captureFailure { scheduleDao.assignStudent(hourId, studentId, saturday) }
@@ -199,58 +224,12 @@ class ScheduleDaoTest {
 
     // endregion
 
-    // region busy appointments auto-removal
-
-    @Test
-    fun insertBusyAppointment_removesOverlappingAssignments() =
-        runTest {
-            val hourId = scheduleDao.insertHour(saturday, 540, 5).toInt()
-            val studentId = insertStudent()
-            scheduleDao.assignStudent(hourId, studentId, saturday)
-
-            val report = scheduleDao.insertBusyAppointment(studentId, saturday, 570, 60)
-
-            assertEquals(listOf(studentId), report.removedStudentIds)
-            assertEquals(0, scheduleDao.countAssignmentsForHour(hourId))
-        }
-
-    @Test
-    fun insertBusyAppointment_keepsNonOverlappingAssignments() =
-        runTest {
-            val hourId = scheduleDao.insertHour(saturday, 540, 5).toInt()
-            val studentId = insertStudent()
-            scheduleDao.assignStudent(hourId, studentId, saturday)
-
-            val report = scheduleDao.insertBusyAppointment(studentId, saturday, 1200, 30)
-
-            assertTrue(report.removedStudentIds.isEmpty())
-            assertEquals(1, scheduleDao.countAssignmentsForHour(hourId))
-        }
-
-    @Test
-    fun updateBusyAppointment_removesOverlappingAssignments() =
-        runTest {
-            val hourId = scheduleDao.insertHour(saturday, 540, 5).toInt()
-            val studentId = insertStudent()
-            scheduleDao.assignStudent(hourId, studentId, saturday)
-            scheduleDao.insertBusyAppointment(studentId, saturday, 1200, 30)
-            val busyId =
-                scheduleDao.getBusyAppointmentsForStudentAndWeekday(studentId, saturday).single().id
-
-            val report = scheduleDao.updateBusyAppointment(busyId, 570, 60)
-
-            assertEquals(listOf(studentId), report.removedStudentIds)
-            assertEquals(0, scheduleDao.countAssignmentsForHour(hourId))
-        }
-
-    // endregion
-
     // region foreign key cascade
 
     @Test
     fun deletingHour_cascadesToAssignments() =
         runTest {
-            val hourId = scheduleDao.insertHour(saturday, 540, 5).toInt()
+            val hourId = scheduleDao.insertHour(saturday, 540, 50).toInt()
             val studentId = insertStudent()
             scheduleDao.assignStudent(hourId, studentId, saturday)
 
@@ -262,7 +241,7 @@ class ScheduleDaoTest {
     @Test
     fun deletingStudent_cascadesToAssignmentsAndBusy() =
         runTest {
-            val hourId = scheduleDao.insertHour(saturday, 540, 5).toInt()
+            val hourId = scheduleDao.insertHour(saturday, 540, 50).toInt()
             val studentId = insertStudent()
             scheduleDao.assignStudent(hourId, studentId, saturday)
             scheduleDao.insertBusyAppointment(studentId, saturday, 1200, 30)
@@ -280,7 +259,7 @@ class ScheduleDaoTest {
     @Test
     fun countAssignmentsForHour_countsOccupancy() =
         runTest {
-            val hourId = scheduleDao.insertHour(saturday, 540, 2).toInt()
+            val hourId = scheduleDao.insertHour(saturday, 540, 20).toInt()
             val studentA = insertStudent("A")
             val studentB = insertStudent("B")
 
