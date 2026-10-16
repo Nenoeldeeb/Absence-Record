@@ -14,6 +14,9 @@ sealed class StudentError(
 
     data object ImportParse : StudentError("Error parsing import file")
 
+    /** Distinct from a parse failure: the file was refused for being too large (FR-063). */
+    data object ImportFileTooLarge : StudentError("Import file is too large")
+
     data class UnsupportedBackupVersion(val version: Int) :
         StudentError("Unsupported backup version")
 
@@ -26,9 +29,6 @@ sealed class StudentError(
     data object AssignmentExists : StudentError("This student already has a lesson that day")
 
     data object BusyConflict : StudentError("This hour overlaps a busy appointment of this student")
-
-    data object MaxBelowAssigned :
-        StudentError("Max students cannot be lower than the number of assigned students")
 
     data class Validation(override val message: String) : StudentError(message)
 
