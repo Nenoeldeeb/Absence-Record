@@ -1,9 +1,17 @@
 package dev.nenoeldeeb.education.absencerecord.domain.usecases.schedule
 
-import dev.nenoeldeeb.education.absencerecord.domain.models.AssignmentRemovalReport
+import dev.nenoeldeeb.education.absencerecord.domain.models.HourReplanResult
 import dev.nenoeldeeb.education.absencerecord.domain.repositories.ScheduleRepository
 import kotlinx.datetime.DayOfWeek
 
+/**
+ * Edits a lesson block's length or start time (FR-009…FR-015).
+ *
+ * Call without [confirmed] first. If the change would drop students the result is
+ * [HourReplanResult.NeedsConfirmation] and nothing has been written; show the
+ * teacher the order and the named drop list. Call again with `confirmed = true`
+ * to commit.
+ */
 class UpdateHourUseCase(
     private val repository: ScheduleRepository
 ) {
@@ -11,8 +19,9 @@ class UpdateHourUseCase(
         id: Int,
         weekday: DayOfWeek,
         startMinutes: Int,
-        maxStudents: Int
-    ): Result<AssignmentRemovalReport> {
-        return repository.updateHour(id, weekday, startMinutes, maxStudents)
+        durationMinutes: Int,
+        confirmed: Boolean = false
+    ): Result<HourReplanResult> {
+        return repository.updateHour(id, weekday, startMinutes, durationMinutes, confirmed)
     }
 }

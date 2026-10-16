@@ -7,16 +7,18 @@ import dev.nenoeldeeb.education.absencerecord.data.mappers.toLessonAssignment
 import dev.nenoeldeeb.education.absencerecord.domain.models.AssignmentRemovalReport
 import dev.nenoeldeeb.education.absencerecord.domain.models.AvailableLessonHour
 import dev.nenoeldeeb.education.absencerecord.domain.models.BusyAppointment
+import dev.nenoeldeeb.education.absencerecord.domain.models.HourReplanResult
 import dev.nenoeldeeb.education.absencerecord.domain.models.HourWithOccupancy
 import dev.nenoeldeeb.education.absencerecord.domain.models.LessonAssignment
 import dev.nenoeldeeb.education.absencerecord.domain.models.StudentError
 import dev.nenoeldeeb.education.absencerecord.domain.models.StudentLessonEntry
 import dev.nenoeldeeb.education.absencerecord.domain.models.StudentScheduleView
 import dev.nenoeldeeb.education.absencerecord.domain.repositories.ScheduleRepository
-import dev.nenoeldeeb.education.absencerecord.domain.services.ScheduleRules
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.datetime.DayOfWeek
 import kotlinx.datetime.isoDayNumber
@@ -32,26 +34,22 @@ class ScheduleRepositoryImpl(
     override fun observeHoursForWeekday(weekday: DayOfWeek): Flow<Result<List<HourWithOccupancy>>> =
         combine(
             scheduleDao.observeHoursForWeekday(weekday.isoDayNumber),
-            scheduleDao.observeAssignments()
-        ) { hourEntities, assignmentEntities ->
-            val hours = hourEntities.map { it.toAvailableLessonHour() }
-            val assignments = assignmentEntities.map { it.toLessonAssignment() }
-            val hoursWithOccupancy =
-                hours.map { hour ->
-                    val assignedCount = assignments.count { it.availableHourId == hour.id }
-                    HourWithOccupancy(
-                        hour = hour,
-                        endMinutes = hour.startMinutes + ScheduleRules.LESSON_DURATION_MINUTES,
-                        assignedStudentIds =
-                            assignments.filter { it.availableHourId == hour.id }.map { it.studentId },
-                        assignedCount = assignedCount,
-                        maxStudents = hour.maxStudents,
-                        remainingSlots = hour.maxStudents - assignedCount,
-                        isFull = assignedCount >= hour.maxStudents
-                    )
-                }
-            Result.success(hoursWithOccupancy)
-        }.catch { emit(Result.failure(StudentError.Database)) }
+            scheduleDao.observeAssignments(),
+            scheduleDao.observeBusyAppointmentsForWeekday(weekday.isoDayNumber),
+            scheduleDao.observeStudentNames()
+        ) { hourEntities, assignmentEntities, busyEntities, nameRows ->
+            // The running order and every ten-minute slot are DERIVED here on
+            // each emission, off the main thread — never read from a stored
+            // position and never cached (FR-025, FR-060, FR-061).
+            Result.success(
+                DayPlanningInputs(
+                    hours = hourEntities,
+                    assignments = assignmentEntities,
+                    busy = busyEntities,
+                    names = nameRows
+                ).planAllHours()
+            )
+        }.flowOn(Dispatchers.Default).catch { emit(Result.failure(StudentError.Database)) }
 
     override fun observeAssignments(): Flow<Result<List<LessonAssignment>>> =
         scheduleDao.observeAssignments()
@@ -67,18 +65,33 @@ class ScheduleRepositoryImpl(
         combine(
             scheduleDao.observeAssignments(),
             scheduleDao.observeBusyAppointmentsForStudent(studentId),
-            scheduleDao.observeHours()
-        ) { assignmentEntities, busyEntities, hourEntities ->
-            val hours = hourEntities.associate { it.id to it.toAvailableLessonHour() }
+            scheduleDao.observeHours(),
+            scheduleDao.observeBusyAppointments(),
+            scheduleDao.observeStudentNames()
+        ) { assignmentEntities, busyEntities, hourEntities, allBusyEntities, nameRows ->
+            val hours = hourEntities.associateBy { it.id }
+            // The student's own ten minutes depend on where the WHOLE block
+            // lands them, so the plan needs every occupant's commitments and
+            // name, not just this student's (FR-018, FR-019).
+            val inputs =
+                DayPlanningInputs(
+                    hours = hourEntities,
+                    assignments = assignmentEntities,
+                    busy = allBusyEntities,
+                    names = nameRows
+                )
             val lessons =
                 assignmentEntities
                     .filter { it.studentId == studentId }
                     .mapNotNull { assignment ->
                         hours[assignment.availableHourId]?.let { hour ->
+                            val slot = inputs.slotForStudent(hour, studentId)
                             StudentLessonEntry(
-                                weekday = hour.weekday,
+                                weekday = hour.toAvailableLessonHour().weekday,
                                 startMinutes = hour.startMinutes,
-                                endMinutes = hour.startMinutes + ScheduleRules.LESSON_DURATION_MINUTES
+                                endMinutes = hour.startMinutes + hour.durationMinutes,
+                                slotStartMinutes = slot?.first,
+                                slotEndMinutes = slot?.second
                             )
                         }
                     }
@@ -89,25 +102,26 @@ class ScheduleRepositoryImpl(
                     busy = busyEntities.map { it.toBusyAppointment() }
                 )
             )
-        }.catch { emit(Result.failure(StudentError.Database)) }
+        }.flowOn(Dispatchers.Default).catch { emit(Result.failure(StudentError.Database)) }
 
     override suspend fun insertHour(
         weekday: DayOfWeek,
         startMinutes: Int,
-        maxStudents: Int
+        durationMinutes: Int
     ): Result<Int> =
         runSafely {
-            scheduleDao.insertHour(weekday.isoDayNumber, startMinutes, maxStudents).toInt()
+            scheduleDao.insertHour(weekday.isoDayNumber, startMinutes, durationMinutes).toInt()
         }
 
     override suspend fun updateHour(
         id: Int,
         weekday: DayOfWeek,
         startMinutes: Int,
-        maxStudents: Int
-    ): Result<AssignmentRemovalReport> =
+        durationMinutes: Int,
+        confirmed: Boolean
+    ): Result<HourReplanResult> =
         runSafely {
-            scheduleDao.updateHour(id, weekday.isoDayNumber, startMinutes, maxStudents)
+            scheduleDao.updateHour(id, weekday.isoDayNumber, startMinutes, durationMinutes, confirmed)
         }
 
     override suspend fun deleteHour(id: Int): Result<Unit> =
