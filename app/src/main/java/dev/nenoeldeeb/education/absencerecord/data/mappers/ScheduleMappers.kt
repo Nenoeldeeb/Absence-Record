@@ -14,7 +14,7 @@ fun AvailableLessonHourEntity.toAvailableLessonHour(): AvailableLessonHour =
         id = id,
         weekday = DayOfWeek(weekday),
         startMinutes = startMinutes,
-        maxStudents = maxStudents
+        durationMinutes = durationMinutes
     )
 
 fun AvailableLessonHour.toAvailableLessonHourEntity(): AvailableLessonHourEntity =
@@ -22,7 +22,7 @@ fun AvailableLessonHour.toAvailableLessonHourEntity(): AvailableLessonHourEntity
         id = id,
         weekday = weekday.isoDayNumber,
         startMinutes = startMinutes,
-        maxStudents = maxStudents
+        durationMinutes = durationMinutes
     )
 
 fun LessonAssignmentEntity.toLessonAssignment(): LessonAssignment =
