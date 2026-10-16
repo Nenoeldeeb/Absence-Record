@@ -2,6 +2,7 @@ package dev.nenoeldeeb.education.absencerecord.domain.usecases.schedule
 
 import dev.nenoeldeeb.education.absencerecord.domain.models.AssignmentRemovalReport
 import dev.nenoeldeeb.education.absencerecord.domain.models.BusyAppointment
+import dev.nenoeldeeb.education.absencerecord.domain.models.HourReplanResult
 import dev.nenoeldeeb.education.absencerecord.domain.models.HourWithOccupancy
 import dev.nenoeldeeb.education.absencerecord.domain.models.StudentError
 import dev.nenoeldeeb.education.absencerecord.domain.models.StudentScheduleView
@@ -117,15 +118,18 @@ class ScheduleObserveUseCasesTest {
         }
 
     @Test
-    fun `updateHour propagates AssignmentRemovalReport payload`() =
+    fun `updateHour propagates the Applied payload`() =
         runTest {
-            val report = AssignmentRemovalReport(listOf(7, 8))
-            coEvery { repository.updateHour(1, DayOfWeek.SATURDAY, 600, 4) } returns Result.success(report)
+            coEvery { repository.updateHour(1, DayOfWeek.SATURDAY, 600, 40, false) } returns
+                Result.success(HourReplanResult.Applied(listOf(7, 8)))
 
-            val result = UpdateHourUseCase(repository)(1, DayOfWeek.SATURDAY, 600, 4)
+            val result = UpdateHourUseCase(repository)(1, DayOfWeek.SATURDAY, 600, 40)
 
             assertTrue(result.isSuccess)
-            assertEquals(listOf(7, 8), result.getOrNull()?.removedStudentIds)
+            assertEquals(
+                listOf(7, 8),
+                (result.getOrNull() as HourReplanResult.Applied).removedStudentIds
+            )
         }
 
     @Test
