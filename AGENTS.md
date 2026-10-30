@@ -159,7 +159,7 @@ presentation/  ──►  domain/  ◄──  data/
     report warm numbers separately.
   - A run reporting **zero tests** means the device dropped, not a pass. Check
     `adb devices` before believing any result.
-- **Format**: `./gradlew ktlintFormat` (ALWAYS run before commit; also auto-runs as a `preBuild` dependency)
+- **Format**: `./gradlew ktlintFormat` (ALWAYS run before commit; builds do **NOT** auto-format — the `lint` task also runs `ktlintCheck`)
 - **Validate**: `./gradlew check` (ktlint + lint + tests)
 - **Note**: There is no CI in this repository — all gates are run locally and
   manually. Do not assume a pipeline will catch violations.
