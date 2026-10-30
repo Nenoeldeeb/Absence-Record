@@ -83,7 +83,7 @@ android {
     testOptions { unitTests { all { it.useJUnitPlatform() } } }
 
     sourceSets {
-        getByName("androidTest").assets.srcDir(files("$projectDir/schemas"))
+        getByName("androidTest").assets.directories.add("$projectDir/schemas")
     }
 }
 
@@ -158,8 +158,9 @@ dependencies {
     testRuntimeOnly(libs.junit6.launcher)
 }
 
-tasks.getByPath("preBuild").dependsOn("ktlintFormat")
-
+tasks.named("lint").configure {
+    dependsOn(tasks.ktlintCheck)
+}
 tasks.named("clean").configure {
     doLast {
         rootDir
