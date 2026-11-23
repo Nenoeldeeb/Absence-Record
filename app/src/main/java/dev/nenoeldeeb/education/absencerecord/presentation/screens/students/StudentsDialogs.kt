@@ -40,11 +40,7 @@ fun StudentsDialogs(
                 onEvent(StudentsScreenEvent.ToggleImportSelection(it))
             },
             onSelectAll = { shouldSelect ->
-                parsedStudents.forEach { item ->
-                    if (uiState.importSelectionMap[item.id] != shouldSelect) {
-                        onEvent(StudentsScreenEvent.ToggleImportSelection(item.id))
-                    }
-                }
+                onEvent(StudentsScreenEvent.SelectAllImport(shouldSelect))
             },
             onImport = {
                 onEvent(StudentsScreenEvent.PerformImport)

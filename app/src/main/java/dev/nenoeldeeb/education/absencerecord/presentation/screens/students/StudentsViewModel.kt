@@ -12,8 +12,6 @@ import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.Stud
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.StudentsScreenEvent.ConsumeToastMessage
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.StudentsScreenEvent.ConsumeUndoBackup
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.StudentsScreenEvent.DeleteClass
-import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.StudentsScreenEvent.DismissBulkDeleteDialog
-import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.StudentsScreenEvent.DismissExportDeleteDialog
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.StudentsScreenEvent.RenameClass
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.StudentsScreenEvent.ShowBulkDeleteDialog
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.StudentsScreenEvent.ShowExportDeleteDialog
@@ -21,26 +19,20 @@ import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.Stud
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.StudentsScreenEvent.ShowStudentDialog
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.StudentsScreenEvent.ToggleClassDropdown
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.StudentsScreenEvent.ToggleClassFilter
-import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.StudentsScreenEvent.ToggleClassFilterVisibility
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.StudentsScreenEvent.ToggleMonthDropdown
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.StudentsScreenEvent.ToggleSelectionMode
-import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.StudentsScreenEvent.ToggleSortPanelVisible
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.StudentsScreenEvent.ToggleStudentSelection
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.StudentsScreenEvent.ToggleStudentsSelection
-import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.StudentsScreenEvent.UndoDeleteStudents
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.StudentsScreenEvent.UpdateNewStudentName
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.StudentsScreenEvent.UpdateSelectedMonth
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.StudentsScreenEvent.UpdateSortType
+import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.delegates.BulkActionDelegate
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.delegates.ClassActionDelegate
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.delegates.ImportExportDelegate
+import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.delegates.SearchDelegate
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.delegates.SelectionStateDelegate
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.delegates.StudentActionDelegate
-import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.handlers.BulkActionHandler
-import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.handlers.ImportExportHandler
-import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.handlers.PanelVisibilityHandler
-import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.handlers.StudentClassHandler
-import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.handlers.StudentSearchHandler
-import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.handlers.UndoDeleteHandler
+import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.delegates.UndoDeleteStudentsDelegate
 import dev.nenoeldeeb.education.absencerecord.presentation.utils.applyStudentListFilters
 import dev.nenoeldeeb.education.absencerecord.presentation.utils.toUiText
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -56,29 +48,35 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalCoroutinesApi::class)
-open class StudentsViewModel(
+class StudentsViewModel(
     private val studentManagementUseCases: StudentManagementUseCases,
     private val classManagementUseCases: ClassManagementUseCases,
     private val selectionDelegate: SelectionStateDelegate = SelectionStateDelegate(),
-    private val importExportDelegate: ImportExportDelegate = ImportExportDelegate(),
-    private val studentActionDelegate: StudentActionDelegate =
-        StudentActionDelegate(studentManagementUseCases, importExportDelegate),
-    private val classActionDelegate: ClassActionDelegate = ClassActionDelegate(classManagementUseCases),
-    private val importExportHandler: ImportExportHandler =
-        ImportExportHandler(studentActionDelegate, importExportDelegate),
-    private val bulkActionHandler: BulkActionHandler = BulkActionHandler(studentActionDelegate),
     private val classFilterRepository: ClassFilterRepository,
-    private val attendanceUseCases: AttendanceUseCases,
-    private val undoDeleteHandler: UndoDeleteHandler =
-        UndoDeleteHandler(studentManagementUseCases, attendanceUseCases),
-    private val searchHandler: StudentSearchHandler = StudentSearchHandler(),
-    private val studentClassHandler: StudentClassHandler =
-        StudentClassHandler(classActionDelegate, classFilterRepository),
-    private val panelVisibilityHandler: PanelVisibilityHandler = PanelVisibilityHandler()
+    private val attendanceUseCases: AttendanceUseCases
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(StudentsScreenState())
     val uiState: StateFlow<StudentsScreenState> = _uiState.asStateFlow()
     private var rawStudents: List<Student> = emptyList()
+
+    // Delegates are wired in the body (not as constructor defaults) so they can
+    // receive this ViewModel's own scope and state updater.
+    private val importExportDelegate =
+        ImportExportDelegate(studentManagementUseCases, uiState, viewModelScope) { _uiState.update(it) }
+    private val studentActionDelegate = StudentActionDelegate(studentManagementUseCases)
+    private val undoDeleteDelegate =
+        UndoDeleteStudentsDelegate(studentManagementUseCases, attendanceUseCases, viewModelScope) {
+            _uiState.update(it)
+        }
+    private val bulkActionDelegate =
+        BulkActionDelegate(studentActionDelegate, undoDeleteDelegate, uiState, viewModelScope) {
+            _uiState.update(it)
+        }
+    private val classActionDelegate =
+        ClassActionDelegate(classManagementUseCases, classFilterRepository, viewModelScope) {
+            _uiState.update(it)
+        }
+    private val searchDelegate = SearchDelegate { _uiState.update(it) }
 
     init {
         loadData()
@@ -165,17 +163,27 @@ open class StudentsViewModel(
         }
     }
 
-    open fun onEvent(event: StudentsScreenEvent) {
+    fun onEvent(event: StudentsScreenEvent) {
         when (event) {
             is UpdateNewStudentName -> _uiState.update { it.copy(newStudentName = event.name) }
             is StudentsScreenEvent.UpdateSearchQuery ->
-                searchHandler.handleUpdateQuery(event.query, rawStudents, _uiState)
+                searchDelegate.handleUpdateQuery(event.query, rawStudents)
             is StudentsScreenEvent.ToggleSearch ->
-                searchHandler.handleToggleSearch(event.active, rawStudents, _uiState)
+                searchDelegate.handleToggleSearch(event.active, rawStudents)
             is UpdateSortType -> _uiState.update { it.copy(sortType = event.sortType) }
-            is ToggleSortPanelVisible ->
-                panelVisibilityHandler.handleToggleSortPanel(event.show, _uiState)
-            is UpdateSelectedMonth -> _uiState.update { it.copy(selectedMonth = event.month, isMonthDropdownExpanded = false) }
+            // Sort panel and class filter open mutually exclusively.
+            is StudentsScreenEvent.ToggleSortPanelVisible ->
+                _uiState.update { state ->
+                    state.copy(
+                        isSortPanelVisible = event.show,
+                        isClassFilterVisible = if (event.show) false else state.isClassFilterVisible,
+                        classDropdownExpanded = if (event.show) false else state.classDropdownExpanded
+                    )
+                }
+            is UpdateSelectedMonth ->
+                _uiState.update {
+                    it.copy(selectedMonth = event.month, isMonthDropdownExpanded = false)
+                }
             is ToggleMonthDropdown -> _uiState.update { it.copy(isMonthDropdownExpanded = event.expanded) }
             is AddStudent ->
                 viewModelScope.launch {
@@ -189,18 +197,14 @@ open class StudentsViewModel(
                 }
 
             is StudentsScreenEvent.PrepareImportSelectionDialog ->
-                importExportHandler.handlePrepareImportSelectionDialog(
-                    event.uri,
-                    _uiState,
-                    viewModelScope
-                )
-            is StudentsScreenEvent.CloseImportSelectionDialog -> importExportHandler.handleCloseImportSelectionDialog(_uiState)
+                importExportDelegate.prepareImportSelectionDialog(event.uri?.toString())
+            is StudentsScreenEvent.CloseImportSelectionDialog ->
+                importExportDelegate.closeImportSelectionDialog()
             is StudentsScreenEvent.ToggleImportSelection ->
-                importExportHandler.handleToggleImportSelection(
-                    event.parsedStudentId,
-                    _uiState
-                )
-            is StudentsScreenEvent.PerformImport -> importExportHandler.handlePerformImport(_uiState, viewModelScope)
+                importExportDelegate.handleToggleImportSelection(event.parsedStudentId)
+            is StudentsScreenEvent.SelectAllImport ->
+                importExportDelegate.handleSelectAllImport(event.selectAll)
+            is StudentsScreenEvent.PerformImport -> importExportDelegate.performImport()
 
             is StudentsScreenEvent.ConsumeError -> _uiState.update { it.copy(error = null) }
             is ConsumeToastMessage -> _uiState.update { it.copy(toastMessage = null) }
@@ -251,47 +255,42 @@ open class StudentsViewModel(
                     )
                 }
 
-            is StudentsScreenEvent.DeleteSelectedStudents ->
-                bulkActionHandler.handleDeleteSelectedStudents(
-                    _uiState,
-                    viewModelScope,
-                    undoDeleteHandler
-                )
+            is StudentsScreenEvent.DeleteSelectedStudents -> bulkActionDelegate.deleteSelectedStudents()
             is StudentsScreenEvent.ExportSelectedStudents ->
-                bulkActionHandler.handleExportSelectedStudents(
-                    event.uri.toString(),
-                    _uiState,
-                    viewModelScope
-                )
+                bulkActionDelegate.exportSelectedStudents(event.uri.toString())
             is StudentsScreenEvent.ExportAndDeleteSelectedStudents ->
-                bulkActionHandler.handleExportAndDeleteSelectedStudents(
-                    event.uri.toString(),
-                    _uiState,
-                    viewModelScope,
-                    undoDeleteHandler
-                )
+                bulkActionDelegate.exportAndDeleteSelectedStudents(event.uri.toString())
 
             is ShowBulkDeleteDialog -> _uiState.update { it.copy(showBulkDeleteDialog = true) }
-            is DismissBulkDeleteDialog -> _uiState.update { it.copy(showBulkDeleteDialog = false) }
+            is StudentsScreenEvent.DismissBulkDeleteDialog ->
+                _uiState.update { it.copy(showBulkDeleteDialog = false) }
             is ShowExportDeleteDialog -> _uiState.update { it.copy(showExportDeleteDialog = true) }
-            is DismissExportDeleteDialog -> _uiState.update { it.copy(showExportDeleteDialog = false) }
-            is UndoDeleteStudents -> undoDeleteHandler.handleUndo(_uiState, viewModelScope)
-            is ConsumeUndoBackup -> undoDeleteHandler.consumeBackup(_uiState)
+            is StudentsScreenEvent.DismissExportDeleteDialog ->
+                _uiState.update { it.copy(showExportDeleteDialog = false) }
+            is StudentsScreenEvent.UndoDeleteStudents ->
+                undoDeleteDelegate.handleUndo(_uiState.value.lastDeletedBackup)
+            is ConsumeUndoBackup -> undoDeleteDelegate.consumeBackup()
             is ToggleClassFilter -> {
                 classFilterRepository.toggleClass(event.classId)
             }
             is StudentsScreenEvent.ClearClassFilter -> {
                 classFilterRepository.clearFilter()
             }
-
-            is ToggleClassFilterVisibility ->
-                panelVisibilityHandler.handleToggleClassFilterVisibility(_uiState)
+            // Class filter opens mutually exclusively with the sort panel.
+            is StudentsScreenEvent.ToggleClassFilterVisibility ->
+                _uiState.update { state ->
+                    val opening = !state.isClassFilterVisible
+                    state.copy(
+                        isClassFilterVisible = opening,
+                        isSortPanelVisible = if (opening) false else state.isSortPanelVisible,
+                        isMonthDropdownExpanded = if (opening) false else state.isMonthDropdownExpanded
+                    )
+                }
             is ToggleClassDropdown -> _uiState.update { it.copy(classDropdownExpanded = event.expanded) }
             is ShowManageClassesDialog -> _uiState.update { it.copy(showManageClassesDialog = event.show) }
-            is AddClass -> studentClassHandler.handleAddClass(event.name, _uiState, viewModelScope)
-            is RenameClass ->
-                studentClassHandler.handleRenameClass(event.studentClass, event.newName, _uiState, viewModelScope)
-            is DeleteClass -> studentClassHandler.handleDeleteClass(event.studentClass, _uiState, viewModelScope)
+            is AddClass -> classActionDelegate.handleAddClass(event.name)
+            is RenameClass -> classActionDelegate.handleRenameClass(event.studentClass, event.newName)
+            is DeleteClass -> classActionDelegate.handleDeleteClass(event.studentClass)
         }
     }
 }

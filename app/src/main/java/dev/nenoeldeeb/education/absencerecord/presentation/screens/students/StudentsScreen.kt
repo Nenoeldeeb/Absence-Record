@@ -7,18 +7,14 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.SnackbarResult
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
-import dev.nenoeldeeb.education.absencerecord.R
 import dev.nenoeldeeb.education.absencerecord.app.AppViewModelProvider
 import dev.nenoeldeeb.education.absencerecord.domain.models.SortType
 import dev.nenoeldeeb.education.absencerecord.domain.models.Student
@@ -36,33 +32,6 @@ fun StudentsScreen(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
     val snackbarHostState = remember { SnackbarHostState() }
-
-    LaunchedEffect(uiState.error) {
-        uiState.error?.let {
-            snackbarHostState.showSnackbar(it.asString(context))
-            viewModel.onEvent(StudentsScreenEvent.ConsumeError)
-        }
-    }
-    LaunchedEffect(uiState.toastMessage) {
-        uiState.toastMessage?.let { toast ->
-            if (uiState.lastDeletedBackup.isNotEmpty()) {
-                val result =
-                    snackbarHostState.showSnackbar(
-                        message = toast.asString(context),
-                        actionLabel = context.getString(R.string.action_undo),
-                        duration = SnackbarDuration.Long
-                    )
-                if (result == SnackbarResult.ActionPerformed) {
-                    viewModel.onEvent(StudentsScreenEvent.UndoDeleteStudents)
-                } else {
-                    viewModel.onEvent(StudentsScreenEvent.ConsumeUndoBackup)
-                }
-            } else {
-                snackbarHostState.showSnackbar(toast.asString(context))
-            }
-            viewModel.onEvent(StudentsScreenEvent.ConsumeToastMessage)
-        }
-    }
     BackHandler(uiState.isMultiSelectionMode) {
         viewModel.onEvent(StudentsScreenEvent.ToggleSelectionMode)
     }
@@ -202,11 +171,13 @@ fun StudentsScreen(
 
     StudentsScreenContent(
         uiState = uiState,
+        onEvent = onEventStable,
         listState = listState,
         isMultiSelectionMode = isMultiSelectionMode,
         isSortPanelVisible = isSortPanelVisible,
         sortType = sortType,
         snackbarHostState = snackbarHostState,
+        onConfirmExportDelete = onConfirmExportDelete,
         onListStudentClick = onListStudentClick,
         onListStudentLongClick = onListStudentLongClick,
         onAddStudent = onAddStudent,
@@ -229,12 +200,5 @@ fun StudentsScreen(
         onToggleSearch = onToggleSearch,
         onClearSearch = onClearSearch,
         modifier = modifier
-    )
-
-    StudentsDialogs(
-        uiState = uiState,
-        onEvent = onEventStable,
-        onImportClick = onImportFile,
-        onConfirmExportDelete = onConfirmExportDelete
     )
 }

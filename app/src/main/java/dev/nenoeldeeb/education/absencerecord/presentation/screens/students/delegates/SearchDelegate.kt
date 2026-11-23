@@ -1,18 +1,21 @@
-package dev.nenoeldeeb.education.absencerecord.presentation.screens.students.handlers
+package dev.nenoeldeeb.education.absencerecord.presentation.screens.students.delegates
 
 import dev.nenoeldeeb.education.absencerecord.domain.models.Student
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.StudentsScreenState
 import dev.nenoeldeeb.education.absencerecord.presentation.utils.applyStudentListFilters
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.update
 
-class StudentSearchHandler {
+/**
+ * Stateless search delegates: transforms the passed-in roster against the
+ * current filter inputs and hands the new state to `updateState`. No scope.
+ */
+class SearchDelegate(
+    private val updateState: ((StudentsScreenState) -> StudentsScreenState) -> Unit
+) {
     fun handleUpdateQuery(
         query: String,
-        rawStudents: List<Student>,
-        uiState: MutableStateFlow<StudentsScreenState>
+        rawStudents: List<Student>
     ) {
-        uiState.update { state ->
+        updateState { state ->
             state.copy(
                 searchQuery = query,
                 allStudents =
@@ -27,10 +30,9 @@ class StudentSearchHandler {
 
     fun handleToggleSearch(
         active: Boolean,
-        rawStudents: List<Student>,
-        uiState: MutableStateFlow<StudentsScreenState>
+        rawStudents: List<Student>
     ) {
-        uiState.update { state ->
+        updateState { state ->
             val query = if (active) state.searchQuery else ""
             state.copy(
                 isSearchActive = active,

@@ -1,4 +1,4 @@
-package dev.nenoeldeeb.education.absencerecord.presentation.screens.students.handlers
+package dev.nenoeldeeb.education.absencerecord.presentation.screens.students.delegates
 
 import dev.nenoeldeeb.education.absencerecord.domain.models.DeletedStudentBackup
 import dev.nenoeldeeb.education.absencerecord.domain.models.Student
@@ -8,14 +8,19 @@ import dev.nenoeldeeb.education.absencerecord.domain.usecases.StudentManagementU
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.StudentsScreenState
 import dev.nenoeldeeb.education.absencerecord.presentation.utils.toUiText
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-class UndoDeleteHandler(
+/**
+ * Restores the students deleted by a bulk action, together with their
+ * recorded attendance dates. Owns the undo backup lifecycle: building it
+ * before deletion, restoring on undo, and discarding it when undo expires.
+ */
+class UndoDeleteStudentsDelegate(
     private val studentManagementUseCases: StudentManagementUseCases,
-    private val attendanceUseCases: AttendanceUseCases
+    private val attendanceUseCases: AttendanceUseCases,
+    private val scope: CoroutineScope,
+    private val updateState: ((StudentsScreenState) -> StudentsScreenState) -> Unit
 ) {
     suspend fun buildBackup(students: List<Student>): List<DeletedStudentBackup> {
         return students.map { student ->
@@ -31,14 +36,14 @@ class UndoDeleteHandler(
         }
     }
 
-    fun handleUndo(
-        _uiState: MutableStateFlow<StudentsScreenState>,
-        viewModelScope: CoroutineScope
-    ) {
-        val backup = _uiState.value.lastDeletedBackup
+    /**
+     * Restores every student in [backup]. The backup snapshot is passed in by
+     * the ViewModel, so this delegate never reads state directly.
+     */
+    fun handleUndo(backup: List<DeletedStudentBackup>) {
         if (backup.isEmpty()) return
-        _uiState.update { it.copy(lastDeletedBackup = emptyList()) }
-        viewModelScope.launch {
+        updateState { it.copy(lastDeletedBackup = emptyList()) }
+        scope.launch {
             for (entry in backup) {
                 val addResult =
                     studentManagementUseCases.addStudentUseCase(
@@ -48,7 +53,7 @@ class UndoDeleteHandler(
                     addResult.fold(
                         onSuccess = { id -> id.toInt() },
                         onFailure = { e ->
-                            _uiState.update { state -> state.copy(error = e.toUiText()) }
+                            updateState { state -> state.copy(error = e.toUiText()) }
                             return@launch
                         }
                     )
@@ -56,7 +61,7 @@ class UndoDeleteHandler(
                     attendanceUseCases.recordStudentAttendanceUseCase(
                         StudentAttendance(studentId = newId, date = date)
                     ).onFailure { e ->
-                        _uiState.update { state -> state.copy(error = e.toUiText()) }
+                        updateState { state -> state.copy(error = e.toUiText()) }
                         return@launch
                     }
                 }
@@ -64,7 +69,7 @@ class UndoDeleteHandler(
         }
     }
 
-    fun consumeBackup(_uiState: MutableStateFlow<StudentsScreenState>) {
-        _uiState.update { it.copy(lastDeletedBackup = emptyList()) }
+    fun consumeBackup() {
+        updateState { it.copy(lastDeletedBackup = emptyList()) }
     }
 }

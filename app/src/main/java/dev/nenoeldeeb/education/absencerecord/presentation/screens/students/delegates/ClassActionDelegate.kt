@@ -3,12 +3,62 @@ package dev.nenoeldeeb.education.absencerecord.presentation.screens.students.del
 import dev.nenoeldeeb.education.absencerecord.R
 import dev.nenoeldeeb.education.absencerecord.domain.models.StudentClass
 import dev.nenoeldeeb.education.absencerecord.domain.models.StudentError
+import dev.nenoeldeeb.education.absencerecord.domain.repositories.ClassFilterRepository
 import dev.nenoeldeeb.education.absencerecord.domain.usecases.ClassManagementUseCases
+import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.StudentsScreenState
 import dev.nenoeldeeb.education.absencerecord.presentation.utils.UiText
+import dev.nenoeldeeb.education.absencerecord.presentation.utils.toUiText
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 
+/**
+ * Class CRUD orchestration for the ManageClasses dialog, plus the pure
+ * CRUD/class-filter-fallback helpers below. Mutates state only through
+ * `updateState`; launches only via `scope`. The class-filter repository is
+ * read directly for the fallback, since it is the source of truth for the
+ * active filter selection.
+ */
 class ClassActionDelegate(
-    private val classManagementUseCases: ClassManagementUseCases
+    private val classManagementUseCases: ClassManagementUseCases,
+    private val classFilterRepository: ClassFilterRepository,
+    private val scope: CoroutineScope,
+    private val updateState: ((StudentsScreenState) -> StudentsScreenState) -> Unit
 ) {
+    fun handleAddClass(name: String) {
+        scope.launch {
+            addClass(name)
+                .onSuccess { toast -> updateState { it.copy(toastMessage = toast) } }
+                .onFailure { error -> updateState { it.copy(error = error.toUiText()) } }
+        }
+    }
+
+    fun handleRenameClass(
+        studentClass: StudentClass,
+        newName: String
+    ) {
+        scope.launch {
+            renameClass(studentClass, newName)
+                .onSuccess { toast -> updateState { it.copy(toastMessage = toast) } }
+                .onFailure { error -> updateState { it.copy(error = error.toUiText()) } }
+        }
+    }
+
+    fun handleDeleteClass(studentClass: StudentClass) {
+        scope.launch {
+            deleteClass(studentClass)
+                .onSuccess { toast ->
+                    val fallback =
+                        onDeletedClassFilterFallback(
+                            classFilterRepository.selectedClassIds.value,
+                            studentClass
+                        )
+                    classFilterRepository.setSelectedClassIds(fallback)
+                    updateState { it.copy(toastMessage = toast) }
+                }
+                .onFailure { error -> updateState { it.copy(error = error.toUiText()) } }
+        }
+    }
+
     suspend fun addClass(name: String): Result<UiText?> {
         val trimmed = name.trim()
         if (trimmed.isBlank()) {

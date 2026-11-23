@@ -1,19 +1,13 @@
 package dev.nenoeldeeb.education.absencerecord.presentation.screens.students.delegates
 
 import dev.nenoeldeeb.education.absencerecord.R
-import dev.nenoeldeeb.education.absencerecord.domain.models.ImportResult
-import dev.nenoeldeeb.education.absencerecord.domain.models.ParsedImportData
-import dev.nenoeldeeb.education.absencerecord.domain.models.ParsedStudentImportData
 import dev.nenoeldeeb.education.absencerecord.domain.models.Student
 import dev.nenoeldeeb.education.absencerecord.domain.models.StudentError
-import dev.nenoeldeeb.education.absencerecord.domain.models.StudentExportData
 import dev.nenoeldeeb.education.absencerecord.domain.usecases.StudentManagementUseCases
 import dev.nenoeldeeb.education.absencerecord.domain.usecases.student.AddStudentUseCase
 import dev.nenoeldeeb.education.absencerecord.domain.usecases.student.DeleteStudentsUseCase
 import dev.nenoeldeeb.education.absencerecord.domain.usecases.student.UpdateStudentUseCase
 import dev.nenoeldeeb.education.absencerecord.domain.usecases.transfer.ExportStudentsUseCase
-import dev.nenoeldeeb.education.absencerecord.domain.usecases.transfer.ParseImportFileUseCase
-import dev.nenoeldeeb.education.absencerecord.domain.usecases.transfer.PerformImportUseCase
 import dev.nenoeldeeb.education.absencerecord.presentation.utils.UiText
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -33,10 +27,7 @@ class StudentActionDelegateTest {
     private lateinit var updateStudentUseCase: UpdateStudentUseCase
     private lateinit var deleteStudentsUseCase: DeleteStudentsUseCase
     private lateinit var exportStudentsUseCase: ExportStudentsUseCase
-    private lateinit var parseImportFileUseCase: ParseImportFileUseCase
-    private lateinit var performImportUseCase: PerformImportUseCase
     private lateinit var studentManagementUseCases: StudentManagementUseCases
-    private lateinit var importExportDelegate: ImportExportDelegate
     private lateinit var delegate: StudentActionDelegate
 
     @BeforeEach
@@ -45,19 +36,14 @@ class StudentActionDelegateTest {
         updateStudentUseCase = mockk(relaxed = true)
         deleteStudentsUseCase = mockk(relaxed = true)
         exportStudentsUseCase = mockk(relaxed = true)
-        parseImportFileUseCase = mockk(relaxed = true)
-        performImportUseCase = mockk(relaxed = true)
 
         studentManagementUseCases = mockk(relaxed = true)
         every { studentManagementUseCases.addStudentUseCase } returns addStudentUseCase
         every { studentManagementUseCases.updateStudentUseCase } returns updateStudentUseCase
         every { studentManagementUseCases.deleteStudentsUseCase } returns deleteStudentsUseCase
         every { studentManagementUseCases.exportStudentsUseCase } returns exportStudentsUseCase
-        every { studentManagementUseCases.parseImportFileUseCase } returns parseImportFileUseCase
-        every { studentManagementUseCases.performImportUseCase } returns performImportUseCase
 
-        importExportDelegate = ImportExportDelegate()
-        delegate = StudentActionDelegate(studentManagementUseCases, importExportDelegate)
+        delegate = StudentActionDelegate(studentManagementUseCases)
     }
 
     @Test
@@ -216,60 +202,5 @@ class StudentActionDelegateTest {
             assertTrue(result.isFailure)
             assertIs<StudentError.FileWrite>(result.exceptionOrNull())
             coVerify(exactly = 0) { deleteStudentsUseCase(any()) }
-        }
-
-    @Test
-    fun `prepareImportSelectionDialog with valid file returns parsed data`() =
-        runTest {
-            val parsedData =
-                ParsedImportData(
-                    students = listOf(ParsedStudentImportData(StudentExportData("S1", "", emptyList()), 1)),
-                    availableHours = emptyList()
-                )
-            coEvery { parseImportFileUseCase(any()) } returns Result.success(parsedData)
-
-            val result = delegate.prepareImportSelectionDialog("content://file")
-
-            assertTrue(result.isSuccess)
-            assertEquals(parsedData, result.getOrNull())
-        }
-
-    @Test
-    fun `performImport with valid selections returns success toast`() =
-        runTest {
-            val parsedData =
-                ParsedImportData(
-                    students = listOf(ParsedStudentImportData(StudentExportData("S1", "", emptyList()), 1)),
-                    availableHours = emptyList()
-                )
-            val importResult =
-                ImportResult(
-                    newStudentsCount = 1,
-                    existingStudentsMergedCount = 0,
-                    datesSkippedCount = 0,
-                    datesProcessedCount = 0
-                )
-            coEvery { performImportUseCase(any(), any()) } returns Result.success(importResult)
-
-            val result = delegate.performImport(parsedData, mapOf(1 to true))
-
-            assertTrue(result.isSuccess)
-        }
-
-    @Test
-    fun `performImport with DB failure returns Database error`() =
-        runTest {
-            val parsedData =
-                ParsedImportData(
-                    students = listOf(ParsedStudentImportData(StudentExportData("S1", "", emptyList()), 1)),
-                    availableHours = emptyList()
-                )
-            coEvery { performImportUseCase(any(), any()) } returns
-                Result.failure(StudentError.Database)
-
-            val result = delegate.performImport(parsedData, mapOf(1 to true))
-
-            assertTrue(result.isFailure)
-            assertIs<StudentError.Database>(result.exceptionOrNull())
         }
 }

@@ -32,6 +32,8 @@ sealed interface StudentsScreenEvent {
 
     data class ToggleImportSelection(val parsedStudentId: Int) : StudentsScreenEvent
 
+    data class SelectAllImport(val selectAll: Boolean) : StudentsScreenEvent
+
     data object PerformImport : StudentsScreenEvent
 
     // Error / Toast

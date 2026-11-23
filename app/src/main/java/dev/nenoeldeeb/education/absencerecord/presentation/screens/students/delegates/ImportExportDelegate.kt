@@ -3,14 +3,108 @@ package dev.nenoeldeeb.education.absencerecord.presentation.screens.students.del
 import dev.nenoeldeeb.education.absencerecord.R
 import dev.nenoeldeeb.education.absencerecord.domain.models.ImportResult
 import dev.nenoeldeeb.education.absencerecord.domain.models.ParsedStudentImportData
+import dev.nenoeldeeb.education.absencerecord.domain.models.StudentError
 import dev.nenoeldeeb.education.absencerecord.domain.services.ImportCaps
+import dev.nenoeldeeb.education.absencerecord.domain.usecases.StudentManagementUseCases
+import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.StudentsScreenState
 import dev.nenoeldeeb.education.absencerecord.presentation.utils.UiText
+import dev.nenoeldeeb.education.absencerecord.presentation.utils.toUiText
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.launch
 
 /**
- * Delegate class responsible for import/export state transformations.
- * Extracts import/export logic from StudentsViewModel to comply with Single Responsibility Principle.
+ * One home for import/export logic: the import-selection dialog lifecycle and
+ * import execution (stateful, reading the snapshot via the read-only [uiState]
+ * param), plus the pure import/export state transformations below.
+ * Mutates state only through `updateState`; launches only via `scope`.
  */
-class ImportExportDelegate {
+class ImportExportDelegate(
+    private val studentManagementUseCases: StudentManagementUseCases,
+    private val uiState: StateFlow<StudentsScreenState>,
+    private val scope: CoroutineScope,
+    private val updateState: ((StudentsScreenState) -> StudentsScreenState) -> Unit
+) {
+    /**
+     * Parses the import file and opens the selection dialog. A null URI means
+     * the file picker was cancelled: report that as before.
+     */
+    fun prepareImportSelectionDialog(uriString: String?) {
+        if (uriString == null) {
+            updateState { it.copy(error = StudentError.Cancelled.toUiText()) }
+            return
+        }
+        scope.launch {
+            studentManagementUseCases.parseImportFileUseCase(uriString)
+                .onSuccess { parsedData ->
+                    val (data, selectionMap, showDialog) = prepareImportDialog(parsedData.students)
+                    updateState {
+                        if (data == null) {
+                            it.copy(
+                                parsedImportData = null,
+                                importSelectionMap = emptyMap(),
+                                toastMessage = UiText.StringResource(R.string.no_students_found_in_file)
+                            )
+                        } else {
+                            it.copy(
+                                parsedImportData = parsedData,
+                                importSelectionMap = selectionMap,
+                                showImportSelectionDialog = showDialog
+                            )
+                        }
+                    }
+                }
+                .onFailure { error -> updateState { state -> state.copy(error = error.toUiText()) } }
+        }
+    }
+
+    fun closeImportSelectionDialog() {
+        updateState {
+            it.copy(
+                showImportSelectionDialog = false,
+                parsedImportData = null,
+                importSelectionMap = emptyMap()
+            )
+        }
+    }
+
+    fun handleToggleImportSelection(parsedStudentId: Int) {
+        updateState {
+            it.copy(
+                importSelectionMap = toggleImportSelection(it.importSelectionMap, parsedStudentId)
+            )
+        }
+    }
+
+    fun handleSelectAllImport(selectAll: Boolean) {
+        updateState { state ->
+            val parsed = state.parsedImportData?.students.orEmpty()
+            state.copy(
+                importSelectionMap = parsed.associate { it.id to selectAll }
+            )
+        }
+    }
+
+    fun performImport() {
+        val parsedData = uiState.value.parsedImportData
+        val selectionMap = uiState.value.importSelectionMap
+        if (parsedData == null) return
+        scope.launch {
+            studentManagementUseCases.performImportUseCase(parsedData, selectionMap)
+                .onSuccess { importResult ->
+                    updateState { current ->
+                        current.copy(
+                            showImportSelectionDialog = false,
+                            parsedImportData = null,
+                            importSelectionMap = emptyMap(),
+                            toastMessage = buildImportResultMessage(importResult)
+                        )
+                    }
+                }
+                .onFailure { error -> updateState { current -> current.copy(error = error.toUiText()) } }
+        }
+    }
+
     /**
      * Prepares the import dialog state from parsed student data.
      *

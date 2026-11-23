@@ -3,6 +3,7 @@ package dev.nenoeldeeb.education.absencerecord.presentation.screens.students.del
 import dev.nenoeldeeb.education.absencerecord.R
 import dev.nenoeldeeb.education.absencerecord.domain.models.StudentClass
 import dev.nenoeldeeb.education.absencerecord.domain.models.StudentError
+import dev.nenoeldeeb.education.absencerecord.domain.repositories.ClassFilterRepository
 import dev.nenoeldeeb.education.absencerecord.domain.usecases.ClassManagementUseCases
 import dev.nenoeldeeb.education.absencerecord.domain.usecases.classes.AddClassUseCase
 import dev.nenoeldeeb.education.absencerecord.domain.usecases.classes.DeleteClassUseCase
@@ -12,6 +13,9 @@ import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -25,6 +29,8 @@ class ClassActionDelegateTest {
     private lateinit var updateClassUseCase: UpdateClassUseCase
     private lateinit var deleteClassUseCase: DeleteClassUseCase
     private lateinit var classManagementUseCases: ClassManagementUseCases
+    private lateinit var classFilterRepository: ClassFilterRepository
+    private val testScope = TestScope(StandardTestDispatcher())
     private lateinit var delegate: ClassActionDelegate
 
     @BeforeEach
@@ -38,7 +44,10 @@ class ClassActionDelegateTest {
         every { classManagementUseCases.updateClassUseCase } returns updateClassUseCase
         every { classManagementUseCases.deleteClassUseCase } returns deleteClassUseCase
 
-        delegate = ClassActionDelegate(classManagementUseCases)
+        classFilterRepository = mockk(relaxed = true)
+        every { classFilterRepository.selectedClassIds } returns MutableStateFlow(emptySet())
+
+        delegate = ClassActionDelegate(classManagementUseCases, classFilterRepository, testScope) {}
     }
 
     @Test

@@ -1,4 +1,4 @@
-package dev.nenoeldeeb.education.absencerecord.presentation.screens.components
+package dev.nenoeldeeb.education.absencerecord.presentation.screens.students.components
 
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Row
@@ -36,6 +36,7 @@ import dev.nenoeldeeb.education.absencerecord.domain.models.Student
 import dev.nenoeldeeb.education.absencerecord.domain.models.StudentClass
 import dev.nenoeldeeb.education.absencerecord.presentation.utils.DateFormatter.toMonthYearUiText
 import kotlinx.datetime.LocalDate
+import kotlin.collections.get
 
 @Composable
 internal fun StudentList(
