@@ -44,9 +44,14 @@ presentation/  ──►  domain/  ◄──  data/
 - Base package: `app/src/main/java/dev/nenoeldeeb/education/absencerecord/`
   - `domain/models|repositories|services|usecases/<group>/`
   - `data/datasources/local/{entities,daos}/`, `data/repositories/`, `data/mappers/`
-  - `presentation/screens/<feature>/` (+ `components/`, `dialogs/`, `delegates/`, `handlers/`)
+  - `presentation/screens/<feature>/Screen.kt` (+ `ScreenContent.kt`, `ScreenState.kt`, `ScreenEvent.kt`, `ScreenUiEffect.kt`)
+  - `presentation/screens/<feature>/{components,dialogs,delegates}/`
   - `presentation/screens/components/` = cross-feature shared composables
   - `app/navigation/` = composition-based navigation (NO navigation library)
+- Every feature screen follows the same split: `Screen.kt` is thin (ViewModel
+  wiring, `collectAsStateWithLifecycle()`, stable `onEvent`, platform launchers,
+  navigation params); `ScreenContent.kt` is a separate file, stateless, and owns
+  the Scaffold, message snackbar LaunchedEffects, body and dialog aggregator.
 - New features group by **presentation feature**, not by scattering edits across
   every layer. Use-case dirs mirror the existing groups: `attendance`, `classes`,
   `report`, `schedule`, `student`, `transfer`.
@@ -56,6 +61,21 @@ presentation/  ──►  domain/  ◄──  data/
 - When a ViewModel outgrows the 300-line cap, extract cohesive behaviour into
   `presentation/screens/<feature>/delegates/<Name>Delegate.kt`. The ViewModel owns
   state; the delegate holds the injected action/operation handler.
+- Standard delegate contract: constructor `(deps..., scope: CoroutineScope,
+  updateState: ((State) -> State) -> Unit)` worn as a trailing lambda at the
+  wiring site (`Delegate(deps, viewModelScope) { _uiState.update(it) }`).
+- Delegates mutate state ONLY via `updateState` and launch ONLY via their
+  `scope` — never take a `MutableStateFlow`. Navigation/one-off side effects go
+  through `emitX: suspend () -> Unit` constructor params.
+- A `uiState: StateFlow` READ param is allowed when the delegate must observe
+  state (flatMapLatest, snapshots); param order is then
+  `(deps..., uiState, scope, updateState)`.
+- Pure/stateless delegates (transform functions of passed-in values) may stay
+  parameter-free; Result-returning pure delegates may remain where the
+  ViewModel updates state right where the result is consumed.
+- Dialogs live in `dialogs/` (one file per dialog); a screen showing more than
+  one dialog gets an `XDialogs` aggregator composable at the feature root.
+- `handlers/` is retired; extracted ViewModel logic lives only in `delegates/`.
 - Established pattern: `ScheduleViewModel` → `HourManagementDelegate`;
   `StudentDetailViewModel` → `StudentScheduleTabsDelegate` + `BusyManagementDelegate`;
   `StudentsViewModel` → 4 delegates. Prefer this over letting a ViewModel grow.

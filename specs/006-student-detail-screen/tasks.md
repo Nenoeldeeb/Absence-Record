@@ -84,7 +84,7 @@
 
 **Independent Test**: Long-press any student → selection mode activates with that student selected; tapping others toggles them; back exits selection.
 
-- [X] T023 [US2] In `app/src/main/java/dev/nenoeldeeb/education/absencerecord/presentation/screens/components/StudentList.kt` confirm the `combinedClickable` long-press path (`onLongClick = { onStudentLongClick(student.id) }`) remains intact alongside the new click behavior; adjust only if the tap/navigate path conflicts with selection-mode entry.
+- [X] T023 [US2] In `../../app/src/main/java/dev/nenoeldeeb/education/absencerecord/presentation/screens/students/components/StudentList.kt` confirm the `combinedClickable` long-press path (`onLongClick = { onStudentLongClick(student.id) }`) remains intact alongside the new click behavior; adjust only if the tap/navigate path conflicts with selection-mode entry.
 - [X] T024 [P] [US2] Add `StudentsViewModelLongPressTest.kt` in `app/src/test/java/dev/nenoeldeeb/education/absencerecord/presentation/screens/students/` verifying (a) long-press turns on selection mode and selects that student, (b) another tap toggles selection without navigating, (c) long-press does not trigger `onStudentClick`.
 
 **Checkpoint**: Bulk delete/export flows still usable after navigation change.
