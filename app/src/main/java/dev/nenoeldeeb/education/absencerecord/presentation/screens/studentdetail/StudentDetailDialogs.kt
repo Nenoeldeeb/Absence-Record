@@ -1,9 +1,7 @@
-package dev.nenoeldeeb.education.absencerecord.presentation.screens.studentdetail.components
+package dev.nenoeldeeb.education.absencerecord.presentation.screens.studentdetail
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
-import dev.nenoeldeeb.education.absencerecord.presentation.screens.studentdetail.StudentDetailScreenEvent
-import dev.nenoeldeeb.education.absencerecord.presentation.screens.studentdetail.StudentDetailScreenState
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.studentdetail.dialogs.AddLessonDialog
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.studentdetail.dialogs.BusyAppointmentDialog
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.studentdetail.dialogs.ChangeClassDialog

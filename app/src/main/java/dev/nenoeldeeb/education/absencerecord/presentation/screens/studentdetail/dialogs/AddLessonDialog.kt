@@ -155,19 +155,7 @@ private fun HourOptionRow(
     val isConflict = hasBusyOverlap
     val isFull = hour.remainingSlots <= 0
     val colorScheme = MaterialTheme.colorScheme
-    val titleColor =
-        when {
-            isConflict -> colorScheme.outline
-            isFull -> colorScheme.error
-            else -> colorScheme.onTertiaryContainer
-        }
-    val secondaryColor =
-        when {
-            isConflict -> colorScheme.outline
-            isFull -> colorScheme.error
-            else -> colorScheme.onTertiaryContainer
-        }
-    val iconTint =
+    val itemColor =
         when {
             isConflict -> colorScheme.outline
             isFull -> colorScheme.error
@@ -211,7 +199,7 @@ private fun HourOptionRow(
                     MaterialTheme.typography.titleMedium.copy(
                         textDirection = TextDirection.Ltr
                     ),
-                color = titleColor
+                color = itemColor
             )
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -221,7 +209,7 @@ private fun HourOptionRow(
                 Icon(
                     imageVector = ImageVector.vectorResource(R.drawable.outline_person_24),
                     contentDescription = null,
-                    tint = secondaryColor,
+                    tint = itemColor,
                     modifier = Modifier.size(16.dp)
                 )
                 Text(
@@ -233,7 +221,7 @@ private fun HourOptionRow(
                         MaterialTheme.typography.bodyMedium.copy(
                             textDirection = TextDirection.Ltr
                         ),
-                    color = secondaryColor,
+                    color = itemColor,
                     modifier = Modifier.weight(1f, fill = false)
                 )
             }
@@ -243,21 +231,21 @@ private fun HourOptionRow(
                 Icon(
                     imageVector = ImageVector.vectorResource(R.drawable.outline_schedule_24),
                     contentDescription = statusDescription,
-                    tint = iconTint
+                    tint = itemColor
                 )
             }
             isFull -> {
                 Icon(
                     imageVector = ImageVector.vectorResource(R.drawable.outline_close_24),
                     contentDescription = statusDescription,
-                    tint = iconTint
+                    tint = itemColor
                 )
             }
             else -> {
                 Icon(
                     imageVector = ImageVector.vectorResource(R.drawable.outline_check_24),
                     contentDescription = null,
-                    tint = iconTint
+                    tint = itemColor
                 )
             }
         }
