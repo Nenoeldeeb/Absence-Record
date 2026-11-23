@@ -1,6 +1,6 @@
 @file:OptIn(ExperimentalMaterial3Api::class)
 
-package dev.nenoeldeeb.education.absencerecord.presentation.screens.calendar
+package dev.nenoeldeeb.education.absencerecord.presentation.screens.calendar.dialogs
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -47,6 +47,7 @@ import dev.nenoeldeeb.education.absencerecord.R
 import dev.nenoeldeeb.education.absencerecord.domain.models.Student
 import dev.nenoeldeeb.education.absencerecord.domain.models.StudentAttendance
 import dev.nenoeldeeb.education.absencerecord.domain.models.StudentClass
+import dev.nenoeldeeb.education.absencerecord.presentation.screens.calendar.components.StudentListItem
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.components.ClassCheckboxFilter
 import dev.nenoeldeeb.education.absencerecord.presentation.utils.DateFormatter.toUiText
 import kotlinx.datetime.LocalDate

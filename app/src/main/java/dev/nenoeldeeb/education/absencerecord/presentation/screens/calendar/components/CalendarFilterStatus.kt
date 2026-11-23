@@ -1,4 +1,4 @@
-package dev.nenoeldeeb.education.absencerecord.presentation.screens.calendar
+package dev.nenoeldeeb.education.absencerecord.presentation.screens.calendar.components
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -13,6 +13,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import dev.nenoeldeeb.education.absencerecord.R
 import dev.nenoeldeeb.education.absencerecord.domain.models.StudentClass
+import dev.nenoeldeeb.education.absencerecord.presentation.utils.formatClassFilterLabel
 
 @Composable
 internal fun CalendarFilterStatus(
@@ -20,16 +21,7 @@ internal fun CalendarFilterStatus(
     modifier: Modifier = Modifier,
     availableClasses: List<StudentClass> = emptyList()
 ) {
-    val filterLabel =
-        if (availableClasses.isEmpty()) {
-            stringResource(R.string.class_filter_no_classes)
-        } else {
-            when (selectedClassIds.size) {
-                0 -> stringResource(R.string.class_filter_none)
-                1 -> stringResource(R.string.class_filter_one)
-                else -> stringResource(R.string.class_filter_n, selectedClassIds.size)
-            }
-        }
+    val filterLabel = formatClassFilterLabel(selectedClassIds.size, availableClasses.isNotEmpty()).asString()
     Column(
         modifier = modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 2.dp),
         horizontalAlignment = Alignment.CenterHorizontally

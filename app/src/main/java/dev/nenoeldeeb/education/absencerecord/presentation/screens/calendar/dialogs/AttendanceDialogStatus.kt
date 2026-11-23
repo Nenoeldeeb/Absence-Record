@@ -1,4 +1,4 @@
-package dev.nenoeldeeb.education.absencerecord.presentation.screens.calendar
+package dev.nenoeldeeb.education.absencerecord.presentation.screens.calendar.dialogs
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column

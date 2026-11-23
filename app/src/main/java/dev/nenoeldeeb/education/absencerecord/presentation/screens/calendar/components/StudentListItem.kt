@@ -1,4 +1,4 @@
-package dev.nenoeldeeb.education.absencerecord.presentation.screens.calendar
+package dev.nenoeldeeb.education.absencerecord.presentation.screens.calendar.components
 
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.sizeIn

@@ -10,6 +10,7 @@ import androidx.test.platform.app.InstrumentationRegistry
 import dev.nenoeldeeb.education.absencerecord.R
 import dev.nenoeldeeb.education.absencerecord.domain.models.Student
 import dev.nenoeldeeb.education.absencerecord.domain.models.StudentAttendance
+import dev.nenoeldeeb.education.absencerecord.presentation.screens.calendar.dialogs.AttendanceDialog
 import dev.nenoeldeeb.education.absencerecord.presentation.theme.AbsenceRecordTheme
 import kotlinx.datetime.LocalDate
 import org.junit.Rule
