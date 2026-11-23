@@ -128,7 +128,7 @@ class ScheduleViewModel(
 
             is ScheduleScreenEvent.ConfirmReplan -> replanDelegate.confirm(uiState.value)
 
-            is ScheduleScreenEvent.DismissReplan -> replanDelegate.dismiss(uiState.value)
+            is ScheduleScreenEvent.DismissReplan -> replanDelegate.dismiss()
 
             is ScheduleScreenEvent.SetHourDuration ->
                 hourManagementDelegate.setHourDuration(event.value)

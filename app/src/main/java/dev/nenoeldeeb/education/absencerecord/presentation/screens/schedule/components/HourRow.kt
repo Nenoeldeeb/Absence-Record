@@ -48,11 +48,6 @@ import dev.nenoeldeeb.education.absencerecord.domain.models.HourWithOccupancy
 import dev.nenoeldeeb.education.absencerecord.domain.models.Student
 import dev.nenoeldeeb.education.absencerecord.presentation.utils.TimeFormatter.formatTime
 
-const val HOUR_EXPAND_TAG_PREFIX = "hour_expand_"
-const val HOUR_OPTIONS_TAG_PREFIX = "hour_options_"
-const val HOUR_EDIT_TAG_PREFIX = "hour_edit_"
-const val HOUR_DELETE_TAG_PREFIX = "hour_delete_"
-
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun HourRow(

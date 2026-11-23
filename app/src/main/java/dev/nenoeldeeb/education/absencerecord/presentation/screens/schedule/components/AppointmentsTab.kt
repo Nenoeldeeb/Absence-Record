@@ -38,10 +38,6 @@ import dev.nenoeldeeb.education.absencerecord.presentation.utils.DateFormatter.t
 import dev.nenoeldeeb.education.absencerecord.presentation.utils.UiText
 import kotlinx.datetime.DayOfWeek
 
-const val HOURS_ERROR_RETRY_TAG = "hours_error_retry"
-const val HOURS_EMPTY_ADD_TAG = "hours_empty_add"
-const val HOURS_ADD_TAG = "hours_add"
-
 @Composable
 fun AppointmentsTab(
     hours: List<HourWithOccupancy>,
