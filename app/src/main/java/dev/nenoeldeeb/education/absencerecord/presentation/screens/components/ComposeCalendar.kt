@@ -42,17 +42,15 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import dev.nenoeldeeb.education.absencerecord.R
+import dev.nenoeldeeb.education.absencerecord.presentation.utils.DateFormatter
 import dev.nenoeldeeb.education.absencerecord.presentation.utils.DateFormatter.toMonthYearUiText
 import dev.nenoeldeeb.education.absencerecord.presentation.utils.DateFormatter.toUiText
 import kotlinx.datetime.DateTimeUnit
 import kotlinx.datetime.DayOfWeek
 import kotlinx.datetime.LocalDate
-import kotlinx.datetime.TimeZone
 import kotlinx.datetime.isoDayNumber
 import kotlinx.datetime.minus
 import kotlinx.datetime.plus
-import kotlinx.datetime.toLocalDateTime
-import kotlin.time.Clock
 
 @Composable
 fun ComposeCalendar(
@@ -66,7 +64,7 @@ fun ComposeCalendar(
     // Recomputed every composition so an overnight session never shows a stale "today".
     // A midnight ticker would need a coroutine scope here; the next recomposition (resume,
     // month nav, dialog open) corrects the date without freezing it in saved state.
-    val today = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date
+    val today = DateFormatter.today()
     var displayedMonth by rememberSaveable {
         mutableStateOf(
             initialMonth ?: today
@@ -274,27 +272,4 @@ private fun CalendarGrid(
             )
         }
     }
-}
-
-private fun calculateDaysInMonth(yearMonth: LocalDate): List<LocalDate?> {
-    val firstDayOfMonth = LocalDate(yearMonth.year, yearMonth.month, 1)
-    val nextMonth = firstDayOfMonth.plus(1, DateTimeUnit.MONTH)
-    val lastDayOfMonth = nextMonth.minus(1, DateTimeUnit.DAY)
-
-    // Calculate the first day offset (Saturday = 0, Sunday = 1, ..., Friday = 6)
-    // DayOfWeek.SATURDAY.value is 6. (6 + 1) % 7 = 0.
-    // DayOfWeek.MONDAY.value is 1. (1 + 1) % 7 = 2.
-    val firstDayOfWeekCalendar = DayOfWeek.SATURDAY // Assuming calendar starts on Saturday
-    var startOffset = firstDayOfMonth.dayOfWeek.isoDayNumber - firstDayOfWeekCalendar.isoDayNumber
-    if (startOffset < 0) startOffset += 7
-
-    val days = mutableListOf<LocalDate?>()
-    repeat(startOffset) { days.add(null) }
-    (1..lastDayOfMonth.day).forEach { dayOfMonth ->
-        days.add(LocalDate(yearMonth.year, yearMonth.month, dayOfMonth))
-    }
-    while (days.size % 7 != 0) {
-        days.add(null)
-    }
-    return days
 }

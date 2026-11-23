@@ -29,6 +29,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import dev.nenoeldeeb.education.absencerecord.R
 import dev.nenoeldeeb.education.absencerecord.domain.models.StudentClass
+import dev.nenoeldeeb.education.absencerecord.presentation.utils.formatClassFilterLabel
 
 @Composable
 internal fun ClassCheckboxFilter(
@@ -40,16 +41,7 @@ internal fun ClassCheckboxFilter(
     modifier: Modifier = Modifier,
     onClearFilters: (() -> Unit)? = null
 ) {
-    val label =
-        if (availableClasses.isEmpty()) {
-            stringResource(R.string.class_filter_no_classes)
-        } else {
-            when (selectedClassIds.size) {
-                0 -> stringResource(R.string.class_filter_none)
-                1 -> stringResource(R.string.class_filter_one)
-                else -> stringResource(R.string.class_filter_n, selectedClassIds.size)
-            }
-        }
+    val label = formatClassFilterLabel(selectedClassIds.size, availableClasses.isNotEmpty()).asString()
 
     Column(modifier = modifier.fillMaxWidth()) {
         Row(
