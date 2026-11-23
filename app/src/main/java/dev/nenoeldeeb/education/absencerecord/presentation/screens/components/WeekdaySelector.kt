@@ -1,4 +1,4 @@
-package dev.nenoeldeeb.education.absencerecord.presentation.screens.schedule.components
+package dev.nenoeldeeb.education.absencerecord.presentation.screens.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.ScrollableDefaults
@@ -34,11 +34,9 @@ import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.Velocity
 import androidx.compose.ui.unit.dp
 import dev.nenoeldeeb.education.absencerecord.R
+import dev.nenoeldeeb.education.absencerecord.presentation.utils.DateFormatter
 import dev.nenoeldeeb.education.absencerecord.presentation.utils.DateFormatter.toUiText
 import kotlinx.datetime.DayOfWeek
-import kotlinx.datetime.TimeZone
-import kotlinx.datetime.toLocalDateTime
-import kotlin.time.Clock
 
 @Composable
 fun WeekdaySelector(
@@ -47,10 +45,7 @@ fun WeekdaySelector(
     modifier: Modifier = Modifier
 ) {
     val saturdayFirst = DayOfWeek.entries.drop(5) + DayOfWeek.entries.take(5)
-    val today =
-        remember {
-            Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).dayOfWeek
-        }
+    val today = remember { DateFormatter.today().dayOfWeek }
     val todayLabel = stringResource(R.string.schedule_today)
     val scrollState = rememberScrollState()
     val flingBehavior = ScrollableDefaults.flingBehavior()
