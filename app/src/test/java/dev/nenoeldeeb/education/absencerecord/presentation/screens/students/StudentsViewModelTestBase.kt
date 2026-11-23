@@ -15,7 +15,6 @@ import dev.nenoeldeeb.education.absencerecord.domain.usecases.student.UpdateStud
 import dev.nenoeldeeb.education.absencerecord.domain.usecases.transfer.ExportStudentsUseCase
 import dev.nenoeldeeb.education.absencerecord.domain.usecases.transfer.ParseImportFileUseCase
 import dev.nenoeldeeb.education.absencerecord.domain.usecases.transfer.PerformImportUseCase
-import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.delegates.ImportExportDelegate
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.students.delegates.SelectionStateDelegate
 import io.mockk.every
 import io.mockk.mockk
@@ -41,7 +40,6 @@ open class StudentsViewModelTestBase {
     protected lateinit var exportStudentsUseCase: ExportStudentsUseCase
     protected lateinit var studentManagementUseCases: StudentManagementUseCases
     protected lateinit var selectionDelegate: SelectionStateDelegate
-    protected lateinit var importExportDelegate: ImportExportDelegate
     protected lateinit var viewModel: StudentsViewModel
     protected lateinit var classManagementUseCases: ClassManagementUseCases
     protected lateinit var deleteClassUseCase: DeleteClassUseCase
@@ -67,7 +65,6 @@ open class StudentsViewModelTestBase {
         every { studentManagementUseCases.exportStudentsUseCase } returns exportStudentsUseCase
 
         selectionDelegate = SelectionStateDelegate()
-        importExportDelegate = ImportExportDelegate()
 
         classManagementUseCases = mockk<ClassManagementUseCases>(relaxed = true)
         deleteClassUseCase = mockk(relaxed = true)
@@ -93,7 +90,6 @@ open class StudentsViewModelTestBase {
                 studentManagementUseCases,
                 classManagementUseCases,
                 selectionDelegate,
-                importExportDelegate,
                 classFilterRepository = repository,
                 attendanceUseCases = attendanceUseCases
             )

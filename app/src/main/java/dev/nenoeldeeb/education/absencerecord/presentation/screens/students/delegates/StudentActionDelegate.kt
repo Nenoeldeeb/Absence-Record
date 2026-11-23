@@ -1,15 +1,18 @@
 package dev.nenoeldeeb.education.absencerecord.presentation.screens.students.delegates
 
 import dev.nenoeldeeb.education.absencerecord.R
-import dev.nenoeldeeb.education.absencerecord.domain.models.ParsedImportData
 import dev.nenoeldeeb.education.absencerecord.domain.models.Student
 import dev.nenoeldeeb.education.absencerecord.domain.models.StudentError
 import dev.nenoeldeeb.education.absencerecord.domain.usecases.StudentManagementUseCases
 import dev.nenoeldeeb.education.absencerecord.presentation.utils.UiText
 
+/**
+ * Student CRUD wrappers returning `Result<UiText?>`; the ViewModel (or a bulk
+ * delegate) owns the state updates for them. Import/export orchestration lives
+ * in [ImportExportDelegate].
+ */
 class StudentActionDelegate(
-    private val studentManagementUseCases: StudentManagementUseCases,
-    private val importExportDelegate: ImportExportDelegate
+    private val studentManagementUseCases: StudentManagementUseCases
 ) {
     suspend fun addStudent(
         name: String,
@@ -89,25 +92,6 @@ class StudentActionDelegate(
                             onFailure = { e -> Result.failure(e) }
                         )
                 },
-                onFailure = { e -> Result.failure(e) }
-            )
-    }
-
-    suspend fun prepareImportSelectionDialog(uriString: String): Result<ParsedImportData> {
-        return studentManagementUseCases.parseImportFileUseCase(uriString)
-            .fold(
-                onSuccess = { Result.success(it) },
-                onFailure = { e -> Result.failure(e) }
-            )
-    }
-
-    suspend fun performImport(
-        parsedData: ParsedImportData,
-        selectionMap: Map<Int, Boolean>
-    ): Result<UiText?> {
-        return studentManagementUseCases.performImportUseCase(parsedData, selectionMap)
-            .fold(
-                onSuccess = { Result.success(importExportDelegate.buildImportResultMessage(it) as UiText?) },
                 onFailure = { e -> Result.failure(e) }
             )
     }

@@ -1,4 +1,4 @@
-package dev.nenoeldeeb.education.absencerecord.presentation.screens.components
+package dev.nenoeldeeb.education.absencerecord.presentation.screens.students.components
 
 import android.annotation.SuppressLint
 import androidx.compose.ui.test.assertIsDisplayed
@@ -27,7 +27,11 @@ class StudentsListTest {
 
         composeTestRule.setContent {
             AbsenceRecordTheme {
-                StudentList(allStudents = listOf(student), onStudentClick = { clickedStudent = it }, onStudentLongClick = {})
+                StudentList(
+                    allStudents = listOf(student),
+                    onStudentClick = { clickedStudent = it },
+                    onStudentLongClick = {}
+                )
             }
         }
 
