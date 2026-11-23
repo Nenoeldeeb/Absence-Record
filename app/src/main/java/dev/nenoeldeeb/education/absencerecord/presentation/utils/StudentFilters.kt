@@ -1,6 +1,21 @@
 package dev.nenoeldeeb.education.absencerecord.presentation.utils
 
+import dev.nenoeldeeb.education.absencerecord.R
 import dev.nenoeldeeb.education.absencerecord.domain.models.Student
+
+fun formatClassFilterLabel(
+    selectedCount: Int,
+    hasAvailableClasses: Boolean
+): UiText =
+    if (!hasAvailableClasses) {
+        UiText.StringResource(R.string.class_filter_no_classes)
+    } else {
+        when (selectedCount) {
+            0 -> UiText.StringResource(R.string.class_filter_none)
+            1 -> UiText.StringResource(R.string.class_filter_one)
+            else -> UiText.StringResource(R.string.class_filter_n, selectedCount)
+        }
+    }
 
 fun Iterable<Student>.applyMultiClassFilter(classIds: Set<Int>): List<Student> {
     if (classIds.isEmpty()) return this.filter { it.classId == null }

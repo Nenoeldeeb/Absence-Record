@@ -16,22 +16,6 @@ object SoundPlayer {
     private const val TONE_DURATION_MS = 150
     private const val RELEASE_DELAY_MS = 250L
 
-    /**
-     * Plays a confirmation beep when adding attendance.
-     * Uses a positive acknowledgment tone (TONE_PROP_ACK).
-     */
-    fun playAddAttendanceSound() {
-        playTone(ToneGenerator.TONE_SUP_PIP)
-    }
-
-    /**
-     * Plays a distinct beep when removing attendance.
-     * Uses a negative acknowledgment tone (TONE_PROP_NACK).
-     */
-    fun playRemoveAttendanceSound() {
-        playTone(ToneGenerator.TONE_SUP_BUSY)
-    }
-
     fun playAddAttendanceSound(context: Context) {
         if (!shouldPlay(context)) return
         playTone(ToneGenerator.TONE_SUP_PIP)
