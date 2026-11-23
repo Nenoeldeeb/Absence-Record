@@ -12,6 +12,7 @@ plugins {
 android {
     namespace = "dev.nenoeldeeb.education.absencerecord"
     compileSdk = libs.versions.compileSdk.get().toInt()
+    compileSdkMinor = 2
 
     defaultConfig {
         applicationId = "dev.nenoeldeeb.education.absencerecord"

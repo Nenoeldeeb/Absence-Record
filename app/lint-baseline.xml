@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<issues format="6" by="lint 9.3.0" type="baseline" client="gradle" dependencies="false" name="AGP (9.3.0)" variant="all" version="9.3.0">
+<issues format="6" by="lint 9.4.1" type="baseline" client="gradle" dependencies="false" name="AGP (9.4.1)" variant="all" version="9.4.1">
 
     <issue
         id="AndroidGradlePluginVersion"
-        message="A newer version of Gradle than 9.5.0 is available: 9.8.1"
-        errorLine1="distributionUrl = https\://services.gradle.org/distributions/gradle-9.5.0-all.zip"
+        message="A newer version of Gradle than 9.6.0 is available: 9.9.1"
+        errorLine1="distributionUrl = https\://services.gradle.org/distributions/gradle-9.6.0-all.zip"
         errorLine2="                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="$HOME/Projects/AndroidStudioProjects/Absencerecord/gradle/wrapper/gradle-wrapper.properties"
@@ -14,8 +14,8 @@
 
     <issue
         id="AndroidGradlePluginVersion"
-        message="A newer version of com.android.application than 9.3.0 is available: 9.4.1. (There is also a newer version of 9.3.𝑥 available, if upgrading to 9.4.1 is difficult: 9.3.3)"
-        errorLine1="agp = &quot;9.3.0&quot;"
+        message="A newer version of com.android.application than 9.4.1 is available: 9.5.1"
+        errorLine1="agp = &quot;9.4.1&quot;"
         errorLine2="      ~~~~~~~">
         <location
             file="$HOME/Projects/AndroidStudioProjects/Absencerecord/gradle/libs.versions.toml"
@@ -24,244 +24,57 @@
     </issue>
 
     <issue
-        id="GradleDependency"
-        message="A newer version of androidx.compose:compose-bom than 2026.06.00 is available: 2026.09.00"
-        errorLine1="composeBom = &quot;2026.06.00&quot;"
-        errorLine2="             ~~~~~~~~~~~~">
+        id="NewerVersionAvailable"
+        message="A newer version of org.jetbrains.kotlinx:kotlinx-serialization-json than 1.11.0 is available: 1.13.0"
+        errorLine1="kotlinxSerializationJson = &quot;1.11.0&quot;"
+        errorLine2="                           ~~~~~~~~">
         <location
             file="$HOME/Projects/AndroidStudioProjects/Absencerecord/gradle/libs.versions.toml"
-            line="8"
-            column="14"/>
-    </issue>
-
-    <issue
-        id="GradleDependency"
-        message="A newer version of androidx.core:core-ktx than 1.19.0 is available: 1.19.1"
-        errorLine1="coreKtx = &quot;1.19.0&quot;"
-        errorLine2="          ~~~~~~~~">
-        <location
-            file="$HOME/Projects/AndroidStudioProjects/Absencerecord/gradle/libs.versions.toml"
-            line="9"
-            column="11"/>
-    </issue>
-
-    <issue
-        id="GradleDependency"
-        message="A newer version of androidx.room:room-compiler than 2.8.4 is available: 2.8.5"
-        errorLine1="room = &quot;2.8.4&quot;"
-        errorLine2="       ~~~~~~~">
-        <location
-            file="$HOME/Projects/AndroidStudioProjects/Absencerecord/gradle/libs.versions.toml"
-            line="26"
-            column="8"/>
-    </issue>
-
-    <issue
-        id="GradleDependency"
-        message="A newer version of androidx.room:room-ktx than 2.8.4 is available: 2.8.5"
-        errorLine1="room = &quot;2.8.4&quot;"
-        errorLine2="       ~~~~~~~">
-        <location
-            file="$HOME/Projects/AndroidStudioProjects/Absencerecord/gradle/libs.versions.toml"
-            line="26"
-            column="8"/>
-    </issue>
-
-    <issue
-        id="GradleDependency"
-        message="A newer version of androidx.room:room-runtime than 2.8.4 is available: 2.8.5"
-        errorLine1="room = &quot;2.8.4&quot;"
-        errorLine2="       ~~~~~~~">
-        <location
-            file="$HOME/Projects/AndroidStudioProjects/Absencerecord/gradle/libs.versions.toml"
-            line="26"
-            column="8"/>
-    </issue>
-
-    <issue
-        id="GradleDependency"
-        message="A newer version of androidx.room:room-testing than 2.8.4 is available: 2.8.5"
-        errorLine1="room = &quot;2.8.4&quot;"
-        errorLine2="       ~~~~~~~">
-        <location
-            file="$HOME/Projects/AndroidStudioProjects/Absencerecord/gradle/libs.versions.toml"
-            line="26"
-            column="8"/>
+            line="19"
+            column="28"/>
     </issue>
 
     <issue
         id="NewerVersionAvailable"
-        message="A newer version of org.junit.jupiter:junit-jupiter than 6.1.2 is available: 6.1.3"
-        errorLine1="junit6 = &quot;6.1.2&quot;"
-        errorLine2="         ~~~~~~~">
+        message="A newer version of io.mockk:mockk than 1.14.11 is available: 1.14.12"
+        errorLine1="mockk = &quot;1.14.11&quot;"
+        errorLine2="        ~~~~~~~~~">
         <location
             file="$HOME/Projects/AndroidStudioProjects/Absencerecord/gradle/libs.versions.toml"
-            line="13"
-            column="10"/>
+            line="24"
+            column="9"/>
     </issue>
 
     <issue
         id="NewerVersionAvailable"
-        message="A newer version of org.jetbrains.kotlin.plugin.compose than 2.4.10 is available: 2.4.21"
-        errorLine1="kotlin = &quot;2.4.10&quot;"
-        errorLine2="         ~~~~~~~~">
+        message="A newer version of io.mockk:mockk-android than 1.14.11 is available: 1.14.12"
+        errorLine1="mockk = &quot;1.14.11&quot;"
+        errorLine2="        ~~~~~~~~~">
         <location
             file="$HOME/Projects/AndroidStudioProjects/Absencerecord/gradle/libs.versions.toml"
-            line="16"
-            column="10"/>
-    </issue>
-
-    <issue
-        id="NewerVersionAvailable"
-        message="A newer version of org.jetbrains.kotlin.plugin.serialization than 2.4.10 is available: 2.4.21"
-        errorLine1="kotlin = &quot;2.4.10&quot;"
-        errorLine2="         ~~~~~~~~">
-        <location
-            file="$HOME/Projects/AndroidStudioProjects/Absencerecord/gradle/libs.versions.toml"
-            line="16"
-            column="10"/>
-    </issue>
-
-    <issue
-        id="LocalContextGetResourceValueCall"
-        message="Querying resource values using LocalContext.current"
-        errorLine1="                        actionLabel = context.getString(R.string.action_undo),"
-        errorLine2="                                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/dev/nenoeldeeb/education/absencerecord/presentation/screens/calendar/CalendarScreen.kt"
-            line="76"
-            column="39"/>
-    </issue>
-
-    <issue
-        id="LocalContextGetResourceValueCall"
-        message="Querying resource values using LocalContext.current"
-        errorLine1="                    message = context.getString(R.string.schedule_hour_deleted),"
-        errorLine2="                              ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/dev/nenoeldeeb/education/absencerecord/presentation/screens/schedule/ScheduleScreen.kt"
-            line="74"
-            column="31"/>
-    </issue>
-
-    <issue
-        id="LocalContextGetResourceValueCall"
-        message="Querying resource values using LocalContext.current"
-        errorLine1="                    actionLabel = context.getString(R.string.action_undo),"
-        errorLine2="                                  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/dev/nenoeldeeb/education/absencerecord/presentation/screens/schedule/ScheduleScreen.kt"
-            line="75"
-            column="35"/>
-    </issue>
-
-    <issue
-        id="LocalContextGetResourceValueCall"
-        message="Querying resource values using LocalContext.current"
-        errorLine1="                    message = context.getString(R.string.student_detail_lesson_unassigned),"
-        errorLine2="                              ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/dev/nenoeldeeb/education/absencerecord/presentation/screens/studentdetail/StudentDetailScreen.kt"
-            line="84"
-            column="31"/>
-    </issue>
-
-    <issue
-        id="LocalContextGetResourceValueCall"
-        message="Querying resource values using LocalContext.current"
-        errorLine1="                    actionLabel = context.getString(R.string.action_undo),"
-        errorLine2="                                  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/dev/nenoeldeeb/education/absencerecord/presentation/screens/studentdetail/StudentDetailScreen.kt"
-            line="85"
-            column="35"/>
-    </issue>
-
-    <issue
-        id="LocalContextGetResourceValueCall"
-        message="Querying resource values using LocalContext.current"
-        errorLine1="                    message = context.getString(R.string.student_detail_busy_deleted),"
-        errorLine2="                              ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/dev/nenoeldeeb/education/absencerecord/presentation/screens/studentdetail/StudentDetailScreen.kt"
-            line="100"
-            column="31"/>
-    </issue>
-
-    <issue
-        id="LocalContextGetResourceValueCall"
-        message="Querying resource values using LocalContext.current"
-        errorLine1="                    actionLabel = context.getString(R.string.action_undo),"
-        errorLine2="                                  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/dev/nenoeldeeb/education/absencerecord/presentation/screens/studentdetail/StudentDetailScreen.kt"
-            line="101"
-            column="35"/>
-    </issue>
-
-    <issue
-        id="LocalContextGetResourceValueCall"
-        message="Querying resource values using LocalContext.current"
-        errorLine1="                    message = context.getString(R.string.student_detail_student_deleted),"
-        errorLine2="                              ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/dev/nenoeldeeb/education/absencerecord/presentation/screens/studentdetail/StudentDetailScreen.kt"
-            line="116"
-            column="31"/>
-    </issue>
-
-    <issue
-        id="LocalContextGetResourceValueCall"
-        message="Querying resource values using LocalContext.current"
-        errorLine1="                    actionLabel = context.getString(R.string.action_undo),"
-        errorLine2="                                  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/dev/nenoeldeeb/education/absencerecord/presentation/screens/studentdetail/StudentDetailScreen.kt"
-            line="117"
-            column="35"/>
-    </issue>
-
-    <issue
-        id="LocalContextGetResourceValueCall"
-        message="Querying resource values using LocalContext.current"
-        errorLine1="                            context.getString(R.string.student_detail_share)"
-        errorLine2="                            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/dev/nenoeldeeb/education/absencerecord/presentation/screens/studentdetail/StudentDetailScreen.kt"
-            line="140"
-            column="29"/>
-    </issue>
-
-    <issue
-        id="LocalContextGetResourceValueCall"
-        message="Querying resource values using LocalContext.current"
-        errorLine1="                        actionLabel = context.getString(R.string.action_undo),"
-        errorLine2="                                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/dev/nenoeldeeb/education/absencerecord/presentation/screens/students/StudentsScreen.kt"
-            line="52"
-            column="39"/>
+            line="24"
+            column="9"/>
     </issue>
 
     <issue
         id="LocalContextResourcesRead"
-        message="Reading Resources using LocalContext.current.resources"
+        message="Reading Resources using LocalContext.current.resources is not configuration-aware and may return stale values if the Configuration changes"
         errorLine1="        remember(exportAndDeleteLauncher, context.resources) {"
         errorLine2="                                          ~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/java/dev/nenoeldeeb/education/absencerecord/presentation/screens/students/StudentsScreen.kt"
-            line="197"
+            line="166"
             column="43"/>
     </issue>
 
     <issue
         id="LocalContextResourcesRead"
-        message="Reading Resources using LocalContext.current.resources"
+        message="Reading Resources using LocalContext.current.resources is not configuration-aware and may return stale values if the Configuration changes"
         errorLine1="                exportAndDeleteLauncher.launch(defaultExportFileName(context.resources))"
         errorLine2="                                                                     ~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/java/dev/nenoeldeeb/education/absencerecord/presentation/screens/students/StudentsScreen.kt"
-            line="199"
+            line="168"
             column="70"/>
     </issue>
 
@@ -284,17 +97,6 @@
         <location
             file="src/main/java/dev/nenoeldeeb/education/absencerecord/presentation/screens/components/DayCell.kt"
             line="28"
-            column="5"/>
-    </issue>
-
-    <issue
-        id="MissingQuantity"
-        message="For locale &quot;ar&quot; (Arabic) the following quantity should also be defined: `zero` (e.g. &quot;0&quot;)"
-        errorLine1="    &lt;plurals name=&quot;export_delete_confirmation_message&quot;>"
-        errorLine2="    ^">
-        <location
-            file="src/main/res/values-ar/strings.xml"
-            line="52"
             column="5"/>
     </issue>
 
@@ -349,7 +151,7 @@
         errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="224"
+            line="227"
             column="5"/>
     </issue>
 
@@ -360,7 +162,84 @@
         errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="291"
+            line="294"
+            column="5"/>
+    </issue>
+
+    <issue
+        id="PluralsCandidate"
+        message="Formatting %d followed by words (&quot;students&quot;): This should probably be a plural rather than a string"
+        errorLine1="    &lt;string name=&quot;schedule_derived_capacity&quot;>Up to %1$d students&lt;/string>"
+        errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="327"
+            column="5"/>
+    </issue>
+
+    <issue
+        id="PluralsCandidate"
+        message="Formatting %d followed by words (&quot;minutes&quot;): This should probably be a plural rather than a string"
+        errorLine1="    &lt;string name=&quot;schedule_slider_description&quot;>Lesson length in minutes. Currently %1$d minutes, which holds up to %2$d students.&lt;/string>"
+        errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="330"
+            column="5"/>
+    </issue>
+
+    <issue
+        id="PluralsCandidate"
+        message="Formatting %d followed by words (&quot;students&quot;): This should probably be a plural rather than a string"
+        errorLine1="    &lt;string name=&quot;schedule_replan_stay&quot;>These %1$d students stay:&lt;/string>"
+        errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="336"
+            column="5"/>
+    </issue>
+
+    <issue
+        id="PluralsCandidate"
+        message="Formatting %d followed by words (&quot;students&quot;): This should probably be a plural rather than a string"
+        errorLine1="    &lt;string name=&quot;schedule_replan_leave&quot;>These %1$d students would be removed:&lt;/string>"
+        errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="337"
+            column="5"/>
+    </issue>
+
+    <issue
+        id="PluralsCandidate"
+        message="Formatting %d followed by words (&quot;students&quot;): This should probably be a plural rather than a string"
+        errorLine1="    &lt;string name=&quot;schedule_replan_drop_all&quot;>All %1$d students would be removed.&lt;/string>"
+        errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="339"
+            column="5"/>
+    </issue>
+
+    <issue
+        id="PluralsCandidate"
+        message="Formatting %d followed by words (&quot;students&quot;): This should probably be a plural rather than a string"
+        errorLine1="    &lt;string name=&quot;error_hour_derived_full&quot;>This hour already holds its maximum of %1$d students.&lt;/string>"
+        errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="342"
+            column="5"/>
+    </issue>
+
+    <issue
+        id="PluralsCandidate"
+        message="Formatting %d followed by words (&quot;students&quot;): This should probably be a plural rather than a string"
+        errorLine1="    &lt;string name=&quot;error_replan_drops_students&quot;>This change would remove %1$d students.&lt;/string>"
+        errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="344"
             column="5"/>
     </issue>
 
@@ -371,7 +250,7 @@
         errorLine2="                             ~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/java/dev/nenoeldeeb/education/absencerecord/presentation/screens/students/StudentsScreenContent.kt"
-            line="117"
+            line="131"
             column="30"/>
     </issue>
 
@@ -382,8 +261,19 @@
         errorLine2="                                                              ~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/java/dev/nenoeldeeb/education/absencerecord/presentation/screens/students/StudentsScreenContent.kt"
-            line="117"
+            line="131"
             column="63"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.drawable.outline_remove_24` appears to be unused"
+        errorLine1="&lt;vector xmlns:android=&quot;http://schemas.android.com/apk/res/android&quot; android:height=&quot;24dp&quot; android:tint=&quot;#000000&quot; android:viewportHeight=&quot;960&quot; android:viewportWidth=&quot;960&quot; android:width=&quot;24dp&quot;>"
+        errorLine2="^">
+        <location
+            file="src/main/res/drawable/outline_remove_24.xml"
+            line="1"
+            column="1"/>
     </issue>
 
     <issue
@@ -756,7 +646,7 @@
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="209"
+            line="212"
             column="13"/>
     </issue>
 
@@ -767,7 +657,7 @@
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="231"
+            line="234"
             column="13"/>
     </issue>
 
@@ -778,8 +668,74 @@
         errorLine2="             ~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="236"
+            line="239"
             column="14"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.string.error_max_below_assigned` appears to be unused"
+        errorLine1="    &lt;string name=&quot;error_max_below_assigned&quot;>Max students cannot be lower than the number of assigned students.&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="301"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.string.schedule_duration_range` appears to be unused"
+        errorLine1="    &lt;string name=&quot;schedule_duration_range&quot;>10–120 min&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="326"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.plurals.schedule_students_count` appears to be unused"
+        errorLine1="    &lt;plurals name=&quot;schedule_students_count&quot;>"
+        errorLine2="             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="331"
+            column="14"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.string.error_hour_derived_full` appears to be unused"
+        errorLine1="    &lt;string name=&quot;error_hour_derived_full&quot;>This hour already holds its maximum of %1$d students.&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="342"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.string.error_slot_busy_conflict` appears to be unused"
+        errorLine1="    &lt;string name=&quot;error_slot_busy_conflict&quot;>%1$s has a busy appointment from %2$s to %3$s.&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="343"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.string.error_replan_drops_students` appears to be unused"
+        errorLine1="    &lt;string name=&quot;error_replan_drops_students&quot;>This change would remove %1$d students.&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="344"
+            column="13"/>
     </issue>
 
 </issues>
