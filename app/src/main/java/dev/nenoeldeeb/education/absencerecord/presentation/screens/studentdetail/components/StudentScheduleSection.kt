@@ -19,7 +19,7 @@ import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import dev.nenoeldeeb.education.absencerecord.R
-import dev.nenoeldeeb.education.absencerecord.presentation.screens.schedule.components.WeekdaySelector
+import dev.nenoeldeeb.education.absencerecord.presentation.screens.components.WeekdaySelector
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.studentdetail.StudentDetailScreenEvent
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.studentdetail.StudentDetailScreenState
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.studentdetail.StudentScheduleTab

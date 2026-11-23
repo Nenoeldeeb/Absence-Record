@@ -1,39 +1,13 @@
-@file:OptIn(ExperimentalMaterial3Api::class)
-
 package dev.nenoeldeeb.education.absencerecord.presentation.screens.studentdetail
 
-import android.content.Intent
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarDuration
-import androidx.compose.material3.SnackbarHost
-import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.SnackbarResult
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.res.vectorResource
-import androidx.compose.ui.text.style.TextDirection
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
-import dev.nenoeldeeb.education.absencerecord.R
 import dev.nenoeldeeb.education.absencerecord.app.AppViewModelProvider
-import dev.nenoeldeeb.education.absencerecord.presentation.screens.studentdetail.components.StudentDetailBody
-import dev.nenoeldeeb.education.absencerecord.presentation.screens.studentdetail.components.StudentDetailDialogs
-import dev.nenoeldeeb.education.absencerecord.presentation.utils.UiText
 
 @Composable
 fun StudentDetailScreen(
@@ -47,8 +21,6 @@ fun StudentDetailScreen(
         )
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val context = LocalContext.current
-    val snackbarHostState = remember { SnackbarHostState() }
     // Stable event dispatcher: viewModel::onEvent allocates per recomposition and would
     // invalidate every downstream lambda (pager callbacks, dialog handlers) each pass.
     val onEvent =
@@ -57,105 +29,8 @@ fun StudentDetailScreen(
                 viewModel.onEvent(event)
             }
         }
-    val studentName = uiState.student?.name
-    val studentFirstName =
-        remember(studentName) {
-            studentName?.trim()?.substringBefore(" ")?.takeIf { it.isNotBlank() }
-        }
 
-    LaunchedEffect(uiState.error) {
-        uiState.error?.let {
-            snackbarHostState.showSnackbar(it.asString(context))
-            onEvent(StudentDetailScreenEvent.ConsumeError)
-        }
-    }
-
-    LaunchedEffect(uiState.toastMessage) {
-        uiState.toastMessage?.let {
-            snackbarHostState.showSnackbar(it.asString(context))
-            onEvent(StudentDetailScreenEvent.ConsumeToastMessage)
-        }
-    }
-
-    LaunchedEffect(uiState.deletedLesson) {
-        uiState.deletedLesson?.let {
-            val result =
-                snackbarHostState.showSnackbar(
-                    message = context.getString(R.string.student_detail_lesson_unassigned),
-                    actionLabel = context.getString(R.string.action_undo),
-                    duration = SnackbarDuration.Long
-                )
-            if (result == SnackbarResult.ActionPerformed) {
-                onEvent(StudentDetailScreenEvent.UndoUnassignLesson)
-            } else {
-                onEvent(StudentDetailScreenEvent.ConsumeDeletedLesson)
-            }
-        }
-    }
-
-    LaunchedEffect(uiState.deletedBusy) {
-        uiState.deletedBusy?.let {
-            val result =
-                snackbarHostState.showSnackbar(
-                    message = context.getString(R.string.student_detail_busy_deleted),
-                    actionLabel = context.getString(R.string.action_undo),
-                    duration = SnackbarDuration.Long
-                )
-            if (result == SnackbarResult.ActionPerformed) {
-                onEvent(StudentDetailScreenEvent.UndoDeleteBusy)
-            } else {
-                onEvent(StudentDetailScreenEvent.ConsumeDeletedBusy)
-            }
-        }
-    }
-
-    LaunchedEffect(uiState.deletedStudentBackup) {
-        uiState.deletedStudentBackup?.let {
-            val result =
-                snackbarHostState.showSnackbar(
-                    message = context.getString(R.string.student_detail_student_deleted),
-                    actionLabel = context.getString(R.string.action_undo),
-                    duration = SnackbarDuration.Long
-                )
-            if (result == SnackbarResult.ActionPerformed) {
-                onEvent(StudentDetailScreenEvent.UndoDeleteStudent)
-            } else {
-                onEvent(StudentDetailScreenEvent.DismissDeletedStudent)
-            }
-        }
-    }
-
-    LaunchedEffect(uiState.shareFileUri) {
-        uiState.shareFileUri?.let { uri ->
-            val shareIntent =
-                Intent(Intent.ACTION_VIEW).apply {
-                    data = uri
-                    flags += Intent.FLAG_GRANT_READ_URI_PERMISSION
-                }
-            val result =
-                runCatching {
-                    context.startActivity(
-                        Intent.createChooser(
-                            shareIntent,
-                            context.getString(R.string.student_detail_share)
-                        )
-                    )
-                }
-            onEvent(
-                StudentDetailScreenEvent.ShareFileResult(
-                    uri = uri,
-                    error =
-                        result.exceptionOrNull()?.let { e ->
-                            UiText.StringResource(
-                                R.string.sharing_app_not_found,
-                                e.message ?: ""
-                            )
-                        }
-                )
-            )
-        }
-    }
-
+    // VM-initiated one-off navigation effect; needs the ViewModel, so it stays here.
     LaunchedEffect(viewModel.uiEffect) {
         viewModel.uiEffect.collect { effect ->
             when (effect) {
@@ -164,99 +39,10 @@ fun StudentDetailScreen(
         }
     }
 
-    val onEditName = remember(onEvent) { { onEvent(StudentDetailScreenEvent.ToggleEditNameDialog) } }
-    val onChangeClass =
-        remember(onEvent) { { onEvent(StudentDetailScreenEvent.ToggleChangeClassDialog) } }
-    val onDeleteStudent =
-        remember(onEvent) { { onEvent(StudentDetailScreenEvent.ToggleDeleteConfirmationDialog) } }
-    Scaffold(
-        modifier = modifier,
-        snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
-        topBar = {
-            StudentDetailTopBar(
-                studentFirstName = studentFirstName,
-                hasStudent = uiState.student != null,
-                onBack = onNavigateBack,
-                onEditName = onEditName,
-                onChangeClass = onChangeClass,
-                onDelete = onDeleteStudent
-            )
-        }
-    ) { paddingValues ->
-        StudentDetailBody(
-            uiState = uiState,
-            onEvent = onEvent,
-            modifier = Modifier.fillMaxSize().padding(paddingValues)
-        )
-    }
-
-    StudentDetailDialogs(
+    StudentDetailScreenContent(
         uiState = uiState,
-        onEvent = onEvent
-    )
-}
-
-@Composable
-internal fun StudentDetailTopBar(
-    studentFirstName: String?,
-    hasStudent: Boolean,
-    onBack: () -> Unit,
-    onEditName: () -> Unit,
-    onChangeClass: () -> Unit,
-    onDelete: () -> Unit
-) {
-    TopAppBar(
-        title = {
-            Text(
-                text = studentFirstName ?: stringResource(R.string.student_detail_title_placeholder),
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-                style =
-                    MaterialTheme.typography.titleLarge.copy(
-                        textDirection = TextDirection.Content
-                    )
-            )
-        },
-        navigationIcon = {
-            IconButton(onClick = onBack) {
-                Icon(
-                    imageVector =
-                        ImageVector.vectorResource(
-                            R.drawable.outline_chevron_left_24
-                        ),
-                    contentDescription =
-                        stringResource(R.string.student_detail_back_description)
-                )
-            }
-        },
-        actions = {
-            if (hasStudent) {
-                IconButton(onClick = onEditName) {
-                    Icon(
-                        imageVector =
-                            ImageVector.vectorResource(R.drawable.outline_edit_24),
-                        contentDescription =
-                            stringResource(R.string.student_detail_edit_name_title)
-                    )
-                }
-                IconButton(onClick = onChangeClass) {
-                    Icon(
-                        imageVector =
-                            ImageVector.vectorResource(R.drawable.outline_swap_horiz_24),
-                        contentDescription =
-                            stringResource(R.string.student_detail_change_class_icon_description)
-                    )
-                }
-                IconButton(onClick = onDelete) {
-                    Icon(
-                        imageVector =
-                            ImageVector.vectorResource(R.drawable.outline_delete_24),
-                        contentDescription =
-                            stringResource(R.string.student_detail_delete_icon_description),
-                        tint = MaterialTheme.colorScheme.error
-                    )
-                }
-            }
-        }
+        onEvent = onEvent,
+        onNavigateBack = onNavigateBack,
+        modifier = modifier
     )
 }

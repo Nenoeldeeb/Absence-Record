@@ -11,9 +11,6 @@ import dev.nenoeldeeb.education.absencerecord.presentation.utils.toUiText
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
-private const val MIN_BUSY_DURATION_MINUTES = 30
-private const val MAX_BUSY_DURATION_MINUTES = 360
-
 class BusyManagementDelegate(
     private val scheduleUseCases: ScheduleUseCases,
     private val scope: CoroutineScope,
@@ -23,7 +20,7 @@ class BusyManagementDelegate(
         val snappedDuration =
             busy?.durationMinutes
                 ?.let { ((it + 15) / 30) * 30 }
-                ?.coerceIn(MIN_BUSY_DURATION_MINUTES, MAX_BUSY_DURATION_MINUTES)
+                ?.coerceIn(ScheduleRules.MIN_BUSY_DURATION_MINUTES, ScheduleRules.MAX_BUSY_DURATION_MINUTES)
                 ?: 30
         updateState {
             it.copy(

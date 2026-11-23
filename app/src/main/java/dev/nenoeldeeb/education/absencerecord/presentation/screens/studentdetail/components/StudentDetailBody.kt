@@ -44,7 +44,6 @@ internal fun StudentDetailBody(
                             pagerState.scrollToPage(page)
                         }
                     }
-                    Unit
                 }
             }
         when {

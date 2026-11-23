@@ -5,6 +5,7 @@ import androidx.core.net.toUri
 import dev.nenoeldeeb.education.absencerecord.domain.usecases.AttendanceUseCases
 import dev.nenoeldeeb.education.absencerecord.domain.usecases.ReportUseCases
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.studentdetail.StudentDetailScreenState
+import dev.nenoeldeeb.education.absencerecord.presentation.utils.DateFormatter
 import dev.nenoeldeeb.education.absencerecord.presentation.utils.UiText
 import dev.nenoeldeeb.education.absencerecord.presentation.utils.toUiText
 import kotlinx.coroutines.CoroutineScope
@@ -13,11 +14,8 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.datetime.DateTimeUnit
 import kotlinx.datetime.LocalDate
-import kotlinx.datetime.TimeZone
 import kotlinx.datetime.minus
 import kotlinx.datetime.plus
-import kotlinx.datetime.toLocalDateTime
-import kotlin.time.Clock
 
 class StudentDetailReportDelegate(
     private val studentId: Int,
@@ -73,8 +71,5 @@ class StudentDetailReportDelegate(
     private fun latestMonthWithAttendance(dates: List<LocalDate>): LocalDate? =
         dates.maxByOrNull { it }?.let { LocalDate(it.year, it.month, 1) }
 
-    private fun currentMonth(): LocalDate {
-        val now = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault())
-        return LocalDate(now.year, now.month, 1)
-    }
+    private fun currentMonth(): LocalDate = DateFormatter.currentMonth()
 }

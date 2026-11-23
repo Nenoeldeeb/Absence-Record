@@ -44,14 +44,8 @@ class StudentDetailViewModel(
     private val studentScheduleDelegate =
         StudentScheduleDelegate(
             observeStudentScheduleUseCase = scheduleUseCases.observeStudentScheduleUseCase,
-            scope = viewModelScope,
-            onScheduleUpdated = { schedule ->
-                _uiState.update { it.copy(studentSchedule = schedule) }
-            },
-            onFailure = { e ->
-                _uiState.update { it.copy(error = e.toUiText()) }
-            }
-        )
+            scope = viewModelScope
+        ) { _uiState.update(it) }
 
     private val scheduleTabsDelegate =
         StudentScheduleTabsDelegate(scheduleUseCases, _uiState, viewModelScope) { _uiState.update(it) }

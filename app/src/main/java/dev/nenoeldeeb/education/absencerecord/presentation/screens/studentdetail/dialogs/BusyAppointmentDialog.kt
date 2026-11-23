@@ -17,12 +17,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TimeInput
-import androidx.compose.material3.TimePicker
-import androidx.compose.material3.TimePickerDialog
-import androidx.compose.material3.TimePickerDialogDefaults
-import androidx.compose.material3.TimePickerDisplayMode
-import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
@@ -40,6 +34,7 @@ import androidx.compose.ui.unit.dp
 import dev.nenoeldeeb.education.absencerecord.R
 import dev.nenoeldeeb.education.absencerecord.domain.models.StudentLessonEntry
 import dev.nenoeldeeb.education.absencerecord.domain.services.ScheduleRules
+import dev.nenoeldeeb.education.absencerecord.presentation.screens.components.AppTimePickerDialog
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.components.StartTimeField
 import dev.nenoeldeeb.education.absencerecord.presentation.utils.TimeFormatter.formatTime
 import dev.nenoeldeeb.education.absencerecord.presentation.utils.UiText
@@ -50,8 +45,6 @@ internal const val TIME_PICKER_DISMISS_TAG = "busy_time_picker_dismiss"
 internal const val TIME_PICKER_MODE_TOGGLE_TAG = "busy_time_picker_mode_toggle"
 internal const val BUSY_DURATION_SLIDER_TAG = "busy_duration_slider"
 
-private const val MIN_BUSY_DURATION_MINUTES = 30
-private const val MAX_BUSY_DURATION_MINUTES = 360
 private const val BUSY_DURATION_STEP_MINUTES = 30
 
 @OptIn(ExperimentalLayoutApi::class, ExperimentalMaterial3Api::class)
@@ -148,9 +141,9 @@ internal fun BusyAppointmentDialog(
                             BUSY_DURATION_STEP_MINUTES.toFloat()
                     },
                     valueRange =
-                        MIN_BUSY_DURATION_MINUTES.toFloat()..MAX_BUSY_DURATION_MINUTES.toFloat(),
+                        ScheduleRules.MIN_BUSY_DURATION_MINUTES.toFloat()..ScheduleRules.MAX_BUSY_DURATION_MINUTES.toFloat(),
                     steps =
-                        (MAX_BUSY_DURATION_MINUTES - MIN_BUSY_DURATION_MINUTES) /
+                        (ScheduleRules.MAX_BUSY_DURATION_MINUTES - ScheduleRules.MIN_BUSY_DURATION_MINUTES) /
                             BUSY_DURATION_STEP_MINUTES - 1,
                     onValueChangeFinished = { onDurationSelected(effectiveDuration) },
                     modifier =
@@ -217,62 +210,13 @@ internal fun BusyAppointmentDialog(
     )
 
     if (showTimePicker) {
-        val timePickerState =
-            rememberTimePickerState(
-                initialHour = startMinutes / 60,
-                initialMinute = startMinutes % 60
-            )
-        var timePickerMode by remember { mutableStateOf(TimePickerDisplayMode.Picker) }
-        TimePickerDialog(
-            onDismissRequest = { showTimePicker = false },
-            title = {
-                TimePickerDialogDefaults.Title(displayMode = timePickerMode)
-            },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        onStartSelected(timePickerState.hour * 60 + timePickerState.minute)
-                        showTimePicker = false
-                    },
-                    modifier =
-                        Modifier
-                            .testTag(TIME_PICKER_CONFIRM_TAG)
-                            .defaultMinSize(minHeight = 48.dp)
-                ) {
-                    Text(stringResource(R.string.action_set))
-                }
-            },
-            dismissButton = {
-                TextButton(
-                    onClick = { showTimePicker = false },
-                    modifier =
-                        Modifier
-                            .testTag(TIME_PICKER_DISMISS_TAG)
-                            .defaultMinSize(minHeight = 48.dp)
-                ) {
-                    Text(stringResource(R.string.action_cancel))
-                }
-            },
-            modeToggleButton = {
-                TimePickerDialogDefaults.DisplayModeToggle(
-                    onDisplayModeChange = {
-                        timePickerMode =
-                            if (timePickerMode == TimePickerDisplayMode.Picker) {
-                                TimePickerDisplayMode.Input
-                            } else {
-                                TimePickerDisplayMode.Picker
-                            }
-                    },
-                    displayMode = timePickerMode,
-                    modifier = Modifier.testTag(TIME_PICKER_MODE_TOGGLE_TAG)
-                )
-            }
-        ) {
-            if (timePickerMode == TimePickerDisplayMode.Picker) {
-                TimePicker(state = timePickerState)
-            } else {
-                TimeInput(state = timePickerState)
-            }
-        }
+        AppTimePickerDialog(
+            initialMinutes = startMinutes,
+            onTimeSelected = onStartSelected,
+            onDismiss = { showTimePicker = false },
+            confirmButtonTag = TIME_PICKER_CONFIRM_TAG,
+            dismissButtonTag = TIME_PICKER_DISMISS_TAG,
+            modeToggleTag = TIME_PICKER_MODE_TOGGLE_TAG
+        )
     }
 }

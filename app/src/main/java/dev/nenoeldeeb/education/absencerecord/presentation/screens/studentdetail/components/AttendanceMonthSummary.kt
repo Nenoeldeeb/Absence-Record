@@ -3,11 +3,9 @@ package dev.nenoeldeeb.education.absencerecord.presentation.screens.studentdetai
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.pluralStringResource
 import dev.nenoeldeeb.education.absencerecord.R
+import dev.nenoeldeeb.education.absencerecord.presentation.utils.DateFormatter
 import dev.nenoeldeeb.education.absencerecord.presentation.utils.DateFormatter.toMonthYearUiText
 import kotlinx.datetime.LocalDate
-import kotlinx.datetime.TimeZone
-import kotlinx.datetime.toLocalDateTime
-import kotlin.time.Clock
 
 internal data class MonthPresentSummary(
     val month: LocalDate,
@@ -40,7 +38,4 @@ internal fun presentDaysLabel(count: Int): String =
         count
     )
 
-internal fun todayMonth(): LocalDate {
-    val now = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault())
-    return LocalDate(now.year, now.month, 1)
-}
+internal fun todayMonth(): LocalDate = DateFormatter.currentMonth()
