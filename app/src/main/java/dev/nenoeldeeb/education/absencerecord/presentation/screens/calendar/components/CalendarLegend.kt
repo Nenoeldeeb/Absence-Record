@@ -1,4 +1,4 @@
-package dev.nenoeldeeb.education.absencerecord.presentation.screens.calendar
+package dev.nenoeldeeb.education.absencerecord.presentation.screens.calendar.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
