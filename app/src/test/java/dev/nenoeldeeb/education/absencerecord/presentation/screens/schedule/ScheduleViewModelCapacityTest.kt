@@ -130,7 +130,7 @@ class ScheduleViewModelCapacityTest : ScheduleViewModelTestBase() {
             val state = viewModel.uiState.value
             // proposed, not applied
             assertTrue(state.pendingReplan != null, "expected a pending proposal")
-            assertEquals(2, state.pendingReplan?.dropped?.size)
+            assertEquals(2, state.pendingReplan.dropped.size)
             // exactly one unconfirmed call (the preview) and no commit
             coVerify(exactly = 1) { updateHourUseCase(any(), any(), any(), any(), false) }
             coVerify(exactly = 0) { updateHourUseCase(any(), any(), any(), any(), true) }

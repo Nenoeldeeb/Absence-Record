@@ -47,7 +47,7 @@ class ReplanDelegate(
     }
 
     /** Declines: nothing was written, so simply drop the proposal (FR-012). */
-    fun dismiss(state: ScheduleScreenState) {
+    fun dismiss() {
         updateState { it.copy(pendingReplan = null) }
     }
 

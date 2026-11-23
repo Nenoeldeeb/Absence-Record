@@ -8,13 +8,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import dev.nenoeldeeb.education.absencerecord.R
-import dev.nenoeldeeb.education.absencerecord.domain.models.DroppedStudent
 import dev.nenoeldeeb.education.absencerecord.domain.models.HourReplanResult
 
 const val REPLAN_CONFIRM_DIALOG_TAG = "replan_confirm_dialog"
 const val REPLAN_CONFIRM_BUTTON_TAG = "replan_confirm_button"
 const val REPLAN_CANCEL_BUTTON_TAG = "replan_cancel_button"
-const val REPLAN_DROPPED_ITEM_TAG = "replan_dropped_item"
 
 /**
  * Shows what an edit to a lesson block would do before anything is written.
@@ -24,7 +22,7 @@ const val REPLAN_DROPPED_ITEM_TAG = "replan_dropped_item"
  * leaves the block exactly as it was (FR-011, FR-012, FR-045).
  */
 @Composable
-fun ReplanConfirmDialog(
+internal fun ReplanConfirmDialog(
     pending: HourReplanResult.NeedsConfirmation,
     onConfirm: () -> Unit,
     onDismiss: () -> Unit
@@ -57,14 +55,5 @@ fun ReplanConfirmDialog(
                 modifier = Modifier.testTag(REPLAN_CANCEL_BUTTON_TAG)
             ) { Text(stringResource(R.string.schedule_cancel_replan)) }
         }
-    )
-}
-
-/** One line per student who would be removed, spoken and visible (FR-045). */
-@Composable
-fun DroppedStudentLine(student: DroppedStudent) {
-    Text(
-        text = stringResource(R.string.schedule_dropped_student, student.studentName),
-        modifier = Modifier.testTag(REPLAN_DROPPED_ITEM_TAG)
     )
 }

@@ -13,25 +13,19 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TimeInput
-import androidx.compose.material3.TimePicker
-import androidx.compose.material3.TimePickerDialog
-import androidx.compose.material3.TimePickerDialogDefaults
-import androidx.compose.material3.TimePickerDisplayMode
-import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import dev.nenoeldeeb.education.absencerecord.R
 import dev.nenoeldeeb.education.absencerecord.domain.services.ScheduleRules
+import dev.nenoeldeeb.education.absencerecord.presentation.screens.components.AppTimePickerDialog
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.components.StartTimeField
 import dev.nenoeldeeb.education.absencerecord.presentation.screens.schedule.components.LengthSlider
 import dev.nenoeldeeb.education.absencerecord.presentation.utils.TimeFormatter.formatTime
@@ -52,11 +46,9 @@ fun HourDialog(
     onDurationChange: (Int) -> Unit,
     onSave: () -> Unit,
     onDismiss: () -> Unit,
-    modifier: Modifier = Modifier,
-    assignedCount: Int = 0
+    modifier: Modifier = Modifier
 ) {
     var isTimePickerOpen by remember { mutableStateOf(false) }
-    var displayMode by remember { mutableStateOf(TimePickerDisplayMode.Picker) }
     val isStartValid = ScheduleRules.isHourStartValid(startMinutes, durationMinutes)
 
     AlertDialog(
@@ -83,10 +75,7 @@ fun HourDialog(
                 StartTimeField(
                     startMinutes = startMinutes,
                     isError = !isStartValid,
-                    onOpenTimePicker = {
-                        displayMode = TimePickerDisplayMode.Picker
-                        isTimePickerOpen = true
-                    }
+                    onOpenTimePicker = { isTimePickerOpen = true }
                 )
                 Text(
                     text =
@@ -144,58 +133,14 @@ fun HourDialog(
     )
 
     if (isTimePickerOpen) {
-        val timePickerState =
-            rememberTimePickerState(
-                initialHour = startMinutes / 60,
-                initialMinute = startMinutes % 60
-            )
-        TimePickerDialog(
-            onDismissRequest = { isTimePickerOpen = false },
+        AppTimePickerDialog(
+            initialMinutes = startMinutes,
+            onTimeSelected = onStartSelected,
+            onDismiss = { isTimePickerOpen = false },
             title = { Text(stringResource(R.string.schedule_start_time)) },
-            modeToggleButton = {
-                TimePickerDialogDefaults.DisplayModeToggle(
-                    onDisplayModeChange = {
-                        displayMode =
-                            if (displayMode == TimePickerDisplayMode.Picker) {
-                                TimePickerDisplayMode.Input
-                            } else {
-                                TimePickerDisplayMode.Picker
-                            }
-                    },
-                    displayMode = displayMode,
-                    modifier = Modifier.testTag(HOUR_TIME_PICKER_MODE_TOGGLE_TAG)
-                )
-            },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        onStartSelected(timePickerState.hour * 60 + timePickerState.minute)
-                        isTimePickerOpen = false
-                    },
-                    modifier =
-                        Modifier
-                            .testTag(HOUR_TIME_PICKER_CONFIRM_TAG)
-                            .defaultMinSize(minHeight = 48.dp)
-                ) {
-                    Text(stringResource(R.string.action_set))
-                }
-            },
-            dismissButton = {
-                TextButton(
-                    onClick = { isTimePickerOpen = false },
-                    modifier =
-                        Modifier
-                            .testTag(HOUR_TIME_PICKER_DISMISS_TAG)
-                            .defaultMinSize(minHeight = 48.dp)
-                ) {
-                    Text(stringResource(R.string.action_cancel))
-                }
-            }
-        ) {
-            when (displayMode) {
-                TimePickerDisplayMode.Picker -> TimePicker(state = timePickerState)
-                TimePickerDisplayMode.Input -> TimeInput(state = timePickerState)
-            }
-        }
+            confirmButtonTag = HOUR_TIME_PICKER_CONFIRM_TAG,
+            dismissButtonTag = HOUR_TIME_PICKER_DISMISS_TAG,
+            modeToggleTag = HOUR_TIME_PICKER_MODE_TOGGLE_TAG
+        )
     }
 }
