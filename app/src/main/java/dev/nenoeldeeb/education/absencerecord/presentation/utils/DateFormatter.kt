@@ -4,12 +4,23 @@ import dev.nenoeldeeb.education.absencerecord.R
 import kotlinx.datetime.DayOfWeek
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.Month
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toLocalDateTime
+import kotlin.time.Clock
 
 /**
  * Utility object for formatting dates to localized UiText.
- * Provides extension functions for LocalDate, Month, and DayOfWeek.
+ * Provides extension functions for LocalDate, Month, and DayOfWeek,
+ * as well as current date helpers.
  */
 object DateFormatter {
+    fun today(): LocalDate = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date
+
+    fun currentMonth(): LocalDate {
+        val date = today()
+        return LocalDate(date.year, date.month, 1)
+    }
+
     fun LocalDate.toMonthYearUiText(fullName: Boolean = true): UiText {
         return UiText.StringResource(
             R.string.date_format_month_year,

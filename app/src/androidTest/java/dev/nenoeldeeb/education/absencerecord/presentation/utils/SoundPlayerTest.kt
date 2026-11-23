@@ -1,5 +1,7 @@
 package dev.nenoeldeeb.education.absencerecord.presentation.utils
 
+import android.content.Context
+import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -13,36 +15,38 @@ import org.junit.runner.RunWith
  */
 @RunWith(AndroidJUnit4::class)
 class SoundPlayerTest {
+    private val context: Context get() = ApplicationProvider.getApplicationContext()
+
     @Test
     fun playAddAttendanceSound_doesNotThrow() {
         // Should execute without throwing any exception
-        SoundPlayer.playAddAttendanceSound()
+        SoundPlayer.playAddAttendanceSound(context)
     }
 
     @Test
     fun playRemoveAttendanceSound_doesNotThrow() {
         // Should execute without throwing any exception
-        SoundPlayer.playRemoveAttendanceSound()
+        SoundPlayer.playRemoveAttendanceSound(context)
     }
 
     @Test
     fun playAddAttendanceSound_multipleCallsInSuccession_doesNotThrow() {
         // Rapid succession shouldn't cause issues
-        repeat(5) { SoundPlayer.playAddAttendanceSound() }
+        repeat(5) { SoundPlayer.playAddAttendanceSound(context) }
     }
 
     @Test
     fun playRemoveAttendanceSound_multipleCallsInSuccession_doesNotThrow() {
         // Rapid succession shouldn't cause issues
-        repeat(5) { SoundPlayer.playRemoveAttendanceSound() }
+        repeat(5) { SoundPlayer.playRemoveAttendanceSound(context) }
     }
 
     @Test
     fun alternatingPlayCalls_doesNotThrow() {
         // Alternating between add and remove sounds
         repeat(3) {
-            SoundPlayer.playAddAttendanceSound()
-            SoundPlayer.playRemoveAttendanceSound()
+            SoundPlayer.playAddAttendanceSound(context)
+            SoundPlayer.playRemoveAttendanceSound(context)
         }
     }
 }

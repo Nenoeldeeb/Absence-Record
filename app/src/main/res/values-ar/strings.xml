@@ -50,6 +50,7 @@
     <string name="action_export_delete">تصدير ثم حذف</string>
     <string name="export_delete_confirmation_title">تصدير وحذف الطلاب المحددين؟</string>
     <plurals name="export_delete_confirmation_message">
+        <item quantity="zero">.</item>
         <item quantity="one">سيتم تصدير طالب واحد ثم حذفه. سيتم حذف سجلات الحضور نهائياً. يمكنك الاستعادة من ملف النسخة الاحتياطية أو التراجع مباشرة.</item>
         <item quantity="two">سيتم تصدير طالبين ثم حذفهما. سيتم حذف سجلات الحضور نهائياً. يمكنك الاستعادة من ملف النسخة الاحتياطية أو التراجع مباشرة.</item>
         <item quantity="few">سيتم تصدير %1$d طلاب ثم حذفهم. سيتم حذف سجلات الحضور نهائياً. يمكنك الاستعادة من ملف النسخة الاحتياطية أو التراجع مباشرة.</item>
