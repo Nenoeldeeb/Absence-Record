@@ -15,24 +15,36 @@ object SoundPlayer {
     private const val VOLUME_PERCENTAGE = 80
     private const val TONE_DURATION_MS = 150
     private const val RELEASE_DELAY_MS = 250L
+    private const val MIN_INTERVAL_MS = 150L
+
+    @Volatile
+    private var lastPlayedTimestampMs: Long = 0L
 
     fun playAddAttendanceSound(context: Context) {
         if (!shouldPlay(context)) return
-        playTone(ToneGenerator.TONE_SUP_PIP)
+        playTone(ToneGenerator.TONE_PROP_BEEP)
     }
 
     fun playRemoveAttendanceSound(context: Context) {
         if (!shouldPlay(context)) return
-        playTone(ToneGenerator.TONE_SUP_BUSY)
+        playTone(ToneGenerator.TONE_PROP_NACK)
     }
 
-    private fun shouldPlay(context: Context): Boolean =
-        try {
-            val audioManager = context.getSystemService(Context.AUDIO_SERVICE) as? AudioManager
-            audioManager?.ringerMode == AudioManager.RINGER_MODE_NORMAL
-        } catch (_: Exception) {
-            true
-        }
+    private fun shouldPlay(context: Context): Boolean {
+        val now = System.currentTimeMillis()
+        return now - lastPlayedTimestampMs >= MIN_INTERVAL_MS &&
+            try {
+                val audioManager = context.getSystemService(Context.AUDIO_SERVICE) as? AudioManager
+                val isNormal = audioManager?.ringerMode == AudioManager.RINGER_MODE_NORMAL
+                if (isNormal) {
+                    lastPlayedTimestampMs = now
+                }
+                isNormal
+            } catch (_: Exception) {
+                lastPlayedTimestampMs = now
+                true
+            }
+    }
 
     private fun playTone(toneType: Int) {
         try {

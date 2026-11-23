@@ -25,6 +25,8 @@ class AttendanceBookingDelegate(
     private val studentsProvider: () -> List<Student>,
     private val updateState: ((CalendarScreenState) -> CalendarScreenState) -> Unit
 ) {
+    private val inFlightStudentDates = mutableSetOf<Pair<Int, LocalDate>>()
+
     fun markStudentAttendance(
         studentId: Int,
         date: LocalDate
@@ -35,35 +37,42 @@ class AttendanceBookingDelegate(
             }
             return
         }
+        val key = studentId to date
+        if (!inFlightStudentDates.add(key)) return
+
         scope.launch {
-            attendanceUseCases.recordStudentAttendanceUseCase(
-                StudentAttendance(studentId = studentId, date = date)
-            )
-                .onSuccess {
-                    val name = studentsProvider().firstOrNull { it.id == studentId }?.name
-                    updateState {
-                        it.copy(
-                            attendanceMessage =
-                                if (name != null) {
-                                    UiText.StringResource(R.string.calendar_attendance_marked, name)
-                                } else {
-                                    null
-                                },
-                            lastAttendanceChange =
-                                LastAttendanceChange(
-                                    studentId = studentId,
-                                    date = date,
-                                    markedPresent = true
-                                ),
-                            pendingSoundIsAdd = true
-                        )
+            try {
+                attendanceUseCases.recordStudentAttendanceUseCase(
+                    StudentAttendance(studentId = studentId, date = date)
+                )
+                    .onSuccess {
+                        val name = studentsProvider().firstOrNull { it.id == studentId }?.name
+                        updateState {
+                            it.copy(
+                                attendanceMessage =
+                                    if (name != null) {
+                                        UiText.StringResource(R.string.calendar_attendance_marked, name)
+                                    } else {
+                                        null
+                                    },
+                                lastAttendanceChange =
+                                    LastAttendanceChange(
+                                        studentId = studentId,
+                                        date = date,
+                                        markedPresent = true
+                                    ),
+                                pendingSoundIsAdd = true
+                            )
+                        }
                     }
-                }
-                .onFailure { e ->
-                    updateState {
-                        it.copy(error = e.toUiText())
+                    .onFailure { e ->
+                        updateState {
+                            it.copy(error = e.toUiText())
+                        }
                     }
-                }
+            } finally {
+                inFlightStudentDates.remove(key)
+            }
         }
     }
 
@@ -77,33 +86,40 @@ class AttendanceBookingDelegate(
             }
             return
         }
+        val key = studentId to date
+        if (!inFlightStudentDates.add(key)) return
+
         scope.launch {
-            attendanceUseCases.deleteStudentAttendanceUseCase(studentId, date)
-                .onSuccess {
-                    val name = studentsProvider().firstOrNull { it.id == studentId }?.name
-                    updateState {
-                        it.copy(
-                            attendanceMessage =
-                                if (name != null) {
-                                    UiText.StringResource(R.string.calendar_attendance_removed, name)
-                                } else {
-                                    null
-                                },
-                            lastAttendanceChange =
-                                LastAttendanceChange(
-                                    studentId = studentId,
-                                    date = date,
-                                    markedPresent = false
-                                ),
-                            pendingSoundIsAdd = false
-                        )
+            try {
+                attendanceUseCases.deleteStudentAttendanceUseCase(studentId, date)
+                    .onSuccess {
+                        val name = studentsProvider().firstOrNull { it.id == studentId }?.name
+                        updateState {
+                            it.copy(
+                                attendanceMessage =
+                                    if (name != null) {
+                                        UiText.StringResource(R.string.calendar_attendance_removed, name)
+                                    } else {
+                                        null
+                                    },
+                                lastAttendanceChange =
+                                    LastAttendanceChange(
+                                        studentId = studentId,
+                                        date = date,
+                                        markedPresent = false
+                                    ),
+                                pendingSoundIsAdd = false
+                            )
+                        }
                     }
-                }
-                .onFailure { e ->
-                    updateState {
-                        it.copy(error = e.toUiText())
+                    .onFailure { e ->
+                        updateState {
+                            it.copy(error = e.toUiText())
+                        }
                     }
-                }
+            } finally {
+                inFlightStudentDates.remove(key)
+            }
         }
     }
 

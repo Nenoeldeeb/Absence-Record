@@ -193,4 +193,44 @@ class CalendarViewModelMarkedDatesTest : CalendarViewModelTestBase() {
             assertNull(viewModel.uiState.value.lastAttendanceChange)
             assertNull(viewModel.uiState.value.error)
         }
+
+    @Test
+    fun `rapid duplicate markStudentAttendance while in-flight calls use case only once`() =
+        runTest {
+            coEvery { studentManagementUseCases.getAllStudentsUseCase() } returns
+                flowOf(Result.success(listOf(Student(1, "Layla"))))
+            coEvery { recordStudentAttendanceUseCase(any()) } coAnswers {
+                kotlinx.coroutines.delay(100)
+                Result.success(1L)
+            }
+            createViewModel(ClassFilterRepositoryImpl())
+            advanceUntilIdle()
+
+            val date = LocalDate(2026, 1, 15)
+            viewModel.onEvent(CalendarScreenEvent.MarkStudentAttendance(1, date))
+            viewModel.onEvent(CalendarScreenEvent.MarkStudentAttendance(1, date))
+            advanceUntilIdle()
+
+            coVerify(exactly = 1) { recordStudentAttendanceUseCase(any()) }
+        }
+
+    @Test
+    fun `rapid duplicate deleteStudentAttendance while in-flight calls use case only once`() =
+        runTest {
+            coEvery { studentManagementUseCases.getAllStudentsUseCase() } returns
+                flowOf(Result.success(listOf(Student(1, "Layla"))))
+            coEvery { deleteStudentAttendanceUseCase(any(), any()) } coAnswers {
+                kotlinx.coroutines.delay(100)
+                Result.success(Unit)
+            }
+            createViewModel(ClassFilterRepositoryImpl())
+            advanceUntilIdle()
+
+            val date = LocalDate(2026, 1, 15)
+            viewModel.onEvent(CalendarScreenEvent.DeleteStudentAttendance(1, date))
+            viewModel.onEvent(CalendarScreenEvent.DeleteStudentAttendance(1, date))
+            advanceUntilIdle()
+
+            coVerify(exactly = 1) { deleteStudentAttendanceUseCase(any(), any()) }
+        }
 }
